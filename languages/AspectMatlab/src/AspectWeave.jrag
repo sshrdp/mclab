@@ -1,0 +1,136 @@
+import aspectMatlab.AspectsEngine;
+
+aspect AspectWeave {
+	syn Boolean Program.aspectsWeave() { throw new UnsupportedOperationException(getClass().getName() + ".aspectsWeave()"); }
+     
+	eq FunctionList.aspectsWeave() {
+		for(Function func : getFunctions()) {
+			func.aspectsWeave();
+		}
+
+		return true;
+    }  
+    
+    eq Script.aspectsWeave() {
+    	AspectsEngine.weaveStmts(getStmts());
+		
+		return true;
+    } 
+    
+    eq ClassDef.aspectsWeave() {
+    	for(Methods methods : getMethods()) {
+            methods.aspectsWeave();
+        }
+        
+		return true;
+    } 
+    
+    eq Aspect.aspectsWeave() {
+    	//TODO: weaving into aspect itself
+    	
+		return true;
+    }
+    
+    public void Function.aspectsWeave() {
+    	AspectsEngine.weaveStmts(getStmts());
+			
+        for(Function fun : getNestedFunctions()) {
+            fun.aspectsWeave();
+		}
+    }
+    
+    public void Methods.aspectsWeave() {       
+        for(PropertyAccess prop : getPropAccs())
+            prop.aspectsWeave();
+        
+        for(Function func : getFunctions())
+            func.aspectsWeave();
+    }
+    
+    public void PropertyAccess.aspectsWeave() {       
+        AspectsEngine.weaveStmts(getStmts());
+        
+        for(Function func : getNestedFunctions()) {
+            func.aspectsWeave();
+		}
+    }
+    
+    //////////////
+    //Statements//
+    //////////////
+    
+    syn Boolean Stmt.aspectsWeave() { throw new UnsupportedOperationException(getClass().getName() + ".aspectsWeave()"); }
+    
+    eq EmptyStmt.aspectsWeave() = true;
+    eq GlobalStmt.aspectsWeave() = true;
+    eq PersistentStmt.aspectsWeave() = true;
+    eq ShellCommandStmt.aspectsWeave() = true;
+    eq ReturnStmt.aspectsWeave() = true;
+    eq Annotation.aspectsWeave() = true;
+	eq ExpandedAnnotation.aspectsWeave() = true;
+	eq VariableDecl.aspectsWeave() = true;
+	eq BreakStmt.aspectsWeave()  = true;
+    eq ContinueStmt.aspectsWeave()  = true;
+    
+    eq ForStmt.aspectsWeave() {
+    	//TODO: take it out in a function
+	   	//getAssignStmt().aspectsWeave();
+	   	
+	   	AspectsEngine.weaveStmts(getStmts());
+        
+        return true;
+    } 
+    
+    eq WhileStmt.aspectsWeave() {
+    	getExpr().aspectsWeave();
+    	
+	   	AspectsEngine.weaveStmts(getStmts());
+        
+        return true;
+    } 
+    
+    eq TryStmt.aspectsWeave() {
+    	AspectsEngine.weaveStmts(getTryStmts());
+        AspectsEngine.weaveStmts(getCatchStmts());
+        
+        return true;
+    } 
+    
+    eq SwitchStmt.aspectsWeave() {
+    	getExpr().aspectsWeave();
+    	
+	   	for(SwitchCaseBlock sb : getSwitchCaseBlocks()) {
+	   		sb.getExpr().aspectsWeave();
+	   	
+	   		AspectsEngine.weaveStmts(sb.getStmts());
+        }
+        
+        if(hasDefaultCaseBlock()) {
+        	AspectsEngine.weaveStmts(getDefaultCaseBlock().getStmts());
+	    }
+	    
+	    return true;
+    } 
+    
+    eq IfStmt.aspectsWeave() {
+	   	for(IfBlock ib : getIfBlocks()) {
+	   		ib.getCondition().aspectsWeave();
+	   		
+	   		AspectsEngine.weaveStmts(ib.getStmts());
+        }
+        
+        if(hasElseBlock()) {
+        	AspectsEngine.weaveStmts(getElseBlock().getStmts());
+	    }
+	    
+	    return true;
+    }
+    
+    ///////////////
+    //Expressions//
+    ///////////////
+    
+    syn Boolean Expr.aspectsWeave() {		
+		return true;
+    }
+}

@@ -1,0 +1,24 @@
+aspect test
+
+properties
+count = 0;
+end
+
+methods
+function x = getCount()
+x = count;
+end
+end
+
+patterns
+arraysetb + set(*, *.b);
+end
+
+actions
+
+countsetb : after arraysetb
+count = count + 1;
+end
+
+end
+end

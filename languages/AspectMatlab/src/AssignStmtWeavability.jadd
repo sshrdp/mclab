@@ -1,0 +1,8 @@
+aspect AssignStmtWeavability {
+
+	private boolean AssignStmt.isWeavable = true;
+        
+    public void AssignStmt.setWeavability(boolean isWeavable) { this.isWeavable = isWeavable; }
+    public boolean AssignStmt.getWeavability() { return this.isWeavable; }
+
+}

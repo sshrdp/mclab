@@ -1,0 +1,115 @@
+
+aspect AspectsPrettyPrint {
+      
+    eq Aspect.getPrettyPrintedLessComments() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("aspect ");
+        buf.append(getName());
+        buf.append('\n');
+        for(HelpComment comment : getHelpComments()) {
+            buf.append(comment.getPrettyPrinted());
+            buf.append('\n');
+        }
+        for(Properties prop : getPropertys()) {
+            buf.append(prop.getPrettyPrinted());
+            buf.append('\n');
+        }
+        for(Methods methods : getMethods()) {
+            buf.append(methods.getPrettyPrinted());
+            buf.append('\n');
+        }
+        for(Patterns patterns : getPatterns()) {
+            buf.append(patterns.getPrettyPrinted());
+            buf.append('\n');
+        }
+        for(Actions actions : getActions()) {
+            buf.append(actions.getPrettyPrinted());
+            buf.append('\n');
+        }
+        buf.append("end");
+        return buf.toString();
+    }
+    
+    eq Patterns.getPrettyPrintedLessComments() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("patterns ");
+        buf.append('\n');
+        for(Pattern pattern : getPatterns()) {
+            buf.append(pattern.getPrettyPrinted());
+            buf.append('\n');
+        }
+        buf.append("end");
+        return buf.toString();
+    }
+    
+    eq Pattern.getPrettyPrintedLessComments() {
+        StringBuffer buf = new StringBuffer();
+        buf.append(getName());
+        buf.append(" : ");
+        buf.append(getPD().getPrettyPrinted());
+        buf.append(";");
+        return buf.toString();
+    }
+    
+    eq PatternDesignator.getPrettyPrintedLessComments() {
+        StringBuffer buf = new StringBuffer();
+        buf.append(getName());
+        buf.append("(");
+        boolean first = true;
+        for(Name args : getArgs()) {
+        	if(!first)
+            	buf.append(", ");
+            buf.append(args.getPrettyPrinted());
+            first = false;
+        }
+        buf.append(")");
+        return buf.toString();
+    }
+    
+    eq Actions.getPrettyPrintedLessComments() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("actions ");
+        buf.append('\n');
+        for(AspectAction aspectActions : getAspectActions()) {
+            buf.append(aspectActions.getPrettyPrinted());
+            buf.append('\n');
+        }
+        buf.append("end");
+        return buf.toString();
+    }
+    
+    eq AspectAction.getPrettyPrintedLessComments() {
+        StringBuffer buf = new StringBuffer();
+        buf.append(getName());
+        buf.append(" : ");
+        buf.append(getType());
+        buf.append(" ");
+        buf.append(getPattern());
+        boolean first = true;
+        for(Name attr : getSelectors()) {
+            if(first)
+            	buf.append(" : (");            
+            else
+                buf.append(", ");
+            buf.append(attr.getPrettyPrinted());
+            first = false;
+        }
+        if(!first)
+        	buf.append(")");
+        buf.append('\n');
+        for(HelpComment comment : getHelpComments()) {
+            buf.append(comment.getPrettyPrinted());
+            buf.append('\n');
+        }
+        for(Stmt stmt : getStmts()) {
+            buf.append(stmt.getPrettyPrinted());
+            buf.append('\n');
+        }
+        for(Function func : getNestedFunctions()) {
+            buf.append(func.getStructureString());
+            buf.append('\n');
+        }
+        buf.append("end");
+        return buf.toString();
+    }
+}

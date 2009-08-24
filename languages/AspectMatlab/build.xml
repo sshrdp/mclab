@@ -1,0 +1,183 @@
+<project name="aspectMatlab" default="build">
+	<!-- load properties -->
+	<property file="aspects.properties" />
+
+	<!-- useful paths -->
+	<path id="jflex.jar.path" path="${lib.dir}/${jflex.jar.path.prop}" />
+	<path id="beaver.jar.path" path="${lib.dir}/${beaver.jar.path.prop}" />
+	<path id="beaver.rt.jar.path" path="${lib.dir}/${beaver.rt.jar.path.prop}" />
+	<path id="jastadd.jar.path" path="${lib.dir}/${jastadd.jar.path.prop}" />
+	<path id="junit.jar.path" path="${lib.dir}/${junit.jar.path.prop}" />
+
+	<!--=====================================================================-->
+	<!-- Private Targets                                                     -->
+	<!--=====================================================================-->
+
+	<import file="../shared/taskdef.xml" />
+	<import file="../shared/gen.xml" />
+	<import file="../shared/compile.xml" />
+	<import file="../shared/bindir.xml" />
+
+	<!-- Extend and override parts of gen.xml -->
+
+	<target name="compile.test.generators" unless="inside.eclipse">
+		<mkdir dir="${ant.bin.dir}" />
+		<javac destdir="${basedir}/${ant.bin.dir}">
+			<src path="${test.dir}" />
+			<include name="**/*TestGenerator.java" />
+		</javac>
+	</target>
+
+	<target name="gen.scanner.tests" depends="set.bin.dir">
+		<echo message="Generating scanner tests" />
+		<java classname="${lexer.test.generator.class}" classpath="${bin.dir}">
+			<arg value="${lexer.test.list.file}" />
+			<arg value="${basedir}/${gen.dir}" />
+		</java>
+	</target>
+
+	<target name="gen.parser.pass.tests" depends="set.bin.dir">
+		<echo message="Generating parser pass tests" />
+		<java classname="${parser.pass.test.generator.class}" classpath="${bin.dir}">
+			<arg value="${parser.pass.test.list.file}" />
+			<arg value="${basedir}/${gen.dir}" />
+		</java>
+	</target>
+
+	<target name="gen.parser.fail.tests" depends="set.bin.dir">
+		<echo message="Generating parser fail tests" />
+		<java classname="${parser.fail.test.generator.class}" classpath="${bin.dir}">
+			<arg value="${parser.fail.test.list.file}" />
+			<arg value="${basedir}/${gen.dir}" />
+		</java>
+	</target>
+
+	<target name="gen.tests" depends="gen.scanner.tests,
+	gen.parser.pass.tests, gen.parser.fail.tests" />
+
+	<!-- jflex, beaver, jastadd, and tests -->
+	<!-- NB: overrides target from gen.xml -->
+	<target name="gen" depends="compile.test.generators, Gen.gen-parser, gen.tests" />
+
+	<!-- Overriding to define classpaths (may depend on bin.dir) -->
+	<target name="set.annotations.bin.dir.eclipse" if="inside.eclipse">
+			<property name="annotations.bin.dir" value="${annotations.eclipse.bin.dir}" />
+	</target>
+	
+	<target name="set.annotations.bin.dir.no.eclipse" unless="inside.eclipse">
+				<property name="annotations.bin.dir" value="${annotations.ant.bin.dir}" />
+	</target>
+	
+	<target name="set.annotations.bin.dir" depends="set.annotations.bin.dir.no.eclipse, set.annotations.bin.dir.eclipse" />
+	
+	<target name="set.natlab.bin.dir.eclipse" if="inside.eclipse">
+			<property name="natlab.bin.dir" value="${natlab.eclipse.bin.dir}" />
+	</target>
+	
+	<target name="set.natlab.bin.dir.no.eclipse" unless="inside.eclipse">
+				<property name="natlab.bin.dir" value="${natlab.ant.bin.dir}" />
+	</target>
+	
+	<target name="set.natlab.bin.dir" depends="set.natlab.bin.dir.no.eclipse, set.natlab.bin.dir.eclipse" />
+	
+	<target name="set.bin.dir" depends="set.annotations.bin.dir, set.natlab.bin.dir, BinDir.set.bin.dir">
+		<path id="compile.classpath">
+			<path refid="junit.jar.path" />
+			<path refid="beaver.rt.jar.path" />
+			<path location="${basedir}/${bin.dir}" />
+			<path location="${basedir}/${natlab.bin.dir}" />
+			<path location="${basedir}/${annotations.bin.dir}" />
+		</path>
+		<path id="test.classpath">
+			<path refid="junit.jar.path" />
+			<path refid="beaver.rt.jar.path" />
+			<path location="${basedir}/${bin.dir}" />
+			<path location="${basedir}/${natlab.bin.dir}" />
+			<path location="${basedir}/${annotations.bin.dir}" />
+		</path>
+	</target>
+
+	<!-- jflex from metalexer spec -->
+	<target name="metalexer">
+		<java jar="${lib.dir}/${metalexer.jar.path.prop}" failonerror="true" fork="true">
+			<arg value="${layout.name}" />
+			<arg value="${parent.src.dir}/${lexer.dir};${src.dir}/${lexer.dir}" />
+			<arg value="${gen.dir}/${lexer.dir}" />
+		</java>
+	</target>
+
+	<!-- generates Java files from JFlex scanner spec -->
+	<!-- NB: overrides target from gen.xml -->
+	<target name="jflex" depends="def.jflex.task, metalexer">
+		<jflex file="${gen.dir}/${lexer.dir}/${layout.name}.flex" destdir="${gen.dir}" nobak="yes" />
+	</target>
+	
+	<!-- NB: overrides target from gen.xml -->
+	<target name="parser" depends="def.beaver.task">
+            <mkdir dir="${gen.dir}/${parser.dir}"/>
+            <!-- generate the parser phase 1, create a full .lalr specification from fragments-->
+            <concat destfile="${gen.dir}/${parser.dir}/${parser.input}" binary="true" force="false">
+            		<fileset dir="${parent.src.dir}/${parser.dir}">
+                            <include name="**/*.parser"/>
+            				<exclude name="header.parser"/>
+                    </fileset>
+                    <fileset dir="${src.dir}">
+                            <include name="**/*.parser"/>
+                    </fileset>
+            </concat>
+            <!-- generate the parser phase 2, translating .lalr to .beaver -->
+	<java classpath="${lib.dir}/${jastaddparser.jar.path.prop}:${lib.dir}/${beaver.rt.jar.path.prop}" classname="Main" fork="true">
+                    <arg line="${gen.dir}/${parser.dir}/${parser.input} ${gen.dir}/${parser.dir}/${parser.grammar}"/>
+            </java>
+            <!-- generate the parser phase 3, translating .beaver to .java -->
+            <beaver file="${gen.dir}/${parser.dir}/${parser.grammar}" destdir="${gen.dir}/${parser.output}" terminalNames="yes" compress="no" useSwitch="yes"/>
+    </target>
+	
+	<!-- generates Java files from JastAdd specs -->
+	<!-- NB: overrides target from gen.xml -->
+	<target name="jastadd" depends="def.jastadd.task">
+		<mkdir dir="${gen.dir}/${ast.pkg}" />
+		<jastadd package="${ast.pkg}" beaver="true" rewrite="true" outdir="${basedir}/${gen.dir}">
+			<fileset dir="${parent.src.dir}">
+				<include name="**/*.ast" />
+				<include name="Comments.jadd" />
+				<include name="OutputSuppression.jadd" />
+				<include name="PrettyPrint.jrag" />
+				<!-- <include name="**/*.jadd" /> -->
+				<!-- <include name="**/*.jrag" /> -->
+			</fileset>
+			<fileset dir="${parent.test.dir}">
+				<include name="**/*.ast" />
+				<include name="**/*.jadd" />
+				<include name="**/*.jrag" />
+			</fileset>
+			<fileset dir="${src.dir}">
+				<include name="**/*.ast" />
+				<include name="**/*.jadd" />
+				<include name="**/*.jrag" />
+			</fileset>
+			<fileset dir="${test.dir}">
+				<include name="**/*.ast" />
+				<include name="**/*.jadd" />
+				<include name="**/*.jrag" />
+			</fileset>
+		</jastadd>
+	</target>
+
+	<!--=====================================================================-->
+	<!-- Public Targets                                                      -->
+	<!--=====================================================================-->
+
+	<import file="../shared/cli.xml" />
+	<import file="../shared/eclipse.xml" />
+
+	<!-- public versions of cli.xml targets -->
+	<target name="build" depends="CommandLineInterface.build" description="generate and build all files" />
+	<target name="clean" depends="CommandLineInterface.clean" description="deletes all files produced by build" />
+	<target name="test" depends="CommandLineInterface.test" description="runs all JUnit tests" />
+
+	<!-- public versions of eclipse.xml targets -->
+	<target name="eclipse.build" depends="Eclipse.eclipse.build" description="generate all files, let Eclipse build" />
+	<target name="eclipse.clean" depends="Eclipse.eclipse.clean" description="deletes all files produced by build.eclipse" />
+	<target name="eclipse.test" depends="Eclipse.eclipse.test" description="runs all JUnit tests, as built by Eclipse" />
+</project>

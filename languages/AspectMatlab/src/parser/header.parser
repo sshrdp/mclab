@@ -1,0 +1,77 @@
+%header {:
+	 package aspectMatlab;
+	 import aspectMatlab.ast.*;
+	 import natlab.CommentBuffer;
+	 import natlab.DecIntNumericLiteralValue;
+	 import natlab.FPNumericLiteralValue;
+:};
+
+//JastAddParser limitation, can't add two embedded sections.
+//Code in-lined in parser file, until we have MetaParser.
+/*
+%embed {:
+
+    //helper for constructing an AST Aspect node
+    //separates properties, methods, patterns and actions
+    private Aspect aspect(String name, List<HelpComment> comments, List body) {
+        List<Properties> prop = new List<Properties>();
+        List<Methods> methods = new List<Methods>();
+        List<Patterns> patterns = new List<Patterns>();
+        List<Actions> actions = new List<Actions>();
+        
+        if(body != null) {
+            for(Object obj : body) {
+            	Symbol propOrMethodOrPatternOrAction = (Symbol)obj;
+                if(propOrMethodOrPatternOrAction instanceof Properties) {
+                    prop.add((Properties) propOrMethodOrPatternOrAction);
+                } else if(propOrMethodOrPatternOrAction instanceof Methods) {
+                    methods.add((Methods) propOrMethodOrPatternOrAction);
+                } else if(propOrMethodOrPatternOrAction instanceof Patterns) {
+                    patterns.add((Patterns) propOrMethodOrPatternOrAction);
+                } else if(propOrMethodOrPatternOrAction instanceof Actions) {
+                    actions.add((Actions) propOrMethodOrPatternOrAction);
+                } else {
+                    //NB: programmatic error, not parser error
+                    int pos = propOrMethodOrPatternOrAction.getStart();
+                    int line = Symbol.getLine(pos);
+                    int col = Symbol.getColumn(pos);
+                    throw new RuntimeException("Symbol in body is not a Property, a Method, a Pattern, or an Action: " + getPosString(propOrMethodOrPatternOrAction) + "  " + propOrMethodOrPatternOrAction);
+                }
+            }
+        }
+        return new Aspect(name, nullToEmpty(comments), prop, methods, patterns, actions);
+    }
+    
+    //helper for constructing an AST Action node
+    //separates stmts from nested functions and attaches comments
+    private AspectAction action(String name, Name place, String pattern, List<Name> inParams, List<HelpComment> comments, List<FunctionOrSignatureOrPropertyAccessOrStmt> body) {
+        List<Stmt> stmts = new List<Stmt>();
+        List<Function> nestedFunctions = new List<Function>();
+        
+        if(body != null) {
+            for(Symbol stmtOrFcn : body) {
+                if(stmtOrFcn instanceof Stmt) {
+                    stmts.add((Stmt) stmtOrFcn);
+                } else if(stmtOrFcn instanceof Function) {
+                    nestedFunctions.add((Function) stmtOrFcn);
+                } else {
+                    //NB: programmatic error, not parser error
+                    int pos = stmtOrFcn.getStart();
+                    int line = Symbol.getLine(pos);
+                    int col = Symbol.getColumn(pos);
+                    throw new RuntimeException("Symbol in body is neither a Stmt nor a Function: " + getPosString(stmtOrFcn) + "  " + stmtOrFcn);
+                }
+            }
+        }
+        return annotateWithComments(new AspectAction(
+                name,
+                place.getID(),
+                pattern,
+                nullToEmpty(inParams),
+                nullToEmpty(comments),
+                stmts,
+                nestedFunctions));
+    }
+	
+:};
+*/

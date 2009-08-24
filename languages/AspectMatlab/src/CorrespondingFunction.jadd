@@ -1,0 +1,32 @@
+aspect CorrespondingFunction {    
+    
+    //Function
+    private Function Function.CorrespondingFunction = null;
+    private int Function.correspondingCount = 0;
+    
+    public int Function.getCorrespondingCount() { return this.correspondingCount; }
+    public void Function.incCorrespondingCount() { this.correspondingCount++; }
+    
+    public Function Function.getCorrespondingFunction() { return CorrespondingFunction; }
+    public void Function.setCorrespondingFunction(Function corFun) { this.CorrespondingFunction = corFun; }
+    
+    //PropertyAccess
+    private Function PropertyAccess.CorrespondingFunction = null;
+    private int PropertyAccess.correspondingCount = 0;
+    
+    public int PropertyAccess.getCorrespondingCount() { return this.correspondingCount; }
+    public void PropertyAccess.incCorrespondingCount() { this.correspondingCount++; }
+    
+    public Function PropertyAccess.getCorrespondingFunction() { return CorrespondingFunction; }
+    public void PropertyAccess.setCorrespondingFunction(Function corFun) { this.CorrespondingFunction = corFun; }
+    
+    //Script
+    private Function Script.CorrespondingFunction = null;
+    private int Script.correspondingCount = 0;
+    
+    public int Script.getCorrespondingCount() { return this.correspondingCount; }
+    public void Script.incCorrespondingCount() { this.correspondingCount++; }
+    
+    public Function Script.getCorrespondingFunction() { return CorrespondingFunction; }
+    public void Script.setCorrespondingFunction(Function corFun) { this.CorrespondingFunction = corFun; }
+}

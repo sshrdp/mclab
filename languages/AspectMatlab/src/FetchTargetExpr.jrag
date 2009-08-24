@@ -1,0 +1,18 @@
+import aspectMatlab.AspectsEngine;
+
+aspect FetchTargetExpr {
+	
+	syn String Expr.FetchTargetExpr() = "";
+ 	
+ 	eq NameExpr.FetchTargetExpr() = getName().getID();
+	
+	eq ParameterizedExpr.FetchTargetExpr() = getTarget().FetchTargetExpr();
+
+	eq CellIndexExpr.FetchTargetExpr() = getTarget().FetchTargetExpr();
+ 	
+ 	eq DotExpr.FetchTargetExpr() {
+ 		//TODO: how about target?
+ 		//getTarget().FetchTargetExpr();
+ 		return getField().getID();
+ 	}
+}
