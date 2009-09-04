@@ -1,0 +1,57 @@
+aspect GlobalStructure {
+
+    syn Boolean Program.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) { throw new UnsupportedOperationException(getClass().getName() + ".weaveGlobalStructure()"); }
+     
+	eq FunctionList.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {
+		for(Function func : getFunctions()) {
+			func.weaveGlobalStructure(stmts);
+		}
+
+		return true;
+    }  
+    
+    eq Script.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {
+    	for(int i=stmts.getNumChild()-1; i>=0; i--) {
+    		Stmt s = stmts.getChild(i);
+			getStmts().insertChild(s, 0);
+		}
+		return true;
+    } 
+    
+    eq ClassDef.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {
+    	for(Methods methods : getMethods()) {
+            methods.weaveGlobalStructure(stmts);
+        }
+        
+		return true;
+    } 
+    
+    eq Aspect.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {
+    	//TODO: weaving into aspect itself
+    	
+		return true;
+    }
+    
+    public void Function.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {
+    	for(int i=stmts.getNumChild()-1; i>=0; i--) {
+    		Stmt s = stmts.getChild(i);
+			getStmts().insertChild(s, 0);
+		}
+    }
+    
+    public void Methods.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {       
+        for(PropertyAccess prop : getPropAccs())
+            prop.weaveGlobalStructure(stmts);
+        
+        for(Function func : getFunctions())
+            func.weaveGlobalStructure(stmts);
+    }
+    
+    public void PropertyAccess.weaveGlobalStructure(aspectMatlab.ast.List<Stmt> stmts) {       
+        for(int i=stmts.getNumChild()-1; i>=0; i--) {
+    		Stmt s = stmts.getChild(i);
+			getStmts().insertChild(s, 0);
+		}
+    }
+
+}

@@ -46,7 +46,6 @@ public class Main
 			if(prog instanceof Aspect) {
 				System.err.println("Fetching Aspect Info: " + file);
 				AspectsEngine.fetchAspectInfo(prog);
-				//aspects.add(AspectsEngine.convertToFunctionList(prog));
 				aspects.add(AspectsEngine.convertToClass(prog));
 			} else {
 				programs.add(prog);
@@ -59,19 +58,16 @@ public class Main
 		CompilationUnits cu = new CompilationUnits();
 		for( Program p : programs ){
 			cu.addProgram( p );
-			//p.aspectsCorrespondingFunctions();
-			//p.aspectsWeave();
 		}
 
 		for( Program p : cu.getPrograms() ){
-			//cu.addProgram( p );
 			p.aspectsCorrespondingFunctions();
-			//p.aspectsWeave();
 		}
 		
+		//adding aspect global structure
+		AspectsEngine.weaveGlobalStructure(cu);
+		
 		for( Program p : cu.getPrograms() ){
-			//cu.addProgram( p );
-			//p.aspectsCorrespondingFunctions();
 			p.aspectsWeave();
 		}
 		

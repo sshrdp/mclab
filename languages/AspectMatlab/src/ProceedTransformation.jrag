@@ -1,0 +1,192 @@
+import aspectMatlab.AspectsEngine;
+
+aspect ProceedTransformation {
+
+	syn boolean Stmt.ProceedTransformation() { return true; }
+              
+    eq ExprStmt.ProceedTransformation() {
+    	getExpr().ProceedTransformation();
+    	return true;
+    }
+    
+    eq AssignStmt.ProceedTransformation() {
+    	//getLHS().ProceedTransformation();
+    	getRHS().ProceedTransformation();
+    	
+    	return true;
+    }
+    
+    eq ForStmt.ProceedTransformation() {
+	   	getAssignStmt().ProceedTransformation();
+	   	for(Stmt stmt : getStmts()) {
+           	stmt.ProceedTransformation();
+        }
+        
+        return true;
+    }
+    
+    eq WhileStmt.ProceedTransformation() {
+    	getExpr().ProceedTransformation();
+    	
+	   	for(Stmt stmt : getStmts()) {
+           	stmt.ProceedTransformation();
+        }
+        
+        return true;
+    } 
+    
+    eq TryStmt.ProceedTransformation() {
+	   	for(Stmt stmt : getTryStmts()) {
+           	stmt.ProceedTransformation();
+        }
+        for(Stmt stmt : getCatchStmts()) {
+           	stmt.ProceedTransformation();
+        }
+        
+        return true;
+    } 
+    
+    eq SwitchStmt.ProceedTransformation() {
+    	getExpr().ProceedTransformation();
+    	
+	   	for(SwitchCaseBlock sb : getSwitchCaseBlocks()) {
+	   		sb.getExpr().ProceedTransformation();
+	   	
+           	for(Stmt stmt : sb.getStmts()) {
+	           	stmt.ProceedTransformation();
+	        }
+        }
+        
+        if(hasDefaultCaseBlock()) {
+	        for(Stmt stmt : getDefaultCaseBlock().getStmts()) {
+		        stmt.ProceedTransformation();
+		    }
+	    }
+	    
+	    return true;
+    } 
+    
+    eq IfStmt.ProceedTransformation() {
+	   	for(IfBlock ib : getIfBlocks()) {
+	   		ib.getCondition().ProceedTransformation();
+	   		
+           	for(Stmt stmt : ib.getStmts()) {
+	           	stmt.ProceedTransformation();
+	        }
+        }
+        
+        if(hasElseBlock()) {
+	        for(Stmt stmt : getElseBlock().getStmts()) {
+		        stmt.ProceedTransformation();
+		    }
+	    }
+	    
+	    return true;
+    }
+
+	syn boolean Expr.ProceedTransformation() { return true; }
+ 	
+ 	eq NameExpr.ProceedTransformation() {
+		AspectsEngine.transformProceedCall(this);
+		return true;
+	}
+	
+	eq ParameterizedExpr.ProceedTransformation() {
+		for(Expr arg : getArgs()) {
+           	arg.ProceedTransformation();
+        }
+
+		//TODO
+ 		//getTarget().ProceedTransformation();
+        AspectsEngine.transformProceedCall(this);
+        
+		return true;
+ 	}
+ 	
+ 	eq RangeExpr.ProceedTransformation() {
+ 		getLower().ProceedTransformation();
+ 		getUpper().ProceedTransformation();
+ 		
+ 		if(hasIncr())
+ 			getIncr().ProceedTransformation();
+ 		
+ 		return true;
+ 	}
+
+	eq CellIndexExpr.ProceedTransformation() { 		
+ 		for(Expr arg : getArgs()) {
+           	arg.ProceedTransformation();
+        }
+ 		
+ 		//TODO
+ 		//getTarget().ProceedTransformation();
+ 		
+ 		return true;
+ 	}
+ 	
+ 	eq DotExpr.ProceedTransformation() {
+ 		//getField().ProceedTransformation();
+ 		
+ 		//TODO
+ 		//getTarget().ProceedTransformation();
+ 		 		
+ 		return true;
+ 	}
+
+	eq MatrixExpr.ProceedTransformation() {
+		for(Row row : getRows()) {
+			for(Expr exp : row.getElements()) {
+				exp.ProceedTransformation();
+			}
+        }
+        
+        return true;
+    }
+	
+	eq CellArrayExpr.ProceedTransformation() {
+		for(Row row : getRows()) {
+			for(Expr exp : row.getElements()) {
+				exp.ProceedTransformation();
+			}
+        }
+        
+        return true;
+    }
+    
+    eq SuperClassMethodExpr.ProceedTransformation() {
+		//getClassName().ProceedTransformation();
+ 		//getFuncName().ProceedTransformation();
+ 		
+ 		return true;
+    }
+    
+	eq UnaryExpr.ProceedTransformation() {
+		getOperand().ProceedTransformation();
+ 		
+ 		return true;
+    }
+	
+	eq BinaryExpr.ProceedTransformation() {
+		getLHS().ProceedTransformation();
+ 		getRHS().ProceedTransformation();
+ 		
+ 		return true;
+    }
+	
+	eq FunctionHandleExpr.ProceedTransformation() {
+		//getName().ProceedTransformation();
+ 		
+ 		return true;
+    }
+    
+    eq LambdaExpr.ProceedTransformation() {
+ 		getBody().ProceedTransformation();
+ 		
+ 		for(Name arg : getInputParams()) {
+           	//arg.ProceedTransformation();
+        }
+ 		
+ 		return true;
+ 	}
+
+}

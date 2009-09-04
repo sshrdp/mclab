@@ -33,7 +33,8 @@ aspect AspectWeave {
     
     public void Function.aspectsWeave() {
     	AspectsEngine.weaveStmts(getStmts());
-			
+		AspectsEngine.weaveFunction(this);
+		
         for(Function fun : getNestedFunctions()) {
             fun.aspectsWeave();
 		}
