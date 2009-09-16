@@ -1,6 +1,6 @@
 %header {:
 	 package aspectMatlab;
-	 import aspectMatlab.ast.*;
+	 import ast.*;
 	 import natlab.CommentBuffer;
 	 import natlab.DecIntNumericLiteralValue;
 	 import natlab.FPNumericLiteralValue;

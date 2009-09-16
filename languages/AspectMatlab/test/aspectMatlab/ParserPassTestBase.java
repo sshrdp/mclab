@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.StringTokenizer;
 
 import junit.framework.TestCase;
-import aspectMatlab.ast.Aspect;
+import ast.Aspect;
 import beaver.Symbol;
 
 /** 

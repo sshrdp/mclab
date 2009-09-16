@@ -2,7 +2,7 @@ package aspectMatlab;
 
 import java.io.*;
 
-import aspectMatlab.ast.Aspect;
+import ast.Aspect;
 import beaver.Parser;
 
 /**

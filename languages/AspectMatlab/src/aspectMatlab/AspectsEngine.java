@@ -1,9 +1,9 @@
 package aspectMatlab;
 
 import natlab.DecIntNumericLiteralValue;
-import aspectMatlab.ast.*;
-import aspectMatlab.ast.List;
-import aspectMatlab.ast.Properties;
+import ast.*;
+import ast.List;
+import ast.Properties;
 
 import java.util.*;
 
@@ -98,7 +98,7 @@ public class AspectsEngine {
 							if(corFun == null) {
 								String funName = generateCorrespondingFunctionName();
 								corFun = createCorrespondingFunction(funName, true);	
-								prog.getParent().addChild(new FunctionList(new aspectMatlab.ast.List<Function>().add(corFun)));
+								prog.getParent().addChild(new FunctionList(new ast.List<Function>().add(corFun)));
 								prog.setCorrespondingFunction(corFun);
 							}
 
@@ -117,26 +117,26 @@ public class AspectsEngine {
 	}
 
 	private static Function createCorrespondingFunction(String funName, boolean isScript){
-		aspectMatlab.ast.List<Name> output = new aspectMatlab.ast.List<Name>();
+		ast.List<Name> output = new ast.List<Name>();
 		output.add(CF_OUTPUT);
 
-		aspectMatlab.ast.List<Name> input = new aspectMatlab.ast.List<Name>();
+		ast.List<Name> input = new ast.List<Name>();
 		input.add(CF_INPUT_CASE);
 		if(isScript)
 			input.add(CF_INPUT_OBJ);
 		input.add(CF_INPUT_AGRS);
 
-		SwitchStmt ss = new SwitchStmt(new NameExpr(CF_INPUT_CASE), new aspectMatlab.ast.List<SwitchCaseBlock>(), new Opt<DefaultCaseBlock>());
-		aspectMatlab.ast.List<Stmt> sl = new aspectMatlab.ast.List<Stmt>();
+		SwitchStmt ss = new SwitchStmt(new NameExpr(CF_INPUT_CASE), new ast.List<SwitchCaseBlock>(), new Opt<DefaultCaseBlock>());
+		ast.List<Stmt> sl = new ast.List<Stmt>();
 		sl.add(ss);
 
-		return new Function(output, funName, input, new aspectMatlab.ast.List<HelpComment>(), sl, new aspectMatlab.ast.List<Function>());
+		return new Function(output, funName, input, new ast.List<HelpComment>(), sl, new ast.List<Function>());
 	}
 
 	private static void addSwitchCaseToCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, boolean isScript){
 		Expr exp = (Expr) pe.copy();
 		Expr tmp = (Expr) pe.copy();
-		aspectMatlab.ast.List<Expr> input = new aspectMatlab.ast.List<Expr>();
+		ast.List<Expr> input = new ast.List<Expr>();
 		
 		if(exp instanceof ParameterizedExpr || exp instanceof CellIndexExpr) {
 			int size = 0;
@@ -150,7 +150,7 @@ public class AspectsEngine {
 			}
 
 			for(int i=1; i<=size; i++)
-				input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new aspectMatlab.ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
+				input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
 
 			if(exp instanceof ParameterizedExpr)
 				exp = new ParameterizedExpr(((ParameterizedExpr)exp).getTarget(), input);
@@ -158,7 +158,7 @@ public class AspectsEngine {
 				exp = new CellIndexExpr(((CellIndexExpr)exp).getTarget(), input);
 		}
 
-		aspectMatlab.ast.List<Stmt> scsl = new aspectMatlab.ast.List<Stmt>();
+		ast.List<Stmt> scsl = new ast.List<Stmt>();
 
 		AssignStmt tmpStmt = new AssignStmt();
 		if(isScript) {
@@ -190,8 +190,8 @@ public class AspectsEngine {
 	}
 
 	private static void insertCallToCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, boolean isScript){
-		aspectMatlab.ast.List<Expr> input = new aspectMatlab.ast.List<Expr>().add(ile);
-		aspectMatlab.ast.List<Expr> args = new aspectMatlab.ast.List<Expr>();
+		ast.List<Expr> input = new ast.List<Expr>().add(ile);
+		ast.List<Expr> args = new ast.List<Expr>();
 
 		Expr tmp = (Expr) pe.copy();
 
@@ -206,7 +206,7 @@ public class AspectsEngine {
 		IfStmt ifstmt = new IfStmt();
 
 		if(isScript) {
-			aspectMatlab.ast.List<Expr> lst = new aspectMatlab.ast.List<Expr>().add(new StringLiteralExpr(tmp.FetchTargetExpr()));
+			ast.List<Expr> lst = new ast.List<Expr>().add(new StringLiteralExpr(tmp.FetchTargetExpr()));
 			lst.add(new StringLiteralExpr("var"));
 			ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), lst);
 			BinaryExpr cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
@@ -214,8 +214,8 @@ public class AspectsEngine {
 			AssignStmt eas = new AssignStmt(tmp, new StringLiteralExpr("AM_tmp_" + tmp.FetchTargetExpr()));
 			eas.setOutputSuppressed(true);
 			eas.setWeavability(false, true);
-			IfBlock ib = new IfBlock(cond, new aspectMatlab.ast.List<Stmt>().add(eas));
-			ifstmt = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+			IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(eas));
+			ifstmt = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
 
 			ASTNode node = pe;
 			while(node != null && !(node instanceof Stmt))
@@ -295,7 +295,7 @@ public class AspectsEngine {
 
 				Function fun = new Function();
 				if(type.compareTo(AROUND) != 0)
-					fun = new Function(new aspectMatlab.ast.List<Name>(), modifiedName, action.getSelectors(), new aspectMatlab.ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions());
+					fun = new Function(new ast.List<Name>(), modifiedName, action.getSelectors(), new ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions());
 				else
 					fun = createAroundFunction(modifiedName, action, true);
 
@@ -329,9 +329,9 @@ public class AspectsEngine {
 				String modifiedName = generateActionName(aspect.getName(), name);
 
 				if(type.compareTo(AROUND) != 0) {
-					aspectMatlab.ast.List<Name> input = action.getSelectors();
+					ast.List<Name> input = action.getSelectors();
 					input.insertChild(new Name(THIS), 0);
-					methods.addFunction(new Function(new aspectMatlab.ast.List<Name>(), modifiedName, input, new aspectMatlab.ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions()));
+					methods.addFunction(new Function(new ast.List<Name>(), modifiedName, input, new ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions()));
 				} else
 					methods.addFunction(createAroundFunction(modifiedName, action, false));
 			}
@@ -342,12 +342,12 @@ public class AspectsEngine {
 	}
 
 	private static Function createAroundFunction(String modifiedName, AspectAction action, boolean isConvertProceed){
-		aspectMatlab.ast.List<Name> output = new aspectMatlab.ast.List<Name>();
+		ast.List<Name> output = new ast.List<Name>();
 		output.add(CF_OUTPUT);
 
-		aspectMatlab.ast.List<Name> input = action.getSelectors();	
+		ast.List<Name> input = action.getSelectors();	
 
-		aspectMatlab.ast.List<Function> nf = action.getNestedFunctions();
+		ast.List<Function> nf = action.getNestedFunctions();
 
 		if(isConvertProceed) {
 			input.add(CF_INPUT_CASE);
@@ -361,10 +361,10 @@ public class AspectsEngine {
 		} else
 			input.insertChild(new Name(THIS), 0);
 
-		return new Function(output, modifiedName, input, new aspectMatlab.ast.List<HelpComment>(), action.getStmts(), nf);
+		return new Function(output, modifiedName, input, new ast.List<HelpComment>(), action.getStmts(), nf);
 	}
 
-	private static void convertProceedCalls(aspectMatlab.ast.List<Stmt> stmts){
+	private static void convertProceedCalls(ast.List<Stmt> stmts){
 		for(Stmt stmt : stmts) {
 			stmt.ProceedTransformation();
 		}
@@ -372,7 +372,7 @@ public class AspectsEngine {
 
 	public static void transformProceedCall(Expr pe){
 		if(pe.FetchTargetExpr().compareTo("proceed") == 0) {
-			aspectMatlab.ast.List<Expr> input = new aspectMatlab.ast.List<Expr>();
+			ast.List<Expr> input = new ast.List<Expr>();
 			input.add(new NameExpr(CF_INPUT_CASE));
 			input.add(new NameExpr(CF_INPUT_OBJ));
 			input.add(new NameExpr(CF_INPUT_AGRS));
@@ -384,7 +384,7 @@ public class AspectsEngine {
 	}
 
 	/*
-	private static int matchAndWeave(aspectMatlab.ast.List<Stmt> stmts, int s, String type, String target, AssignStmt context) {
+	private static int matchAndWeave(ast.List<Stmt> stmts, int s, String type, String target, AssignStmt context) {
 		Expr rhs = context.getRHS();
 		Expr lhs = context.getLHS();
 		int count = 0;
@@ -397,7 +397,7 @@ public class AspectsEngine {
 			if(pat.getType().compareTo(type) == 0 && pat.getTarget().compareTo(target) == 0){
 				Function fun = act.getFunction();
 				NameExpr funcName = new NameExpr(new Name(act.getName()));
-				aspectMatlab.ast.List<Expr> lstExpr = new aspectMatlab.ast.List<Expr>();
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(NEWVAL) == 0) {
@@ -445,14 +445,14 @@ public class AspectsEngine {
 					else
 						cond = new GEExpr(new NameExpr(new Name("numel("+target+")")), new NameExpr(new Name(pat.getDims())));
 
-					IfBlock ib = new IfBlock(cond, new aspectMatlab.ast.List<Stmt>().add(action));
-					call = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+					IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(action));
+					call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
 
 					if(act.getType().compareTo(AROUND) == 0) {					
 						AssignStmt eas = new AssignStmt(lhs, rhs);
 						eas.setOutputSuppressed(true);
-						ElseBlock eb = new ElseBlock(new aspectMatlab.ast.List<Stmt>().add(eas));
-						call = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
+						ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
+						call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
 					}
 				}
 
@@ -476,7 +476,7 @@ public class AspectsEngine {
 	}
 	 */
 
-	private static int setMatchAndWeave(aspectMatlab.ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
+	private static int setMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
 		Expr rhs = context.getRHS();
 		Expr lhs = context.getLHS();
 		int acount = 0, bcount = 0;
@@ -488,7 +488,7 @@ public class AspectsEngine {
 
 			if(pat.getType().compareTo(SET) == 0 && (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)){
 				Function fun = act.getFunction();
-				aspectMatlab.ast.List<Expr> lstExpr = new aspectMatlab.ast.List<Expr>();
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(NEWVAL) == 0) {
@@ -528,7 +528,7 @@ public class AspectsEngine {
 
 				if(!(pat.getDims().compareTo("0") == 0)) {
 					BinaryExpr cond = null; 
-					aspectMatlab.ast.List<Expr> lst = new aspectMatlab.ast.List<Expr>().add(new NameExpr(new Name(target)));
+					ast.List<Expr> lst = new ast.List<Expr>().add(new NameExpr(new Name(target)));
 					ParameterizedExpr numel = new ParameterizedExpr(new NameExpr(new Name("numel")), lst);
 
 					if(!pat.getDimsAndMore())
@@ -536,14 +536,14 @@ public class AspectsEngine {
 					else
 						cond = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
 
-					IfBlock ib = new IfBlock(cond, new aspectMatlab.ast.List<Stmt>().add(action));
-					call = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+					IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(action));
+					call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
 
 					if(act.getType().compareTo(AROUND) == 0) {					
 						AssignStmt eas = new AssignStmt(lhs, rhs);
 						eas.setOutputSuppressed(true);
-						ElseBlock eb = new ElseBlock(new aspectMatlab.ast.List<Stmt>().add(eas));
-						call = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
+						ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
+						call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
 					}
 				}
 
@@ -565,7 +565,7 @@ public class AspectsEngine {
 		return acount + bcount;
 	}
 
-	private static int getOrCallMatchAndWeave(aspectMatlab.ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
+	private static int getOrCallMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
 		Expr rhs = context.getRHS();
 		Expr lhs = context.getLHS();
 		int acount = 0, bcount = 0;
@@ -578,7 +578,7 @@ public class AspectsEngine {
 			if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0) 
 					&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)){
 				Function fun = act.getFunction();
-				aspectMatlab.ast.List<Expr> lstExpr = new aspectMatlab.ast.List<Expr>();
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(ARGS) == 0) {
@@ -636,14 +636,14 @@ public class AspectsEngine {
 				
 				if(node != null && ((Function)node).getName().startsWith(AM_CF_SCRIPT)) {
 					isScriptCF = true;
-					aspectMatlab.ast.List<Expr> lst = new aspectMatlab.ast.List<Expr>().add(new NameExpr(CF_INPUT_OBJ));
+					ast.List<Expr> lst = new ast.List<Expr>().add(new NameExpr(CF_INPUT_OBJ));
 					lst.add(new StringLiteralExpr("AM_tmp_" + target));
 					strcmp = new ParameterizedExpr(new NameExpr(new Name("strcmp")), lst);
 				}
 				
-				aspectMatlab.ast.List<Expr> nlst = new aspectMatlab.ast.List<Expr>().add(new NameExpr(new Name(target)));
+				ast.List<Expr> nlst = new ast.List<Expr>().add(new NameExpr(new Name(target)));
 				ParameterizedExpr numel = new ParameterizedExpr(new NameExpr(new Name("numel")), nlst);
-				aspectMatlab.ast.List<Expr> elst = new aspectMatlab.ast.List<Expr>().add(new StringLiteralExpr(target));
+				ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
 				elst.add(new StringLiteralExpr("var"));
 				ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
 
@@ -656,14 +656,14 @@ public class AspectsEngine {
 						else
 							cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
 
-						IfBlock ib = new IfBlock(cond2, new aspectMatlab.ast.List<Stmt>().add(action));
-						call = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+						IfBlock ib = new IfBlock(cond2, new ast.List<Stmt>().add(action));
+						call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
 
 						if(act.getType().compareTo(AROUND) == 0) {					
 							AssignStmt eas = new AssignStmt(lhs, rhs);
 							eas.setOutputSuppressed(true);
-							ElseBlock eb = new ElseBlock(new aspectMatlab.ast.List<Stmt>().add(eas));
-							call = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
+							ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
+							call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
 						}
 					}
 
@@ -678,14 +678,14 @@ public class AspectsEngine {
 					cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
 				}
 
-				IfBlock ib = new IfBlock(cond, new aspectMatlab.ast.List<Stmt>().add(call));
-				Stmt outerIf = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+				IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(call));
+				Stmt outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
 
 				if(act.getType().compareTo(AROUND) == 0) {					
 					AssignStmt eas = new AssignStmt(lhs, rhs);
 					eas.setOutputSuppressed(true);
-					ElseBlock eb = new ElseBlock(new aspectMatlab.ast.List<Stmt>().add(eas));
-					outerIf = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
+					ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
+					outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
 				}
 
 				if(act.getType().compareTo(BEFORE) == 0) {
@@ -709,7 +709,7 @@ public class AspectsEngine {
 	private static void addSwitchCaseToAroundCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, String type){
 		Expr exp = (Expr) pe.copy();
 		Expr tmp = (Expr) pe.copy();
-		aspectMatlab.ast.List<Expr> input = new aspectMatlab.ast.List<Expr>();
+		ast.List<Expr> input = new ast.List<Expr>();
 
 		if(exp instanceof ParameterizedExpr || exp instanceof CellIndexExpr) {
 			int size = 0;
@@ -723,7 +723,7 @@ public class AspectsEngine {
 			}
 
 			for(int i=1; i<=size; i++)
-				input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new aspectMatlab.ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
+				input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
 
 			if(exp instanceof ParameterizedExpr)
 				exp = new ParameterizedExpr(((ParameterizedExpr)exp).getTarget(), input);
@@ -731,11 +731,11 @@ public class AspectsEngine {
 				exp = new CellIndexExpr(((CellIndexExpr)exp).getTarget(), input);
 		}
 
-		aspectMatlab.ast.List<Stmt> scsl = new aspectMatlab.ast.List<Stmt>();
+		ast.List<Stmt> scsl = new ast.List<Stmt>();
 
 		AssignStmt tmpStmt = new AssignStmt();
 		if(type.compareTo(SET) == 0) {
-			exp = new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new aspectMatlab.ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
+			exp = new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
 		} else if(type.compareTo(EXECUTION) == 0 || type.compareTo(CALL) == 0) {
 			exp = new ParameterizedExpr(new NameExpr(CF_INPUT_OBJ), input);
 		} else {
@@ -754,7 +754,7 @@ public class AspectsEngine {
 		ss.addSwitchCaseBlock(scb);
 	}
 
-	private static void transformForStmt(aspectMatlab.ast.List<Stmt> stmts)
+	private static void transformForStmt(ast.List<Stmt> stmts)
 	{
 		int stmtCount = stmts.getNumChild();
 
@@ -781,17 +781,17 @@ public class AspectsEngine {
 					as_out.getLHS().setWeavability(false);
 
 					AssignStmt as_for = new AssignStmt();
-					as_for.setRHS(new RangeExpr(new IntLiteralExpr(new DecIntNumericLiteralValue("1")), new Opt<Expr>(), new ParameterizedExpr(new NameExpr(new Name("numel")), new aspectMatlab.ast.List<Expr>().add(as_out.getLHS()))));
+					as_for.setRHS(new RangeExpr(new IntLiteralExpr(new DecIntNumericLiteralValue("1")), new Opt<Expr>(), new ParameterizedExpr(new NameExpr(new Name("numel")), new ast.List<Expr>().add(as_out.getLHS()))));
 					as_for.setLHS(new NameExpr(new Name(tmpFS)));
 					as_for.setWeavability(false, true);
 
 					AssignStmt as_in = new AssignStmt();
-					as_in.setRHS(new ParameterizedExpr(new NameExpr(new Name(tmpAS)), new aspectMatlab.ast.List<Expr>().add(new NameExpr(new Name(tmpFS)))));
+					as_in.setRHS(new ParameterizedExpr(new NameExpr(new Name(tmpAS)), new ast.List<Expr>().add(new NameExpr(new Name(tmpFS)))));
 					as_in.setLHS(as_old.getLHS());
 					as_in.setOutputSuppressed(true);
 					as_in.getRHS().setWeavability(false);
 
-					aspectMatlab.ast.List<Stmt> lstFor = new aspectMatlab.ast.List<Stmt>();
+					ast.List<Stmt> lstFor = new ast.List<Stmt>();
 					lstFor.add(as_in);
 					for(Stmt stmt : fs.getStmts())
 						lstFor.add(stmt);
@@ -812,8 +812,8 @@ public class AspectsEngine {
 	}
 
 	public static void weaveGlobalStructure(CompilationUnits cu) {
-		aspectMatlab.ast.List<Stmt> stmts = new aspectMatlab.ast.List<Stmt>();
-		GlobalStmt gs = new GlobalStmt(new aspectMatlab.ast.List<Name>().add(new Name(GLOBAL_STRUCTURE)));
+		ast.List<Stmt> stmts = new ast.List<Stmt>();
+		GlobalStmt gs = new GlobalStmt(new ast.List<Name>().add(new Name(GLOBAL_STRUCTURE)));
 		gs.setOutputSuppressed(true);
 		stmts.add(gs);
 
@@ -825,8 +825,8 @@ public class AspectsEngine {
 			as.setWeavability(false, true);
 
 			UnaryExpr cond = new NotExpr(new NameExpr(new Name("isfield("+GLOBAL_STRUCTURE+", '"+s+"')")));
-			IfBlock ib = new IfBlock(cond, new aspectMatlab.ast.List<Stmt>().add(as));
-			Stmt is = new IfStmt(new aspectMatlab.ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+			IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(as));
+			Stmt is = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
 
 			stmts.add(is);
 		}
@@ -837,7 +837,7 @@ public class AspectsEngine {
 		}
 	}
 
-	public static void weaveStmts(aspectMatlab.ast.List<Stmt> stmts)
+	public static void weaveStmts(ast.List<Stmt> stmts)
 	{
 		transformForStmt(stmts);
 
@@ -898,7 +898,7 @@ public class AspectsEngine {
 				Function fun = act.getFunction();
 				NameExpr funcName = new NameExpr(new Name(act.getName()));
 
-				aspectMatlab.ast.List<Expr> lstExpr = new aspectMatlab.ast.List<Expr>();
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(ARGS) == 0 || param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
@@ -939,7 +939,7 @@ public class AspectsEngine {
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 					convertToHandleFunction(func);
-					aspectMatlab.ast.List<Expr> tmp = new aspectMatlab.ast.List<Expr>();
+					ast.List<Expr> tmp = new ast.List<Expr>();
 					for(Name arg : func.getInputParams()) {
 						tmp.add(new NameExpr(arg));
 					}
@@ -957,9 +957,9 @@ public class AspectsEngine {
 	}
 
 	private static void convertToHandleFunction(Function func){
-		Function handle = new Function(func.getOutputParams(), generateHandleName(func.getName()), func.getInputParams(), new aspectMatlab.ast.List<HelpComment>(), func.getStmts(), func.getNestedFunctions());
-		func.setStmtList(new aspectMatlab.ast.List<Stmt>());
-		func.setNestedFunctionList(new aspectMatlab.ast.List<Function>());
+		Function handle = new Function(func.getOutputParams(), generateHandleName(func.getName()), func.getInputParams(), new ast.List<HelpComment>(), func.getStmts(), func.getNestedFunctions());
+		func.setStmtList(new ast.List<Stmt>());
+		func.setNestedFunctionList(new ast.List<Function>());
 		func.addNestedFunction(handle);
 	}
 
@@ -968,7 +968,7 @@ public class AspectsEngine {
 
 		//TODO: more kinds of newVal???
 		if(exp instanceof IntLiteralExpr || exp instanceof FPLiteralExpr || exp instanceof StringLiteralExpr) {
-			nv.addRow(new Row(new aspectMatlab.ast.List<Expr>().add(exp)));
+			nv.addRow(new Row(new ast.List<Expr>().add(exp)));
 		}
 
 		return nv;

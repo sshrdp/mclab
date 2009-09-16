@@ -17,7 +17,7 @@ public class ParserPassTestGenerator extends AbstractTestGenerator {
 	protected void printHeader(PrintWriter testFileWriter) {
 		testFileWriter.println("package aspectMatlab;");
 		testFileWriter.println();
-		testFileWriter.println("import aspectMatlab.ast.Aspect;");
+		testFileWriter.println("import ast.Aspect;");
 		testFileWriter.println();
 		testFileWriter.println("public class AspectParserPassTests extends ParserPassTestBase {");
 	}

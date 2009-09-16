@@ -1,6 +1,6 @@
 package aspectMatlab;
 
-import aspectMatlab.ast.*;
+import ast.*;
 import natlab.CommentBuffer;
 
 import beaver.Parser;
