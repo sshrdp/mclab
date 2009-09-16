@@ -4,7 +4,12 @@ aspect FetchTargetExpr {
 	
 	syn String Expr.FetchTargetExpr() = "";
  	
- 	eq NameExpr.FetchTargetExpr() = getName().getID();
+ 	eq NameExpr.FetchTargetExpr() { 
+ 		String name = getName().getID();
+ 		if(name.startsWith("AM_tmp_"))
+			name = name.replace("AM_tmp_", "");
+ 		return name;
+	}
 	
 	eq ParameterizedExpr.FetchTargetExpr() = getTarget().FetchTargetExpr();
 
@@ -15,4 +20,14 @@ aspect FetchTargetExpr {
  		//getTarget().FetchTargetExpr();
  		return getField().getID();
  	}
+ 	
+ 	eq MatrixExpr.FetchTargetExpr() {
+ 		String match = "";
+		for(Row row : getRows()) {
+			for(Expr exp : row.getElements()) {
+				match += "," + exp.FetchTargetExpr();
+			}
+        }
+        return match;
+    }
 }

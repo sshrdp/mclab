@@ -1,8 +1,17 @@
 aspect AssignStmtWeavability {
 
 	private boolean AssignStmt.isWeavable = true;
-        
-    public void AssignStmt.setWeavability(boolean isWeavable) { this.isWeavable = isWeavable; }
+    private boolean Expr.isWeavable = true;
+    
+    public void AssignStmt.setWeavability(boolean isWeavable, boolean applyDeep) { 
+    	this.isWeavable = isWeavable;
+    	if(applyDeep) {
+    		this.getLHS().setWeavability(isWeavable);
+    		this.getRHS().setWeavability(isWeavable);
+    	}
+    }
     public boolean AssignStmt.getWeavability() { return this.isWeavable; }
-
+	
+	public void Expr.setWeavability(boolean isWeavable) { this.isWeavable = isWeavable; }
+    public boolean Expr.getWeavability() { return this.isWeavable; }
 }
