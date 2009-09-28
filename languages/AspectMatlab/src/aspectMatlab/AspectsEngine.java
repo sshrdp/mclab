@@ -827,11 +827,7 @@ public class AspectsEngine {
 		ss.addSwitchCaseBlock(scb);
 	}
 
-<<<<<<< .mine
-	public static void transformForStmt(aspectMatlab.ast.List<Stmt> stmts)
-=======
 	private static void transformForStmt(ast.List<Stmt> stmts)
->>>>>>> .r1443
 	{
 		int stmtCount = stmts.getNumChild();
 
@@ -888,7 +884,7 @@ public class AspectsEngine {
 		}
 	}
 
-	public static void transformWhileStmt(aspectMatlab.ast.List<Stmt> stmts)
+	public static void transformWhileStmt(ast.List<Stmt> stmts)
 	{
 		int stmtCount = stmts.getNumChild();
 
@@ -1029,7 +1025,7 @@ public class AspectsEngine {
 			if((pat.getType().compareTo(LOOP) == 0 || pat.getType().compareTo(LOOPBODY) == 0 || pat.getType().compareTo(LOOPHEAD) == 0)
 					&& (loopVar.contains(pat.getTarget()+",") || pat.getTarget().compareTo("*") == 0)){
 				Function fun = act.getFunction();
-				aspectMatlab.ast.List<Expr> lstExpr = new aspectMatlab.ast.List<Expr>();
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(ARGS) == 0) {
@@ -1124,7 +1120,7 @@ public class AspectsEngine {
 		return acount + bcount;
 	}
 
-	public static void WeaveLoopStmts(aspectMatlab.ast.List<Stmt> stmts, Stmt call, boolean onlyContinue){
+	public static void WeaveLoopStmts(ast.List<Stmt> stmts, Stmt call, boolean onlyContinue){
 		int count = stmts.getNumChild();
 		for(int i=0; i<count; i++) {
 			Stmt stmt = stmts.getChild(i);

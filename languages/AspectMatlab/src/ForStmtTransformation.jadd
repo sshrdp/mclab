@@ -1,6 +1,0 @@
-aspect ForStmtTransformation {
-    private boolean ForStmt.aspectTransformed = false;
-    
-    public boolean ForStmt.isAspectTransformed() { return aspectTransformed; }
-    public void ForStmt.setAspectTransformed(boolean aspectTransformed) { this.aspectTransformed = aspectTransformed; }
-}
