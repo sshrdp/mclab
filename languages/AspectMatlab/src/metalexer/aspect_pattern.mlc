@@ -15,6 +15,9 @@ execution {: return symbol(EXECUTION); :}
 get {: return symbol(GET); :}
 set {: return symbol(SET); :}
 within {: return symbol(WITHIN); :}
+loop {: return symbol(LOOP); :}
+loopbody {: return symbol(LOOPBODY); :}
+loophead {: return symbol(LOOPHEAD); :}
 
 aspect {: return symbol(ASPECT); :} ASPECT
 end {: return symbol(END); :} END

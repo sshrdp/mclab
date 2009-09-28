@@ -6,8 +6,8 @@ aspect FetchTargetExpr {
  	
  	eq NameExpr.FetchTargetExpr() { 
  		String name = getName().getID();
- 		if(name.startsWith("AM_tmp_"))
-			name = name.replace("AM_tmp_", "");
+ 		if(name.startsWith("AM_tmpFS_"))
+			name = name.replace("AM_tmpFS_", "");
  		return name;
 	}
 	
@@ -30,4 +30,9 @@ aspect FetchTargetExpr {
         }
         return match;
     }
+    
+    eq UnaryExpr.FetchTargetExpr() = getOperand().FetchTargetExpr();
+    
+    eq BinaryExpr.FetchTargetExpr() = getLHS().FetchTargetExpr() + "," + getRHS().FetchTargetExpr();
+    
 }

@@ -42,7 +42,7 @@ aspect AspectsCorrespondingFunctions {
 	syn Boolean Stmt.aspectsCorrespondingFunctions() { return true; }
               
     eq ExprStmt.aspectsCorrespondingFunctions() {
-    	getExpr().aspectsCorrespondingFunctions();
+    	//getExpr().aspectsCorrespondingFunctions();
     	return true;
     }
     
@@ -129,7 +129,8 @@ aspect AspectsCorrespondingFunctions {
 	syn boolean Expr.aspectsCorrespondingFunctions() { return true; }
  	
  	eq NameExpr.aspectsCorrespondingFunctions() {
-		AspectsEngine.generateCorrespondingFunction(this);
+		//AspectsEngine.generateCorrespondingFunction(this);
+		AspectsEngine.generateCorrespondingStmt(this);
 		return true;
 	}
 	
@@ -140,7 +141,8 @@ aspect AspectsCorrespondingFunctions {
         
         //TODO
  		//getTarget().aspectsCorrespondingFunctions();
-        AspectsEngine.generateCorrespondingFunction(this);
+        //AspectsEngine.generateCorrespondingFunction(this);
+        AspectsEngine.generateCorrespondingStmt(this);
         
 		return true;
  	}
@@ -162,7 +164,8 @@ aspect AspectsCorrespondingFunctions {
  		
  		//TODO
  		//getTarget().aspectsCorrespondingFunctions();
- 		AspectsEngine.generateCorrespondingFunction(this);
+ 		//AspectsEngine.generateCorrespondingFunction(this);
+ 		AspectsEngine.generateCorrespondingStmt(this);
  		
  		return true;
  	}
@@ -172,7 +175,8 @@ aspect AspectsCorrespondingFunctions {
  		
  		//TODO
  		//getTarget().aspectsCorrespondingFunctions();
- 		AspectsEngine.generateCorrespondingFunction(this);
+ 		//AspectsEngine.generateCorrespondingFunction(this);
+ 		AspectsEngine.generateCorrespondingStmt(this);
  		
  		return true;
  	}

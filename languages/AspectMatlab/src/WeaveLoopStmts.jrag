@@ -1,0 +1,47 @@
+import aspectMatlab.AspectsEngine;
+
+aspect WeaveLoopStmts {
+
+	syn boolean Stmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) { return true; }
+    
+    eq ForStmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) {
+	   	AspectsEngine.WeaveLoopStmts(getStmts(), call, onlyContinue);
+        return true;
+    }
+    
+    eq WhileStmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) {    	
+	   	AspectsEngine.WeaveLoopStmts(getStmts(), call, onlyContinue);
+        return true;
+    } 
+    
+    eq TryStmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) {
+	   	AspectsEngine.WeaveLoopStmts(getTryStmts(), call, onlyContinue);
+        AspectsEngine.WeaveLoopStmts(getCatchStmts(), call, onlyContinue);
+        return true;
+    } 
+    
+    eq SwitchStmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) {    	
+	   	for(SwitchCaseBlock sb : getSwitchCaseBlocks()) {	   	
+           	AspectsEngine.WeaveLoopStmts(sb.getStmts(), call, onlyContinue);
+        }
+        
+        if(hasDefaultCaseBlock()) {
+        	AspectsEngine.WeaveLoopStmts(getDefaultCaseBlock().getStmts(), call, onlyContinue);
+	    }
+	    
+	    return true;
+    } 
+    
+    eq IfStmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) {
+	   	for(IfBlock ib : getIfBlocks()) {   		
+           	AspectsEngine.WeaveLoopStmts(ib.getStmts(), call, onlyContinue);
+        }
+        
+        if(hasElseBlock()) {
+        	AspectsEngine.WeaveLoopStmts(getElseBlock().getStmts(), call, onlyContinue);
+	    }
+	    
+	    return true;
+    }
+
+}

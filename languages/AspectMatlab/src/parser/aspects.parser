@@ -70,6 +70,9 @@ Expr pattern_designator =
   |  EXECUTION LPAREN pattern_list.l RPAREN {: return new PatternDesignator("execution", l); :}
   |  SET LPAREN pattern_list.l RPAREN {: return new PatternDesignator("set", l); :}
   |  GET LPAREN pattern_list.l RPAREN {: return new PatternDesignator("get", l); :}
+  |  LOOP LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loop", l); :}
+  |  LOOPBODY LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loopbody", l); :}
+  |  LOOPHEAD LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loophead", l); :}
   |  WITHIN LPAREN pattern_path.l RPAREN {: return new PatternDesignator("within", new List().add(l)); :}
   |  CFLOW LPAREN pattern_path.l RPAREN {: return new PatternDesignator("cflow", new List().add(l)); :}
   ;

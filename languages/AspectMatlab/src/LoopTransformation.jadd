@@ -1,0 +1,11 @@
+aspect LoopTransformation {
+    private boolean ForStmt.aspectTransformed = false;
+    
+    public boolean ForStmt.isAspectTransformed() { return aspectTransformed; }
+    public void ForStmt.setAspectTransformed(boolean aspectTransformed) { this.aspectTransformed = aspectTransformed; }
+    
+    private boolean WhileStmt.aspectTransformed = false;
+    
+    public boolean WhileStmt.isAspectTransformed() { return aspectTransformed; }
+    public void WhileStmt.setAspectTransformed(boolean aspectTransformed) { this.aspectTransformed = aspectTransformed; }
+}

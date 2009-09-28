@@ -76,15 +76,13 @@ aspect AspectWeave {
     eq ForStmt.aspectsWeave() {
     	//TODO: take it out in a function
 	   	//getAssignStmt().aspectsWeave();
-	   	
-	   	AspectsEngine.weaveStmts(getStmts());
-        
+       	AspectsEngine.weaveStmts(getStmts());
+           
         return true;
     } 
     
     eq WhileStmt.aspectsWeave() {
     	getExpr().aspectsWeave();
-    	
 	   	AspectsEngine.weaveStmts(getStmts());
         
         return true;
