@@ -29,17 +29,31 @@ end
 
 patterns
 arrayset : set(*, *.*);
+exec : execution(program);
 end
 
 actions
-message : before execution
-% disp('tracking sparsities of all variables in the following program');
+%message : before exec
+% disp('tracking');% sparsities of all variables in the following program');
 % - strings don't work!
+%end
+
+
+displayResults : after exec
+ disp('stuff');
 end
 
-countset : before arrayset : (newVal,dims,obj,args)
-% find name of variable (with scope)
-disp(this);
+
+
+set : before arrayset : (newVal,dims,obj,name)
+% we will retname the context variables in case they get changed
+dims = indizes; 
+var = name;
+oldVal = obj;
+
+% find name of variable (with scope) and put it in 
+
+
 % set number of 'set' operations
 
 % check whether variable existed before
