@@ -1,3 +1,4 @@
+function solveHeatEquation(a,steps)
 % function solveHeatEquation(a,steps)
 % solves the heat equation
 %    Ut = a*Uxx,    x ? [0, 2pi], t > 0
@@ -13,7 +14,6 @@
 % The approximation of the U(x,t) is sparse initially, but during the
 % computation gets more and more dense, as the rows get filled during 
 % the integration.
-function solveHeatEquation(a,steps)
   tN= 3; % end of time interval
   N = 300; % set total steps
   h = 2*pi/(N-1); % set spacial step
@@ -21,11 +21,16 @@ function solveHeatEquation(a,steps)
   U0 = 0*X; % set initial condition
   U0(round(end/2.2):round(end/1.8)) = 1;
   D = (Dxx(N)/h^2); % set second spatial derivative matrix
-  F = @(t,u) a*D*u; % set rhs of ODE, i.e. Ut
-  [t,W] = RungeKutta4(F,[0 tN],U0,steps,1); % find the solution
-  mesh(W);  
+  function y = F(t,u) % set rhs of ODE, i.e. Ut
+    y = a*D*u;
+  end
+  W = RungeKutta4(@F,[0, tN],U0,steps,1); % find the solution
+  disp('computation finished');
 end   
 
+
+
+function D=Dxx(N)
 % creates a centered-in-space finite difference differentiation matrix,
 % for the second spatial derivative.
 % uses mixed boundary conditions, i.e. u(0)=u'(end)=0.
@@ -41,7 +46,6 @@ end
 %     Ux(N) = (U(N+1)-U(N-1))/2h = 0 => U(N+1) = U(N-1)
 %  => Uxx(N) = (2U(N-1) - 2U(N)/h^2
 % The matrix will not be divided by h^2, since it is unknown
-function D=Dxx(N)
    % create matrix with -2 as diagonal, 1 above and below diagonal
    D= toeplitz([-2;1;zeros(N-3,1)],[-2,1,zeros(1,N-3)]);
    % set nondiagonal in first row => enforce Neumann condition
