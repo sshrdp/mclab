@@ -36,15 +36,17 @@ public class AspectsEngine {
 	static final public String NAME = "name";
 	static final public String LINE = "line";
 	static final public String COUNTER = "counter";
+	static final public String LOC = "loc";
 
 	//Misc.
 	static final public String PROCEED_FUN_NAME = "proceed";
 	static final public String GLOBAL_STRUCTURE = "AM_GLOBAL";
+	static final public String LOCAL_CHECK = "AM_Entry_Point_";
 	static final public String AM_CF_SCRIPT = "AM_CF_Script_";
 	static final public String AM_CF_VAR = "AM_CF_Var_";
 
 	//Around Advice Arguments
-	static final public Name CF_OUTPUT = new Name("AM_retValue");
+	static final public Name CF_OUTPUT = new Name("output");
 	static final public Name CF_INPUT_CASE = new Name("AM_caseNum");
 	static final public Name CF_INPUT_OBJ = new Name("AM_obj");
 	static final public Name CF_INPUT_AGRS = new Name("AM_args");
@@ -56,6 +58,11 @@ public class AspectsEngine {
 	}
 	private static String generateCorrespondingVariableName(){
 		return AM_CF_VAR + correspondingCount++;
+	}
+
+	static public int entrypointCount = 0;
+	private static String generateEntrypointCountVariableName(){
+		return LOCAL_CHECK + entrypointCount++;
 	}
 
 	public static void generateCorrespondingStmt(Expr pe) {
@@ -84,6 +91,29 @@ public class AspectsEngine {
 						node.getParent().insertChild(stmt, ind);
 					}			
 					return;
+				}
+			}
+		}
+	}
+
+	public static void generateCorrespondingStmt(List<Stmt> stmts, List<Name> input) {
+		for(int i = input.getNumChild()-1; i>= 0; i--) {
+			Name pe = input.getChild(i);
+			String target = pe.getID();
+			for(pattern pat : patternsList) {
+				if(pat.getType().compareTo(SET) == 0 && 
+						(pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)) {
+
+					String var = generateCorrespondingVariableName();
+					Expr rhs = new NameExpr(new Name(var));
+					rhs.setWeavability(false);
+
+					AssignStmt stmt = new AssignStmt(new NameExpr(pe), rhs);
+					stmt.setOutputSuppressed(true);
+
+					stmts.insertChild(stmt, 0);
+					input.setChild(new Name(var), i);
+					break;
 				}
 			}
 		}
@@ -302,8 +332,11 @@ public class AspectsEngine {
 				PatternDesignator pd = (PatternDesignator) pattern.getPD();
 				String type = pd.getName();
 
-				String variable = pd.getArgs().getChild(pd.getArgs().getNumChild()-1).getID();
-				variable = variable.substring(variable.lastIndexOf('.')+1);
+				String variable = "";
+				if(pd.getArgs().getNumChild() > 0) {
+					variable = pd.getArgs().getChild(pd.getArgs().getNumChild()-1).getID();
+					variable = variable.substring(variable.lastIndexOf('.')+1);
+				}
 
 				String target = variable;
 				String dims = "0";
@@ -560,10 +593,13 @@ public class AspectsEngine {
 
 							nv = tmp;
 							tcount = 1;
+						} else if(!rhs.getWeavability()){
+							//TODO: test id its correct in all cases
+							nv = rhs;
 						}
 
 						lstExpr.add(nv);
-					} else if(param.getID().compareTo(DIMS) == 0) {
+					} else if(param.getID().compareTo(ARGS) == 0) {
 						lstExpr.add(getDims(lhs));
 					} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
@@ -580,6 +616,8 @@ public class AspectsEngine {
 						lstExpr.add(new NameExpr(new Name(target)));
 					} else if(param.getID().compareTo(LINE) == 0) {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
+					} else if(param.getID().compareTo(LOC) == 0) {
+						lstExpr.add(new StringLiteralExpr(getLocation(context)));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -653,15 +691,15 @@ public class AspectsEngine {
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(ARGS) == 0) {
-						if(pat.getType().compareTo(CALL) == 0)
-							lstExpr.add(getDims(rhs));
-						else
-							lstExpr.add(new CellArrayExpr());
+						//if(pat.getType().compareTo(CALL) == 0)
+						lstExpr.add(getDims(rhs));
+						//else
+						//lstExpr.add(new CellArrayExpr());
 					} else if(param.getID().compareTo(DIMS) == 0) {
-						if(pat.getType().compareTo(GET) == 0)
-							lstExpr.add(getDims(rhs));
-						else
-							lstExpr.add(new CellArrayExpr());
+						//if(pat.getType().compareTo(GET) == 0)
+						//	lstExpr.add(getDims(rhs));
+						//else
+						lstExpr.add(new CellArrayExpr());
 					} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 						lstExpr.add(ile);
@@ -683,6 +721,8 @@ public class AspectsEngine {
 							lstExpr.add(new CellArrayExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
+					} else if(param.getID().compareTo(LOC) == 0) {
+						lstExpr.add(new StringLiteralExpr(getLocation(context)));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -915,28 +955,56 @@ public class AspectsEngine {
 	}
 
 	public static void weaveGlobalStructure(CompilationUnits cu) {
-		ast.List<Stmt> stmts = new ast.List<Stmt>();
-		GlobalStmt gs = new GlobalStmt(new ast.List<Name>().add(new Name(GLOBAL_STRUCTURE)));
-		gs.setOutputSuppressed(true);
-		stmts.add(gs);
-
-		for(String s : aspectList){
-			Expr rhs = new NameExpr(new Name(s));
-			Expr lhs = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(s));
-			AssignStmt as = new AssignStmt(lhs, rhs);
-			as.setOutputSuppressed(true);
-			as.setWeavability(false, true);
-
-			UnaryExpr cond = new NotExpr(new NameExpr(new Name("isfield("+GLOBAL_STRUCTURE+", '"+s+"')")));
-			IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(as));
-			Stmt is = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-
-			stmts.add(is);
-		}
-
 		for(int i=0; i < cu.getNumProgram(); i++) {
+			ast.List<Stmt> stmts = new ast.List<Stmt>();
+			GlobalStmt gs = new GlobalStmt(new ast.List<Name>().add(new Name(GLOBAL_STRUCTURE)));
+			gs.setOutputSuppressed(true);
+			stmts.add(gs);
+
+			//TODO: checkif it is first file?
+			String var = generateEntrypointCountVariableName();
+			Expr oirhs = new IntLiteralExpr(new DecIntNumericLiteralValue("0"));
+			Expr oerhs = new IntLiteralExpr(new DecIntNumericLiteralValue("1"));
+			Expr olhs = new NameExpr(new Name(var));
+			AssignStmt oias = new AssignStmt(olhs, oirhs);
+			AssignStmt oeas = new AssignStmt(olhs, oerhs);
+			oias.setOutputSuppressed(true);
+			oias.setWeavability(false, true);
+			oeas.setOutputSuppressed(true);
+			oeas.setWeavability(false, true);
+
+			UnaryExpr ocond = new NotExpr(new NameExpr(new Name("isempty("+GLOBAL_STRUCTURE+")")));
+			IfBlock oib = new IfBlock(ocond, new ast.List<Stmt>().add(oias));
+			ElseBlock oeb = new ElseBlock(new ast.List<Stmt>().add(oeas));
+			Stmt ois = new IfStmt(new ast.List<IfBlock>().add(oib), new Opt<ElseBlock>(oeb));
+			stmts.add(ois);
+
+			for(String s : aspectList){
+				Expr rhs = new NameExpr(new Name(s));
+				Expr lhs = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(s));
+				AssignStmt as = new AssignStmt(lhs, rhs);
+				as.setOutputSuppressed(true);
+				as.setWeavability(false, true);
+
+				UnaryExpr cond = new NotExpr(new NameExpr(new Name("isfield("+GLOBAL_STRUCTURE+", '"+s+"')")));
+				IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(as));
+				Stmt is = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+
+				stmts.add(is);
+			}
+			
+			Expr nrhs = new MatrixExpr();
+			Expr nlhs = new NameExpr(new Name(GLOBAL_STRUCTURE));
+			AssignStmt nas = new AssignStmt(nlhs, nrhs);
+			nas.setOutputSuppressed(true);
+			nas.setWeavability(false, true);
+
+			Expr ncond = new NameExpr(new Name(var));
+			IfBlock nib = new IfBlock(ncond, new ast.List<Stmt>().add(nas));
+			Stmt nis = new IfStmt(new ast.List<IfBlock>().add(nib), new Opt<ElseBlock>());
+			
 			Program p = cu.getProgram(i);
-			p.weaveGlobalStructure(stmts);
+			p.weaveGlobalStructure(stmts, nis);
 		}
 	}
 
@@ -1053,6 +1121,8 @@ public class AspectsEngine {
 						//do nothing
 					} else if(param.getID().compareTo(LINE) == 0) {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(loop.getLine(loop.getStart())))));
+					} else if(param.getID().compareTo(LOC) == 0) {
+						lstExpr.add(new StringLiteralExpr(getLocation(loop)));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -1173,6 +1243,8 @@ public class AspectsEngine {
 						lstExpr.add(new CellArrayExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(func.getLine(func.getStart())))));
+					} else if(param.getID().compareTo(LOC) == 0) {
+						lstExpr.add(new StringLiteralExpr(func.getName()));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -1236,6 +1308,23 @@ public class AspectsEngine {
 		}
 
 		return dims;
+	}
+
+	private static String getLocation(ASTNode exp){
+		String loc = "";
+
+		ASTNode node = exp;
+		while(node != null && !(node instanceof Function || node instanceof Script))
+			node = node.getParent();
+
+		if(node != null){
+			if(node instanceof Script)
+				loc = "Script";
+			else
+				loc = ((Function)node).getName();
+		}
+
+		return loc;
 	}
 }
 

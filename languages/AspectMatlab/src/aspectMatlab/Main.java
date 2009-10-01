@@ -34,13 +34,13 @@ public class Main
 			Program prog = null;
 			prog = parseFile( file,  fileReader, errors );
 
-			//report errors
-			if( errors.length() > 0 )
-				System.err.print( errors.toString() );
-
 			if( prog == null ){
-				System.err.println("\nSkipping " + file);
-				break;
+				//report errors
+				if( errors.length() > 0 )
+					System.err.print( errors.toString() );
+				
+				System.err.println("Skipping " + file);
+				continue;
 			}
 
 			if(prog instanceof Aspect) {
@@ -63,13 +63,13 @@ public class Main
 		for( Program p : cu.getPrograms() ){
 			p.aspectsCorrespondingFunctions();
 		}
-		
-		//adding aspect global structure
-		AspectsEngine.weaveGlobalStructure(cu);
-		
+			
 		for( Program p : cu.getPrograms() ){
 			p.aspectsWeave();
 		}
+		
+		//adding aspect global structure
+		AspectsEngine.weaveGlobalStructure(cu);
 		
 		for( Program a : aspects ){
 			cu.addProgram( a );

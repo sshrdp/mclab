@@ -28,15 +28,18 @@ aspect AspectsCorrespondingFunctions {
     }
        
     public void Function.aspectsCorrespondingFunctions() {       
-    	if(!getName().startsWith("AM_CF_")) {
+    	//if(!getName().startsWith("AM_CF_")) {
 	    	for(Stmt stmt : getStmts()) {
 	    		stmt.aspectsCorrespondingFunctions();
 	        }
 	        
+	        //Transform the input params to assignment stmts
+	        AspectsEngine.generateCorrespondingStmt(getStmts(), getInputParams());
+	        
 	        for(Function func : getNestedFunctions()) {
 	    			func.aspectsCorrespondingFunctions();
 	    	}
-    	}
+    	//}
     }
     
 	syn Boolean Stmt.aspectsCorrespondingFunctions() { return true; }

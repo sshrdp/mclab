@@ -53,6 +53,13 @@ import static aspectMatlab.AspectsParser.Terminals.*;
 */
 
 %%embed
+%name string_aspect
+%host aspect, aspect_pattern, aspect_action
+%guest string
+%start START_STRING
+%end END_STRING
+
+%%embed
 %name aspect_comma_terminator
 %host aspect, aspect_pattern, aspect_action
 %guest comma_terminator

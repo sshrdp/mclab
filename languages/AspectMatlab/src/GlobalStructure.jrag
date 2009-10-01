@@ -1,57 +1,64 @@
 aspect GlobalStructure {
 
-    syn Boolean Program.weaveGlobalStructure(ast.List<Stmt> stmts) { throw new UnsupportedOperationException(getClass().getName() + ".weaveGlobalStructure()"); }
+    syn Boolean Program.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) { throw new UnsupportedOperationException(getClass().getName() + ".weaveGlobalStructure()"); }
      
-	eq FunctionList.weaveGlobalStructure(ast.List<Stmt> stmts) {
+	eq FunctionList.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {
 		for(Function func : getFunctions()) {
-			func.weaveGlobalStructure(stmts);
+			func.weaveGlobalStructure(stmts, nis);
 		}
 
 		return true;
     }  
     
-    eq Script.weaveGlobalStructure(ast.List<Stmt> stmts) {
+    eq Script.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {
     	for(int i=stmts.getNumChild()-1; i>=0; i--) {
     		Stmt s = stmts.getChild(i);
 			getStmts().insertChild(s, 0);
 		}
+		
+		getStmts().addChild(nis);
+		
 		return true;
     } 
     
-    eq ClassDef.weaveGlobalStructure(ast.List<Stmt> stmts) {
+    eq ClassDef.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {
     	for(Methods methods : getMethods()) {
-            methods.weaveGlobalStructure(stmts);
+            methods.weaveGlobalStructure(stmts, nis);
         }
         
 		return true;
     } 
     
-    eq Aspect.weaveGlobalStructure(ast.List<Stmt> stmts) {
+    eq Aspect.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {
     	//TODO: weaving into aspect itself
     	
 		return true;
     }
     
-    public void Function.weaveGlobalStructure(ast.List<Stmt> stmts) {
+    public void Function.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {
     	for(int i=stmts.getNumChild()-1; i>=0; i--) {
     		Stmt s = stmts.getChild(i);
 			getStmts().insertChild(s, 0);
 		}
+		
+		getStmts().addChild(nis);
     }
     
-    public void Methods.weaveGlobalStructure(ast.List<Stmt> stmts) {       
+    public void Methods.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {       
         for(PropertyAccess prop : getPropAccs())
-            prop.weaveGlobalStructure(stmts);
+            prop.weaveGlobalStructure(stmts, nis);
         
         for(Function func : getFunctions())
-            func.weaveGlobalStructure(stmts);
+            func.weaveGlobalStructure(stmts, nis);
     }
     
-    public void PropertyAccess.weaveGlobalStructure(ast.List<Stmt> stmts) {       
+    public void PropertyAccess.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {       
         for(int i=stmts.getNumChild()-1; i>=0; i--) {
     		Stmt s = stmts.getChild(i);
 			getStmts().insertChild(s, 0);
 		}
+		
+		getStmts().addChild(nis);
     }
 
 }
