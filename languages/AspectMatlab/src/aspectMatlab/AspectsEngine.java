@@ -43,10 +43,10 @@ public class AspectsEngine {
 	static final public String GLOBAL_STRUCTURE = "AM_GLOBAL";
 	static final public String LOCAL_CHECK = "AM_Entry_Point_";
 	static final public String AM_CF_SCRIPT = "AM_CF_Script_";
-	static final public String AM_CF_VAR = "AM_CF_Var_";
+	static final public String AM_CF_VAR = "AM_CVar_";
 
 	//Around Advice Arguments
-	static final public Name CF_OUTPUT = new Name("output");
+	static final public Name CF_OUTPUT = new Name("varargout");
 	static final public Name CF_INPUT_CASE = new Name("AM_caseNum");
 	static final public Name CF_INPUT_OBJ = new Name("AM_obj");
 	static final public Name CF_INPUT_AGRS = new Name("AM_args");
@@ -75,6 +75,20 @@ public class AspectsEngine {
 					while(node != null && !(node instanceof Stmt))
 						node = node.getParent();
 
+					//Multiple values return from function
+					if(pe.getParent() instanceof AssignStmt){
+						Expr exp = ((AssignStmt)node).getLHS();
+						if(exp instanceof MatrixExpr){
+							//MatrixExpr me = (MatrixExpr)exp;
+							return;
+						}
+					}
+					
+					//AssignStmt inside ForStmt header
+					if(node != null)
+						if(node instanceof AssignStmt && node.getParent() instanceof ForStmt)
+							node = node.getParent();
+					
 					if(node != null) {
 						String var = generateCorrespondingVariableName();
 						Expr lhs = new NameExpr(new Name(var));
@@ -89,6 +103,13 @@ public class AspectsEngine {
 
 						ind = node.getParent().getIndexOfChild(node);
 						node.getParent().insertChild(stmt, ind);
+						
+						//Condition of WhileStmt
+						if(node instanceof WhileStmt){
+							WhileStmt ws = (WhileStmt)node;
+							ws.getStmts().add(stmt);
+							ws.WeaveLoopStmts(stmt, true);
+						}
 					}			
 					return;
 				}
@@ -664,7 +685,7 @@ public class AspectsEngine {
 					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-					addSwitchCaseToAroundCorrespondingFunction(rhs, fun.getNestedFunction(0), ile, SET);
+					addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET);
 					fun.incCorrespondingCount();
 					stmts.setChild(call, s+bcount+tcount);
 				}
@@ -809,7 +830,7 @@ public class AspectsEngine {
 					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-					addSwitchCaseToAroundCorrespondingFunction(rhs, fun.getNestedFunction(0), ile, pat.getType());
+					addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, pat.getType());
 					fun.incCorrespondingCount();
 					stmts.setChild(outerIf, s+bcount);
 				}
@@ -819,7 +840,7 @@ public class AspectsEngine {
 		return acount + bcount;
 	}
 
-	private static void addSwitchCaseToAroundCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, String type){
+	private static void addSwitchCaseToAroundCorrespondingFunction(Expr lhs, Expr pe, Function corFun, IntLiteralExpr ile, String type){
 		Expr exp = (Expr) pe.copy();
 		Expr tmp = (Expr) pe.copy();
 		ast.List<Expr> input = new ast.List<Expr>();
@@ -858,7 +879,20 @@ public class AspectsEngine {
 			scsl.add(tmpStmt);
 		}
 
-		AssignStmt stmt = new AssignStmt(new NameExpr(CF_OUTPUT), exp);
+		Expr out = null;
+		if(lhs instanceof MatrixExpr){
+			MatrixExpr me = (MatrixExpr)lhs;
+			int size = me.getRow(0).getNumElement();
+			List<Expr> lst = new List<Expr>();
+			
+			for(int i=1; i<=size; i++)
+				lst.add(new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
+			out = new MatrixExpr(new List<Row>().add(new Row(lst)));
+		} else {
+			out = new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
+		}
+		
+		AssignStmt stmt = new AssignStmt(out, exp);
 		stmt.setOutputSuppressed(true);
 		scsl.add(stmt);
 
@@ -1040,6 +1074,10 @@ public class AspectsEngine {
 						}
 					}
 
+					s += count;
+					stmtCount += count;
+					count = 0;
+					
 					if(rhs.getWeavability()) {
 						varName = rhs.FetchTargetExpr();
 						if(varName.compareTo("") != 0)  {
@@ -1253,7 +1291,16 @@ public class AspectsEngine {
 				Expr de2 = new DotExpr(de1, new Name(act.getName()));
 				ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
 
-				Stmt call = new ExprStmt(pe);
+				List<Expr> lst = new List<Expr>();
+				for(Name arg : func.getOutputParams())
+					lst.add((new NameExpr(arg)));
+				Expr out = new MatrixExpr(new List<Row>().add(new Row(lst)));
+				
+				Stmt call;
+				if(act.getType().compareTo(AROUND) == 0)
+					call = new AssignStmt(out, pe);
+				else
+					call = new ExprStmt(pe);
 				call.setOutputSuppressed(true);
 
 				if(act.getType().compareTo(BEFORE) == 0) {
@@ -1268,7 +1315,8 @@ public class AspectsEngine {
 						tmp.add(new NameExpr(arg));
 					}
 					ParameterizedExpr tmp_pe = new ParameterizedExpr(funcName, tmp);
-					addSwitchCaseToAroundCorrespondingFunction(tmp_pe, fun.getNestedFunction(0), ile, EXECUTION);
+					
+					addSwitchCaseToAroundCorrespondingFunction(out, tmp_pe, fun.getNestedFunction(0), ile, EXECUTION);
 					fun.incCorrespondingCount();
 					func.getStmts().addChild(call);
 				}

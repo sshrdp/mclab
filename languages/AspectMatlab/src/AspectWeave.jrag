@@ -32,11 +32,13 @@ aspect AspectWeave {
     }
     
     public void Function.aspectsWeave() {
-    	AspectsEngine.weaveStmts(getStmts());
-		AspectsEngine.weaveFunction(this);
-		
-        for(Function fun : getNestedFunctions()) {
-            fun.aspectsWeave();
+    	if(!getName().startsWith("AM_Handle_")) {
+	    	AspectsEngine.weaveStmts(getStmts());
+			AspectsEngine.weaveFunction(this);
+			
+	        for(Function fun : getNestedFunctions()) {
+	            fun.aspectsWeave();
+			}
 		}
     }
     

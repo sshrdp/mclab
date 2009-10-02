@@ -231,11 +231,12 @@ aspect AspectsCorrespondingFunctions {
     }
     
     eq LambdaExpr.aspectsCorrespondingFunctions() {
- 		getBody().aspectsCorrespondingFunctions();
+ 		//TODO
+ 		//getBody().aspectsCorrespondingFunctions();
  		
- 		for(Name arg : getInputParams()) {
-           	arg.aspectsCorrespondingFunctions();
-        }
+ 		//for(Name arg : getInputParams()) {
+        //   	arg.aspectsCorrespondingFunctions();
+        //}
  		
  		return true;
  	}
