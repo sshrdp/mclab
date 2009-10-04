@@ -4,11 +4,13 @@ aspect FetchTargetExpr {
 	
 	syn String Expr.FetchTargetExpr() = "";
  	
- 	eq NameExpr.FetchTargetExpr() { 
+ 	eq NameExpr.FetchTargetExpr() {
  		String name = getName().getID();
  		if(name.startsWith("AM_tmpFS_"))
 			name = name.replace("AM_tmpFS_", "");
-		if(name.startsWith("AM_CVar_"))
+		else if(name.startsWith("AM_CVar_"))
+			name = "";
+		else if(!getWeavability())
 			name = "";
  		return name;
 	}
@@ -36,5 +38,10 @@ aspect FetchTargetExpr {
     eq UnaryExpr.FetchTargetExpr() = getOperand().FetchTargetExpr();
     
     eq BinaryExpr.FetchTargetExpr() = getLHS().FetchTargetExpr() + "," + getRHS().FetchTargetExpr();
+    
+    
+    syn int Expr.FetchArgsCount() = 0;
+	eq ParameterizedExpr.FetchArgsCount() = getNumArg();
+	eq CellIndexExpr.FetchArgsCount() = getNumArg();
     
 }

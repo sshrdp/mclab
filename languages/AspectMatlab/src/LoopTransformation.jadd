@@ -1,11 +1,25 @@
 aspect LoopTransformation {
-    private boolean ForStmt.aspectTransformed = false;
-    
+    private boolean ForStmt.aspectTransformed = false; 
     public boolean ForStmt.isAspectTransformed() { return aspectTransformed; }
     public void ForStmt.setAspectTransformed(boolean aspectTransformed) { this.aspectTransformed = aspectTransformed; }
     
-    private boolean WhileStmt.aspectTransformed = false;
-    
+    private boolean WhileStmt.aspectTransformed = false;  
     public boolean WhileStmt.isAspectTransformed() { return aspectTransformed; }
     public void WhileStmt.setAspectTransformed(boolean aspectTransformed) { this.aspectTransformed = aspectTransformed; }
+    
+    private String ForStmt.loopVar = "";
+    public String ForStmt.getLoopVar() { return loopVar; }
+    public void ForStmt.setLoopVar(String loopVar) { this.loopVar = loopVar; }
+    
+    private String WhileStmt.loopVars = "";
+    public String WhileStmt.getLoopVars() { return loopVars; }
+    public void WhileStmt.setLoopVars(String loopVars) { this.loopVars = loopVars; }
+    
+    private AssignStmt ForStmt.loopHead = null;
+    public AssignStmt ForStmt.getLoopHead() { return loopHead; }
+    public void ForStmt.setLoopHead(AssignStmt loopHead) { this.loopHead = loopHead; }
+    
+    private AssignStmt WhileStmt.loopHead = null;
+    public AssignStmt WhileStmt.getLoopHead() { return loopHead; }
+    public void WhileStmt.setLoopHead(AssignStmt loopHead) { this.loopHead = loopHead; }
 }

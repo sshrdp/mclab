@@ -85,7 +85,7 @@ List pattern_list =
 
 Name pattern_path_sign =
      pattern_path.b {: return b; :}
-  |  pattern_path.s LPAREN list_dotdot.ls RPAREN {: String pattern = s.getID()+"$"+ls.getNumChild(); if(((Name)ls.getChild(ls.getNumChild()-1)).getID().compareTo("..") == 0) pattern += "+"; return new Name(pattern); :}
+  |  pattern_path.s LPAREN list_dotdot.ls RPAREN {: int num = ls.getNumChild(); String pattern = s.getID()+"$"+ls.getNumChild(); if(num > 0 && ((Name)ls.getChild(ls.getNumChild()-1)).getID().compareTo("..") == 0) pattern += "+"; return new Name(pattern); :}
   ;
   
 Name pattern_path =
@@ -101,7 +101,9 @@ Name pattern_simple =
   ;
 
 List list_dotdot =
-	 list_star.l {: return l; :}
+	 {: return new List<Name>(); :}
+  |  list_star.l {: return l; :}
+  |  DOTDOT {: return new List<Name>().add(new Name("..")); :}
   |  list_star.l COMMA DOTDOT {: return l.add(new Name("..")); :}
   ;
   
