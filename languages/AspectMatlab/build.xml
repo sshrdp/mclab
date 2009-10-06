@@ -143,6 +143,8 @@
 				<include name="Comments.jadd" />
 				<include name="OutputSuppression.jadd" />
 				<include name="PrettyPrint.jrag" />
+				<include name="ASTAnalyze.jadd" />
+				<include name="LValue.jrag" />
 				<!-- <include name="**/*.jadd" /> -->
 				<!-- <include name="**/*.jrag" /> -->
 			</fileset>

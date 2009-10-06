@@ -2,7 +2,6 @@ package aspectMatlab;
 
 import ast.*;
 import natlab.CommentBuffer;
-
 import beaver.Parser;
 import java.io.*;
 import java.util.*;
@@ -52,7 +51,6 @@ public class Main
 			}
 		}
 
-		System.err.println("Matching and Weaving...");
 		//Take all resulting Program nodes and place them in a
 		//CompilationUnits instance
 		CompilationUnits cu = new CompilationUnits();
@@ -60,10 +58,15 @@ public class Main
 			cu.addProgram( p );
 		}
 
+		System.err.println("Analysing...");
+		AspectsEngine.analysis(cu);
+
+        System.err.println("Matching and Weaving...");
+        
 		for( Program p : cu.getPrograms() ){
 			p.aspectsCorrespondingFunctions();
 		}
-			
+		
 		for( Program p : cu.getPrograms() ){
 			p.aspectsWeave();
 		}

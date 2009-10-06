@@ -1,6 +1,10 @@
 package aspectMatlab;
 
 import natlab.DecIntNumericLiteralValue;
+import natlab.toolkits.analysis.varorfun.FunctionVFDatum;
+import natlab.toolkits.analysis.varorfun.VFFlowset;
+import natlab.toolkits.analysis.varorfun.VFPreorderAnalysis;
+import natlab.toolkits.analysis.varorfun.ValueDatumPair;
 import ast.*;
 import ast.List;
 import ast.Properties;
@@ -9,6 +13,7 @@ import java.util.*;
 
 public class AspectsEngine {
 
+	static Map<ASTNode, VFFlowset<String, FunctionVFDatum>> vfaMap;
 	static LinkedList<action> actionsList = new LinkedList<action>();
 	static LinkedList<pattern> patternsList = new LinkedList<pattern>();
 	static ArrayList<String> aspectList = new ArrayList<String>();
@@ -65,18 +70,137 @@ public class AspectsEngine {
 		return LOCAL_CHECK + entrypointCount++;
 	}
 
+	public static void analysis(ASTNode<?> cu){
+		VFPreorderAnalysis vfa = new VFPreorderAnalysis(cu);
+		vfa.analyze();
+		vfaMap = vfa.getFlowSets();
+		System.out.println(vfa.getCurrentSet().toString());
+	}
+
+	public static FunctionVFDatum checkVarOrFun(ASTNode node, String target){
+		java.util.List<ValueDatumPair<String, FunctionVFDatum>> fset = vfaMap.get(node).toList();
+
+		for(ValueDatumPair<String, FunctionVFDatum> vdp : fset){
+			if(vdp.getValue().compareTo(target) == 0)
+				return vdp.getDatum();
+		}
+
+		return new FunctionVFDatum();
+	}
+
+	private static String generateActionName(String aspect, String action){
+		return aspect + "_" + action;
+	}
+
+	public static void fetchAspectInfo(Program prog)
+	{ 	
+		Aspect aspect = (Aspect) prog;
+		aspectList.add(aspect.getName());
+
+		for(Patterns patterns : aspect.getPatterns())
+			for(Pattern pattern : patterns.getPatterns())
+			{
+				String name = pattern.getName();
+				PatternDesignator pd = (PatternDesignator) pattern.getPD();
+				String type = pd.getName();
+
+				String variable = "";
+				if(pd.getArgs().getNumChild() > 0) {
+					variable = pd.getArgs().getChild(pd.getArgs().getNumChild()-1).getID();
+					variable = variable.substring(variable.lastIndexOf('.')+1);
+				}
+
+				String target = variable;
+				String dims = "-1";
+				boolean more = false;
+
+				if(variable.contains("$")) {
+					target = variable.substring(0, variable.lastIndexOf('$'));
+					dims = variable.substring(variable.lastIndexOf('$')+1);
+
+					if(dims.contains("+")) {
+						more = true;
+						dims = dims.substring(0, dims.lastIndexOf('+'));
+					}
+				}
+
+				patternsList.add(new pattern(name, type, target, Integer.valueOf(dims), more));
+			}
+
+		for(Actions lst : aspect.getActions())
+			for(AspectAction action : lst.getAspectActions())
+			{
+				String name = action.getName();
+				String type = action.getType();
+				String pattern = action.getPattern();
+				String modifiedName = generateActionName(aspect.getName(), name);
+
+				pattern pat = null;
+				for(int i = 0; i<patternsList.size(); i++) {
+					pattern tmp = patternsList.get(i);
+					if(tmp.getName().compareTo(pattern) == 0) {
+						pat = tmp;
+						break;
+					}
+				}
+
+				Function fun = new Function();
+				if(type.compareTo(AROUND) != 0)
+					fun = new Function(new ast.List<Name>(), modifiedName, action.getSelectors(), new ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions());
+				else
+					fun = createAroundFunction(modifiedName, action, true);
+
+				actionsList.add(new action(modifiedName, type, pat, fun, aspect.getName()));
+			}
+	}
+
+	public static ClassDef convertToClass(Program prog)
+	{ 	
+		Aspect aspect = (Aspect) prog;
+		ClassDef out = new ClassDef();
+
+		out.setName(aspect.getName());
+		SuperClass sc = new SuperClass();
+		sc.setName("handle");
+		out.setSuperClass(sc, 0);
+
+		for(Properties propertys : aspect.getPropertys())
+			out.addProperty(propertys);
+
+		for(Methods methods : aspect.getMethods())
+			out.addMethod(methods);
+
+		Methods methods = new Methods();
+		for(Actions actions : aspect.getActions())
+			for(AspectAction action : actions.getAspectActions())
+			{
+				String name = action.getName();
+				String type = action.getType();
+
+				String modifiedName = generateActionName(aspect.getName(), name);
+
+				if(type.compareTo(AROUND) != 0) {
+					ast.List<Name> input = action.getSelectors();
+					input.insertChild(new Name(THIS), 0);
+					methods.addFunction(new Function(new ast.List<Name>(), modifiedName, input, new ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions()));
+				} else
+					methods.addFunction(createAroundFunction(modifiedName, action, false));
+			}
+
+		out.addMethod(methods);
+
+		return out;
+	}
+
 	public static void generateCorrespondingStmt(Expr pe) {
 		if(pe.getWeavability() && !pe.getCFStmtDone()) {
 			String target = pe.FetchTargetExpr();
-			int args = pe.FetchArgsCount();
-			
+
 			for(pattern pat : patternsList) {
 				if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0)
 						&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
-						//TODO
-						//&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
-						) {
-					ASTNode node = pe;
+				) {
+					ASTNode<?> node = pe;
 					while(node != null && !(node instanceof Stmt))
 						node = node.getParent();
 
@@ -118,7 +242,7 @@ public class AspectsEngine {
 					return;
 				}
 			}
-			
+
 			//No match
 			pe.setWeavability(false);
 		}
@@ -147,6 +271,7 @@ public class AspectsEngine {
 		}
 	}
 
+	/*
 	public static void generateCorrespondingFunction(Expr pe) {
 		if(pe.getWeavability()) {
 			String target = pe.FetchTargetExpr();
@@ -218,23 +343,6 @@ public class AspectsEngine {
 				}
 			}
 		}
-	}
-
-	private static Function createCorrespondingFunction(String funName, boolean isScript){
-		ast.List<Name> output = new ast.List<Name>();
-		output.add(CF_OUTPUT);
-
-		ast.List<Name> input = new ast.List<Name>();
-		input.add(CF_INPUT_CASE);
-		if(isScript)
-			input.add(CF_INPUT_OBJ);
-		input.add(CF_INPUT_AGRS);
-
-		SwitchStmt ss = new SwitchStmt(new NameExpr(CF_INPUT_CASE), new ast.List<SwitchCaseBlock>(), new Opt<DefaultCaseBlock>());
-		ast.List<Stmt> sl = new ast.List<Stmt>();
-		sl.add(ss);
-
-		return new Function(output, funName, input, new ast.List<HelpComment>(), sl, new ast.List<Function>());
 	}
 
 	private static void addSwitchCaseToCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, boolean isScript){
@@ -343,110 +451,7 @@ public class AspectsEngine {
 		int ind = pe.getParent().getIndexOfChild(pe);
 		pe.getParent().setChild(call, ind);
 	}
-
-	private static String generateActionName(String aspect, String action){
-		return aspect + "_" + action;
-	}
-
-	public static void fetchAspectInfo(Program prog)
-	{ 	
-		Aspect aspect = (Aspect) prog;
-		aspectList.add(aspect.getName());
-
-		for(Patterns patterns : aspect.getPatterns())
-			for(Pattern pattern : patterns.getPatterns())
-			{
-				String name = pattern.getName();
-				PatternDesignator pd = (PatternDesignator) pattern.getPD();
-				String type = pd.getName();
-
-				String variable = "";
-				if(pd.getArgs().getNumChild() > 0) {
-					variable = pd.getArgs().getChild(pd.getArgs().getNumChild()-1).getID();
-					variable = variable.substring(variable.lastIndexOf('.')+1);
-				}
-
-				String target = variable;
-				String dims = "-1";
-				boolean more = false;
-
-				if(variable.contains("$")) {
-					target = variable.substring(0, variable.lastIndexOf('$'));
-					dims = variable.substring(variable.lastIndexOf('$')+1);
-
-					if(dims.contains("+")) {
-						more = true;
-						dims = dims.substring(0, dims.lastIndexOf('+'));
-					}
-				}
-
-				patternsList.add(new pattern(name, type, target, Integer.valueOf(dims), more));
-			}
-
-		for(Actions lst : aspect.getActions())
-			for(AspectAction action : lst.getAspectActions())
-			{
-				String name = action.getName();
-				String type = action.getType();
-				String pattern = action.getPattern();
-				String modifiedName = generateActionName(aspect.getName(), name);
-
-				pattern pat = null;
-				for(int i = 0; i<patternsList.size(); i++) {
-					pattern tmp = patternsList.get(i);
-					if(tmp.getName().compareTo(pattern) == 0) {
-						pat = tmp;
-						break;
-					}
-				}
-
-				Function fun = new Function();
-				if(type.compareTo(AROUND) != 0)
-					fun = new Function(new ast.List<Name>(), modifiedName, action.getSelectors(), new ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions());
-				else
-					fun = createAroundFunction(modifiedName, action, true);
-
-				actionsList.add(new action(modifiedName, type, pat, fun, aspect.getName()));
-			}
-	}
-
-	public static ClassDef convertToClass(Program prog)
-	{ 	
-		Aspect aspect = (Aspect) prog;
-		ClassDef out = new ClassDef();
-
-		out.setName(aspect.getName());
-		SuperClass sc = new SuperClass();
-		sc.setName("handle");
-		out.setSuperClass(sc, 0);
-
-		for(Properties propertys : aspect.getPropertys())
-			out.addProperty(propertys);
-
-		for(Methods methods : aspect.getMethods())
-			out.addMethod(methods);
-
-		Methods methods = new Methods();
-		for(Actions actions : aspect.getActions())
-			for(AspectAction action : actions.getAspectActions())
-			{
-				String name = action.getName();
-				String type = action.getType();
-
-				String modifiedName = generateActionName(aspect.getName(), name);
-
-				if(type.compareTo(AROUND) != 0) {
-					ast.List<Name> input = action.getSelectors();
-					input.insertChild(new Name(THIS), 0);
-					methods.addFunction(new Function(new ast.List<Name>(), modifiedName, input, new ast.List<HelpComment>(), action.getStmts(), action.getNestedFunctions()));
-				} else
-					methods.addFunction(createAroundFunction(modifiedName, action, false));
-			}
-
-		out.addMethod(methods);
-
-		return out;
-	}
+	 */
 
 	private static Function createAroundFunction(String modifiedName, AspectAction action, boolean isConvertProceed){
 		ast.List<Name> output = new ast.List<Name>();
@@ -469,6 +474,23 @@ public class AspectsEngine {
 			input.insertChild(new Name(THIS), 0);
 
 		return new Function(output, modifiedName, input, new ast.List<HelpComment>(), action.getStmts(), nf);
+	}
+
+	private static Function createCorrespondingFunction(String funName, boolean isScript){
+		ast.List<Name> output = new ast.List<Name>();
+		output.add(CF_OUTPUT);
+
+		ast.List<Name> input = new ast.List<Name>();
+		input.add(CF_INPUT_CASE);
+		if(isScript)
+			input.add(CF_INPUT_OBJ);
+		input.add(CF_INPUT_AGRS);
+
+		SwitchStmt ss = new SwitchStmt(new NameExpr(CF_INPUT_CASE), new ast.List<SwitchCaseBlock>(), new Opt<DefaultCaseBlock>());
+		ast.List<Stmt> sl = new ast.List<Stmt>();
+		sl.add(ss);
+
+		return new Function(output, funName, input, new ast.List<HelpComment>(), sl, new ast.List<Function>());
 	}
 
 	private static void convertProceedCalls(ast.List<Stmt> stmts){
@@ -586,6 +608,7 @@ public class AspectsEngine {
 	private static int setMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
 		Expr rhs = context.getRHS();
 		Expr lhs = context.getLHS();
+		int args = lhs.FetchArgsCount();
 		int acount = 0, bcount = 0, tcount= 0;
 
 		for(int j=0; j<actionsList.size(); j++)
@@ -593,15 +616,17 @@ public class AspectsEngine {
 			action act = actionsList.get(j);
 			pattern pat = act.getPattern();
 
-			if(pat.getType().compareTo(SET) == 0 && (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)){
+			if(pat.getType().compareTo(SET) == 0 && (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
+					&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
+				){
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
-				
+
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(NEWVAL) == 0 || param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
 						//lstExpr.add(getNewVal(rhs));
 						Expr nv = new CellArrayExpr();
-						
+
 						if(rhs instanceof IntLiteralExpr || rhs instanceof FPLiteralExpr || rhs instanceof StringLiteralExpr) {
 							nv = rhs;
 						} else if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
@@ -633,15 +658,17 @@ public class AspectsEngine {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 						lstExpr.add(ile);
 					} else if(param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
-						lstExpr.add(new NameExpr(new Name(target)));
-					//} else if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
-					//	lstExpr.add(nv);
+						//TODO: temp solution
+						//lstExpr.add(new NameExpr(new Name(target)));
+						lstExpr.add(new MatrixExpr());
 					} else if(param.getID().compareTo(THIS) == 0) {
 						//do nothing
 					} else if(param.getID().compareTo(NAME) == 0) {
 						lstExpr.add(new StringLiteralExpr(target));
 					} else if(param.getID().compareTo(OBJ) == 0) {
-						lstExpr.add(new NameExpr(new Name(target)));
+						//TODO: temp solution
+						//lstExpr.add(new NameExpr(new Name(target)));
+						lstExpr.add(new MatrixExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
 					} else if(param.getID().compareTo(LOC) == 0) {
@@ -703,7 +730,118 @@ public class AspectsEngine {
 		return acount + bcount + tcount;
 	}
 
-	private static int getOrCallMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
+	private static int getOrCallMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context, FunctionVFDatum varOrFun) {
+		Expr rhs = context.getRHS();
+		Expr lhs = context.getLHS();
+		int acount = 0, bcount = 0;
+		int args = rhs.FetchArgsCount();
+
+		for(int j=0; j<actionsList.size(); j++)
+		{
+			action act = actionsList.get(j);
+			pattern pat = act.getPattern();
+
+			if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0) 
+					&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
+					&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
+				){
+				Function fun = act.getFunction();
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
+
+				for(Name param : fun.getInputParams()) {
+					if(param.getID().compareTo(ARGS) == 0) {
+						lstExpr.add(getDims(rhs));
+					} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						lstExpr.add(ile);
+					} else if(param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
+						if(pat.getType().compareTo(CALL) == 0){
+							if(varOrFun == null || (varOrFun != null && (varOrFun.isFunction() || varOrFun.isBottom())))
+								lstExpr.add(new FunctionHandleExpr(new Name(target)));
+							else
+								lstExpr.add(new CellArrayExpr());
+						}
+						else
+							lstExpr.add(new NameExpr(new Name(target)));
+					} else if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
+						lstExpr.add(getDims(rhs));
+					} else if(param.getID().compareTo(THIS) == 0) {
+						//do nothing
+					} else if(param.getID().compareTo(NAME) == 0) {
+						lstExpr.add(new StringLiteralExpr(target));
+					} else if(param.getID().compareTo(OBJ) == 0) {
+						if(pat.getType().compareTo(GET) == 0)
+							lstExpr.add(new NameExpr(new Name(target)));
+						else
+							lstExpr.add(new CellArrayExpr());
+					} else if(param.getID().compareTo(LINE) == 0) {
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
+					} else if(param.getID().compareTo(LOC) == 0) {
+						lstExpr.add(new StringLiteralExpr(getLocation(context)));
+					} else
+						lstExpr.add(new CellArrayExpr());
+				}
+
+				Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(act.getClassName()));
+				Expr de2 = new DotExpr(de1, new Name(act.getName()));
+				ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
+
+				Stmt action;
+				if(act.getType().compareTo(AROUND) == 0)
+					action = new AssignStmt(lhs, pe);
+				else
+					action = new ExprStmt(pe);
+
+				action.setOutputSuppressed(true);
+
+				Stmt call;
+				if(varOrFun != null){ //function
+					call = action;
+				} else { //script
+					BinaryExpr cond;
+					ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
+					elst.add(new StringLiteralExpr("var"));
+					ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
+
+					if(pat.getType().compareTo(GET) == 0)
+						cond = new EQExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
+					else
+						cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
+
+					IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(action));
+					Stmt outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+
+					if(act.getType().compareTo(AROUND) == 0) {					
+						AssignStmt eas = new AssignStmt(lhs, rhs);
+						eas.setOutputSuppressed(true);
+						ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
+						outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
+					}
+					
+					call = outerIf;
+				}
+				
+				if(varOrFun == null || (varOrFun != null && (((varOrFun.isFunction() || varOrFun.isBottom()) && pat.getType().compareTo(CALL) == 0) || (varOrFun.isVariable() && pat.getType().compareTo(GET) == 0)))){
+					if(act.getType().compareTo(BEFORE) == 0) {
+						stmts.insertChild(call, s);
+						bcount += 1;
+					} else if(act.getType().compareTo(AFTER) == 0) {
+						stmts.insertChild(call, s+bcount+acount+1);
+						acount += 1;
+					} else if(act.getType().compareTo(AROUND) == 0) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, pat.getType());
+						fun.incCorrespondingCount();
+						stmts.setChild(call, s+bcount);
+					}
+				}
+			}
+		}
+
+		return acount + bcount;
+	}
+
+	/*	private static int getOrCallMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
 		Expr rhs = context.getRHS();
 		Expr lhs = context.getLHS();
 		int acount = 0, bcount = 0;
@@ -770,53 +908,53 @@ public class AspectsEngine {
 				action.setOutputSuppressed(true);
 				BinaryExpr cond;
 
-				ASTNode node = stmts;
-				while(node != null && !(node instanceof Function))
-					node = node.getParent();
-				boolean isScriptCF = false;
-				ParameterizedExpr strcmp = new ParameterizedExpr();
+//				ASTNode node = stmts;
+//				while(node != null && !(node instanceof Function))
+//					node = node.getParent();
+//				boolean isScriptCF = false;
+//				ParameterizedExpr strcmp = new ParameterizedExpr();
+//
+//				if(node != null && ((Function)node).getName().startsWith(AM_CF_SCRIPT)) {
+//					isScriptCF = true;
+//					ast.List<Expr> lst = new ast.List<Expr>().add(new NameExpr(CF_INPUT_OBJ));
+//					lst.add(new StringLiteralExpr("AM_tmp_" + target));
+//					strcmp = new ParameterizedExpr(new NameExpr(new Name("strcmp")), lst);
+//				}
 
-				if(node != null && ((Function)node).getName().startsWith(AM_CF_SCRIPT)) {
-					isScriptCF = true;
-					ast.List<Expr> lst = new ast.List<Expr>().add(new NameExpr(CF_INPUT_OBJ));
-					lst.add(new StringLiteralExpr("AM_tmp_" + target));
-					strcmp = new ParameterizedExpr(new NameExpr(new Name("strcmp")), lst);
-				}
-
-				ast.List<Expr> nlst = new ast.List<Expr>().add(new NameExpr(new Name(target)));
-				ParameterizedExpr numel = new ParameterizedExpr(new NameExpr(new Name("numel")), nlst);
+				//ast.List<Expr> nlst = new ast.List<Expr>().add(new NameExpr(new Name(target)));
+				//ParameterizedExpr numel = new ParameterizedExpr(new NameExpr(new Name("numel")), nlst);
 				ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
 				elst.add(new StringLiteralExpr("var"));
 				ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
 
 				if(pat.getType().compareTo(GET) == 0) {
-					/*if(!(pat.getDims().compareTo("0") == 0)) {
-						BinaryExpr cond2;
+//					if(!(pat.getDims().compareTo("0") == 0)) {
+//						BinaryExpr cond2;
+//
+//						if(!pat.getDimsAndMore())
+//							cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
+//						else
+//							cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
+//
+//						IfBlock ib = new IfBlock(cond2, new ast.List<Stmt>().add(action));
+//						call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+//
+//						if(act.getType().compareTo(AROUND) == 0) {					
+//							AssignStmt eas = new AssignStmt(lhs, rhs);
+//							eas.setOutputSuppressed(true);
+//							ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
+//							call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
+//						}
+//					}
 
-						if(!pat.getDimsAndMore())
-							cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
-						else
-							cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
-
-						IfBlock ib = new IfBlock(cond2, new ast.List<Stmt>().add(action));
-						call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-
-						if(act.getType().compareTo(AROUND) == 0) {					
-							AssignStmt eas = new AssignStmt(lhs, rhs);
-							eas.setOutputSuppressed(true);
-							ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
-							call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
-						}
-					}*/
-
-					if(isScriptCF)
-						cond = new NEExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-					else
+					//if(isScriptCF)
+					//	cond = new NEExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
+					//else
 						cond = new EQExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
 				} else {
-					if(isScriptCF)
-						cond = new EQExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-					else
+					//if(isScriptCF)
+					//	cond = new EQExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
+					//else
 						cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
 				}
 
@@ -846,7 +984,7 @@ public class AspectsEngine {
 		}
 
 		return acount + bcount;
-	}
+	}*/
 
 	private static void addSwitchCaseToAroundCorrespondingFunction(Expr lhs, Expr pe, Function corFun, IntLiteralExpr ile, String type){
 		Expr exp = (Expr) pe.copy();
@@ -928,7 +1066,7 @@ public class AspectsEngine {
 						tmpAS += ne.getName().getID();
 						tmpFS += ne.getName().getID();
 					}
-					
+
 					AssignStmt as_out = new AssignStmt();
 					as_out.setRHS(as_old.getRHS());
 					as_out.setLHS(new NameExpr(new Name(tmpAS)));
@@ -958,7 +1096,7 @@ public class AspectsEngine {
 
 					fs_new.setLoopVar(lhs.FetchTargetExpr());
 					fs_new.setLoopHead(as_out);
-					
+
 					stmts.removeChild(s);
 					stmts.insertChild(as_out, s);
 					stmts.insertChild(fs_new, s+1);
@@ -982,14 +1120,14 @@ public class AspectsEngine {
 
 					Expr rhs = ws.getExpr();
 					Expr lhs = new NameExpr(new Name(var));
-					
+
 					ws.setLoopVars(rhs.FetchTargetExpr());
 					rhs.aspectsCorrespondingFunctions();
-					
+
 					AssignStmt as = new AssignStmt(lhs, rhs);
 					as.setOutputSuppressed(true);
 					lhs.setWeavability(false);
-				
+
 					ws.setExpr(lhs);
 					stmts.insertChild(as, stmts.getIndexOfChild(ws));
 					//AssignStmt tmp = as.copy();
@@ -997,7 +1135,7 @@ public class AspectsEngine {
 					//ws.WeaveLoopStmts(tmp, true);
 
 					ws.setLoopHead(as);
-					
+
 					ws.setAspectTransformed(true);
 					s++;
 					stmtCount++;
@@ -1065,6 +1203,10 @@ public class AspectsEngine {
 		transformForStmt(stmts);
 		transformWhileStmt(stmts);
 
+		ASTNode<?> node = stmts;
+		while(node != null && !(node instanceof Function))
+			node = node.getParent();
+
 		int stmtCount = stmts.getNumChild();
 
 		for(int s=0; s<stmtCount; s++)
@@ -1101,7 +1243,13 @@ public class AspectsEngine {
 						if(varName.compareTo("") != 0)  {
 							StringTokenizer st = new StringTokenizer(varName, ",");
 							while (st.hasMoreTokens()) {
-								count += getOrCallMatchAndWeave(stmts, s, st.nextToken(), as);
+								String target = st.nextToken();
+
+								FunctionVFDatum varOrFun = null;
+								if(node != null)
+									varOrFun = checkVarOrFun(node, target);
+
+								count += getOrCallMatchAndWeave(stmts, s, target, as, varOrFun);
 							}
 						}
 					}
@@ -1119,7 +1267,7 @@ public class AspectsEngine {
 				}
 				s += count;
 				stmtCount += count;
-				
+
 				stmt.aspectsWeave();
 			} else {
 				stmt.aspectsWeave();
@@ -1133,17 +1281,15 @@ public class AspectsEngine {
 
 		if(loop instanceof ForStmt){
 			ForStmt fstmt = (ForStmt) loop;
-			//loopVar = fstmt.getAssignStmt().getLHS().FetchTargetExpr();
 			loopVar = fstmt.getLoopVar();
 		} if(loop instanceof WhileStmt){
 			WhileStmt wstmt = (WhileStmt) loop;
-			//loopVar = wstmt.getExpr().FetchTargetExpr();
 			loopVar = wstmt.getLoopVars();
 		}
 
 		return loopVar+",";
 	}
-	
+
 	private static AssignStmt fetchLoopHeads(Stmt loop)
 	{
 		AssignStmt loopHead = null;
@@ -1164,17 +1310,8 @@ public class AspectsEngine {
 		String loopVar = fetchLoopVariables(loop);
 		AssignStmt head = fetchLoopHeads(loop);
 		int acount = 0, bcount = 0, tcount = 0;
-		
-		//finding the head statement
-		ASTNode parent = loop.getParent();
-		//AssignStmt head = null;
-		//for(int i = parent.getIndexOfChild(loop)-1; i >= 0; i--) {
-		//	if(parent.getChild(i) instanceof AssignStmt){
-		//		head = (AssignStmt) parent.getChild(i);
-		//		break;
-		//	}
-		//}
-		
+		ASTNode<ASTNode> parent = loop.getParent();
+
 		for(int j=0; j<actionsList.size(); j++)
 		{
 			action act = actionsList.get(j);
@@ -1184,7 +1321,7 @@ public class AspectsEngine {
 					&& (loopVar.contains(pat.getTarget()+",") || pat.getTarget().compareTo("*") == 0)){
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
-				
+
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(ARGS) == 0) {
 						if(loop instanceof ForStmt && !(pat.getType().compareTo(LOOPHEAD) == 0 && act.getType().compareTo(BEFORE) == 0))
@@ -1201,7 +1338,7 @@ public class AspectsEngine {
 						if(pat.getType().compareTo(LOOPHEAD) == 0){
 							Expr nv = new CellArrayExpr();
 							Expr rhs = head.getRHS();
-							
+
 							if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
 								String var = generateCorrespondingVariableName();
 								Expr tmp = new NameExpr(new Name(var));
@@ -1219,14 +1356,14 @@ public class AspectsEngine {
 
 								nv = tmp;
 								tcount = 1;
-								
+
 								//other heads of while
 								if(loop instanceof WhileStmt){
 									WhileStmt ws = (WhileStmt)loop;
 									ws.getStmtList().add(stmt);
 									ws.WeaveLoopStmts(stmt, true);
 								}
-								
+
 							} else if(!rhs.getWeavability()){
 								//TODO: test id its correct in all cases
 								nv = rhs;
@@ -1285,7 +1422,7 @@ public class AspectsEngine {
 					if(act.getType().compareTo(BEFORE) == 0) {
 						parent.insertChild(call, parent.getIndexOfChild(head));
 						bcount += 1;
-						
+
 						//other heads of while
 						if(loop instanceof WhileStmt){
 							WhileStmt ws = (WhileStmt)loop;
@@ -1295,7 +1432,7 @@ public class AspectsEngine {
 					} else if(act.getType().compareTo(AFTER) == 0) {
 						parent.insertChild(call, parent.getIndexOfChild(head)+1);
 						acount += 1;
-						
+
 						//other heads of while
 						if(loop instanceof WhileStmt){
 							WhileStmt ws = (WhileStmt)loop;
@@ -1322,7 +1459,7 @@ public class AspectsEngine {
 
 			if(stmt instanceof BreakStmt || stmt instanceof ContinueStmt || stmt instanceof ReturnStmt){
 				if((!onlyContinue && (stmt instanceof BreakStmt || stmt instanceof ReturnStmt)) || stmt instanceof ContinueStmt){
-					ASTNode parent = stmt.getParent();
+					ASTNode<ASTNode> parent = stmt.getParent();
 					parent.insertChild(call, parent.getIndexOfChild(stmt));
 					i++; count++;
 				}
