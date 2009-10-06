@@ -70,7 +70,7 @@ public class AspectsEngine {
 		return LOCAL_CHECK + entrypointCount++;
 	}
 
-	public static void analysis(ASTNode<?> cu){
+	public static void analysis(ASTNode cu){
 		VFPreorderAnalysis vfa = new VFPreorderAnalysis(cu);
 		vfa.analyze();
 		vfaMap = vfa.getFlowSets();
@@ -200,7 +200,7 @@ public class AspectsEngine {
 				if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0)
 						&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
 				) {
-					ASTNode<?> node = pe;
+					ASTNode node = pe;
 					while(node != null && !(node instanceof Stmt))
 						node = node.getParent();
 
@@ -757,7 +757,8 @@ public class AspectsEngine {
 					} else if(param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
 						if(pat.getType().compareTo(CALL) == 0){
 							if(varOrFun == null || (varOrFun != null && (varOrFun.isFunction() || varOrFun.isBottom())))
-								lstExpr.add(new FunctionHandleExpr(new Name(target)));
+								//lstExpr.add(new FunctionHandleExpr(new Name(target)));
+								lstExpr.add(new ParameterizedExpr(new NameExpr(new Name("eval")), new List<Expr>().add(new StringLiteralExpr("@"+target))));
 							else
 								lstExpr.add(new CellArrayExpr());
 						}
@@ -773,7 +774,7 @@ public class AspectsEngine {
 						if(pat.getType().compareTo(GET) == 0)
 							lstExpr.add(new NameExpr(new Name(target)));
 						else
-							lstExpr.add(new CellArrayExpr());
+							lstExpr.add(new MatrixExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
 					} else if(param.getID().compareTo(LOC) == 0) {
@@ -1203,7 +1204,7 @@ public class AspectsEngine {
 		transformForStmt(stmts);
 		transformWhileStmt(stmts);
 
-		ASTNode<?> node = stmts;
+		ASTNode node = stmts;
 		while(node != null && !(node instanceof Function))
 			node = node.getParent();
 
@@ -1234,6 +1235,7 @@ public class AspectsEngine {
 						}
 					}
 
+					//TODO: ???
 					s += count;
 					stmtCount += count;
 					count = 0;
@@ -1310,7 +1312,7 @@ public class AspectsEngine {
 		String loopVar = fetchLoopVariables(loop);
 		AssignStmt head = fetchLoopHeads(loop);
 		int acount = 0, bcount = 0, tcount = 0;
-		ASTNode<ASTNode> parent = loop.getParent();
+		ASTNode parent = loop.getParent();
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
