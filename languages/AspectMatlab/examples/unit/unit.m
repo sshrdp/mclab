@@ -1,4 +1,4 @@
-aspect test
+aspect unit
 
 properties
 % allows adding units
@@ -12,10 +12,10 @@ properties
 
 % uses structs using the aspect_annoted flag
 noUnit = [0, 0, 0, 0, 0, 0, 0];
-one = struct('aspect_annotated',true,'val',1,'unit',noUnit);
+one = struct('aspect_annotated',true,'val',1,'unit',[0, 0, 0, 0, 0, 0, 0]);
 units = struct(... % defines all SI and SI derived unit names and value (may be used for printing as well)
   'm',  [1, 0, 0, 0, 0, 0, 0],...
-  'kg', [0, 1, 0, 0, 0, 0, 0],...
+  'Kg', [0, 1, 0, 0, 0, 0, 0],...
   's',  [0, 0, 1, 0, 0, 0, 0],...
   'A',  [0, 0, 0, 1, 0, 0, 0],...
   'K',  [0, 0, 0, 0, 1, 0, 0],...
@@ -32,12 +32,15 @@ constants = struct(... % defines constants or units whose factor (compared to SI
   'G',       {[3,-1,-2, 0, 0, 0, 0], 6.6730e-11},...
   'dozen',   {[0, 0, 0, 0, 0, 0, 0],12},...
   'AU',      {[1, 0, 0, 0, 0, 0, 0],149598000*1000},...
-  'c',       {[1, 0, s, 0, 0, 0, 0],299792458},...
+  'c',       {[1, 0, 1, 0, 0, 0, 0],299792458},...
   'KJ',      {[2, 1,-2, 0, 0, 0, 0],1000},...
   'g',       {[0, 1, 0, 0, 0, 0, 0],0.001},...
   'L',       {[3, 0, 0, 0, 0, 0, 0],0.001},...
-  'kilotons',{[0, 1, 0, 0, 0, 0, 0],1000*1000});
+  'kilotons',{[0, 1, 0, 0, 0, 0, 0],1000*1000},...
+  'm_earth', {[0, 1, 0, 0, 0, 0, 0],5.9742e24},...
+  'r_earth', {[1, 0, 0, 0, 0, 0, 0],6378100});
 end
+
 
 methods
 function s = annotate(this,x)
@@ -46,15 +49,15 @@ function s = annotate(this,x)
   if (isstruct(x) && isfield(x,'aspect_annotated'))
     s = x;
   else
-    s = struct('aspect_annoated',true,'val',x,'unit',this.noUnit);
+    s = struct('aspect_annotated',true,'val',x,'unit',this.noUnit);
   end
 end
 
-function [a,b,c] = prepareOp(this,args,name)
+function [a,b,c] = prepareOp(this,args)
 % prepares input args a,b and output arg c for binary operation -- this
 % is just common code put in a separate function
   if (length(args) ~= 2)
-    error(strcat(name,' needs exactly 2 arguments'));
+    error(strcat('binary operation needs exactly 2 arguments'));
   end
   a = this.annotate(args{1});
   b = this.annotate(args{2});
@@ -109,31 +112,52 @@ end
 
 
 patterns
-allCalls : call(*);
 disp : call(disp);
-plus : call(plus);
-minus : call(minus);
-mtimes : call(mtimes);
-mrdivide : call(mrdivide);
-power : call(power);
+plus : call(plus(*,*));
+minus : call(minus(*,*));
+mtimes : call(mtimes(*,*));
+mrdivide : call(mrdivide(*,*));
+power : call(power(*,*));
+round : call(round(*,*));
+colon : call(colon(*,..));
+allCalls : call(*);
+loopheader : loophead(*);
 end
 
-
+x
 actions
+% captures all loop invocations for i = range, and overwrites the
+% expression to be a struct-array instead of a structure with an array inside
+loop : around loopheader : (args)
+   range = this.annotate(args{1});
+   % loop through range.val, and record whatever the for loop captures in a cell array
+   acell = {};
+   for i = (range.val)
+     acell{length(acell)+1} = i;
+   end   
+   varargout{1} = struct('aspect_annotated',true,'val',cell,'unit',range.unit);
+end
+
 acalls : around allCalls : (name)
 % captures all calls and checks whether they are a nuit - if so, return the unit
+% this advice is first so that it gets matched last
   if (isfield(this.units,name))
-    AM_retValue = struct('aspect_annoated',true,'val',1,'unit',getfield(this.units,name));
-  elseif (isfield(this.constants,name))
-    pair = getfield(this.constants,name);
-    AM_retValue = struct('aspect_annoated',true,'val',pair{2},'unit',pair{1});    
+    varargout{1} = struct('aspect_annotated',true,'val',1,'unit',getfield(this.units,name));
   else
-    proceed();
+    if (isfield(this.constants,name))
+      pair = getfield(this.constants,name);
+      varargout{1} = struct('aspect_annotated', true, 'val', getfield(this.constants,{2},name), 'unit', ...
+                             getfield(this.constants,{1},name));
+    else
+      proceed();
+    end
   end
 end
 
+
 adisp : around disp : (args)
 % overrdes printing so that we add units
+  disp('displaying a variable:');
   if (length(args) ~= 1)
     error('Error using disp -- need exactly one argument)');
   end
@@ -148,59 +172,93 @@ end
 
 aplus : around plus : (args)
 % +
-  [a,b,c] = this.prepareOp(args,name);
-  c.val = a+b;
+  [a,b,c] = this.prepareOp(args);
+  c.val = a.val+b.val;
   if (a.unit ~= b.unit)
     error('the units of the arguments for operation + must match');
   end  
   c.unit = a.unit;
-  AM_retValue = c;  
+  varargout{1} = c;  
 end
 
 aminus : around minus : (args)
 % -
-  [a,b,c] = this.prepareOp(args,name);
-  c.val = a-b;
+  [a,b,c] = this.prepareOp(args);
+  c.val = a.val-b.val;
   if (a.unit ~= b.unit)
     error('the units of the arguments for operation - must match');
   end  
   c.unit = a.unit;
-  AM_retValue = c;  
+  varargout{1} = c;  
 end
 
 amtimes : around mtimes : (args)
 % *
-  [a,b,c] = this.prepareOp(args,name);
-  c.val = a*b;
+  [a,b,c] = this.prepareOp(args);
+  c.val = a.val*b.val;
   c.unit = a.unit+b.unit;
-  AM_retValue = c;  
+  varargout{1} = c;  
 end
 
 amrdivide : around mrdivide : (args)
 % /
-  [a,b,c] = this.prepareOp(args,name);
-  c.val = a/b;
+  [a,b,c] = this.prepareOp(args);
+  c.val = a.val/b.val;
   c.unit = a.unit-b.unit;
-  AM_retValue = c;  
+  varargout{1} = c;  
 end
 
 power : around power : (args)
 % .^
-  [a,b,c] = this.prepareOp(args,name);
-  c.val = a.^b;
-  if (b.unit ~= noUnit)
+  [a,b,c] = this.prepareOp(args);
+  c.val = a.val.^b.val;
+  if (b.unit ~= this.noUnit)
     error('cannot use power with a non empty unit');
   end
   if (isscalar(b.val))
     c.val = a.val.^b.val;
     c.unit = a.unit*a.val;
   else
-    if (a.unit ~= noUnit)
+    if (a.unit ~= this.noUnit)
       error('cannot use power operation resulting mixed unit matrix');
     end
-    c.unit = noUnit;
+    c.unit = this.noUnit;
   end
-  AM_retValue = c;  
+  varargout{1} = c;  
+end
+
+round : around round : (args)
+% round
+  if (length(args) ~= 1)
+    proceed();
+  end
+  a = annotate(a);
+  a.val = round(a.val);
+  varargout{1} = a;  
+end
+
+colon : around colon : (args)
+% : :
+  if (length(args) ~= 2 && length(args) ~= 3)
+    proceed();
+  end
+  a = annotate(args{1});
+  b = annotate(args{2});
+  c = this.one;
+  o.unit = a.unit;
+  if (b.unit ~= a.unit)
+    error('error in colon: the units need to be the same');
+  end
+  if (length(args) == 3)
+    c = annotate(args{3});
+    if (c.unit ~= a.unit)
+      error('error in colon: the units need to be the same');
+    end
+    o.val = a.val:b.val:c.val;
+  else
+    o.val = a.val:b.val;
+  end
+  varargout{1} = o;  
 end
 
 end

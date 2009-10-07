@@ -16,7 +16,7 @@ disp(bmi);
 
 % energy needed to vaporize an olympic size swimming pool at 293K (20celsius)
 e1 = mtimes(mtimes(mtimes(50,25),mtimes(2,power(m,3))),...
-            mtimes(mridivide(Kg,L),...
+            mtimes(mrdivide(Kg,L),...
                    plus(mtimes(mtimes(80,K),mtimes(4.1813,mrdivide(J,mtimes(g,K)))),...
                         mtimes(2257,mrdivide(KJ,Kg)))));
 %e1 = (50*25*2*m^3)*(1*Kg/L)*(80*K*4.1813*J/(g*K) + 2257*KJ/Kg);
@@ -27,13 +27,13 @@ e2 = mtimes(mtimes(12,kilotons),mtimes(4184,mrdivide(J,g))); %e2 = 12*kilotons*(
 disp(e2);
 
 % number of olympic sized swimming pools that a small nuclear bomb can vaporize
-disp(e2/e1);
+disp(mrdivide(e2,e1));
 
 % integrating - distance travelled in 10 seconds when accelerating with v(t) = t*10 km/s
-function y = f(t)
+function y = F(t)
   y = mtimes(t,mtimes(10,mrdivide(km,s))); %v = @(t) t.*10.*km./s
 end
-disp(integrate(v,[0, 10],mtimes(0.001,s))); % disp(integrate(v,[0 10],0.001*s));
+disp(integrate(@F,[0, 10],mtimes(0.001,s))); % disp(integrate(v,[0 10],0.001*s));
 end
 
 
@@ -50,7 +50,7 @@ function x = integrate(f,I,dx)
     b = I(2);
     dx = mrdivide(minus(b,a),round(mrdivide(mtimes(b,a),dx))); %dx = (b-a)/round((b*a)/dx); % round dx    
     x = mtimes(mrdivide(dx,2),plus(f(a),f(b)));  %x = dx/2*(f(a) + f(b)); % f(a), f(b) in the above sum
-    for xi = a+dx:dx:b-dx % sum over all x_i, i = 1,2,3,..,N-1
+    for xi = plus(a,dx):dx:minus(b,dx) % sum over all x_i, i = 1,2,3,..,N-1
         x = plus(x,mtimes(dx,f(xi))); % x = x + dx*f(xi);
     end
 end
