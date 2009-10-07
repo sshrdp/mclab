@@ -45,7 +45,7 @@ aspect AspectsCorrespondingFunctions {
 	syn Boolean Stmt.aspectsCorrespondingFunctions() { return true; }
               
     eq ExprStmt.aspectsCorrespondingFunctions() {
-    	//getExpr().aspectsCorrespondingFunctions();
+    	getExpr().aspectsCorrespondingFunctions();
     	return true;
     }
     
