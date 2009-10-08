@@ -1462,12 +1462,19 @@ public class AspectsEngine {
 					&& (loopVar.contains(pat.getTarget()+",") || pat.getTarget().compareTo("*") == 0)){
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
+				Expr nv = null;
 
 				for(Name param : fun.getInputParams()) {
 					if(param.getID().compareTo(ARGS) == 0) {
-						if(loop instanceof ForStmt && !(pat.getType().compareTo(LOOPHEAD) == 0 && act.getType().compareTo(BEFORE) == 0))
-							lstExpr.add(new NameExpr(new Name("AM_tmpAS_" + loopVar.replace(",", ""))));
-						else
+						if(loop instanceof ForStmt && !(pat.getType().compareTo(LOOPHEAD) == 0 && (act.getType().compareTo(BEFORE) == 0 || act.getType().compareTo(AROUND) == 0))){
+							CellArrayExpr cae = new CellArrayExpr();
+							Row row = new Row();
+							row.addElement(new NameExpr(new Name("AM_tmpAS_" + loopVar.replace(",", ""))));
+							cae.addRow(row);
+							lstExpr.add(cae);
+
+							//lstExpr.add(new NameExpr(new Name("AM_tmpAS_" + loopVar.replace(",", ""))));
+						} else
 							lstExpr.add(new CellArrayExpr());
 					} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
 						if(pat.getType().compareTo(LOOPHEAD) == 0){
@@ -1475,45 +1482,55 @@ public class AspectsEngine {
 							lstExpr.add(ile);
 						} else
 							lstExpr.add(new CellArrayExpr());
-					} else if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
+					} 
+					else if(param.getID().compareTo(NEWVAL) == 0 || param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
 						if(pat.getType().compareTo(LOOPHEAD) == 0){
-							Expr nv = new CellArrayExpr();
-							Expr rhs = head.getRHS();
+							if(nv == null){
+								//Expr nv = new CellArrayExpr();
+								Expr rhs = head.getRHS();
 
-							if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
-								String var = generateCorrespondingVariableName();
-								Expr tmp = new NameExpr(new Name(var));
-								tmp.setWeavability(false);
-								rhs.setCFStmtDone(true);
+								if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
+									String var = generateCorrespondingVariableName();
+									Expr tmp = new NameExpr(new Name(var));
+									tmp.setWeavability(false);
+									rhs.setCFStmtDone(true);
 
-								AssignStmt stmt = new AssignStmt((Expr) tmp.copy(), (Expr) rhs.copy());
-								stmt.setOutputSuppressed(true);
+									AssignStmt stmt = new AssignStmt((Expr) tmp.copy(), (Expr) rhs.copy());
+									stmt.setOutputSuppressed(true);
 
-								int ind = head.getIndexOfChild(rhs);
-								head.setChild(tmp, ind);
+									int ind = head.getIndexOfChild(rhs);
+									head.setChild(tmp, ind);
 
-								ind = head.getParent().getIndexOfChild(head);
-								head.getParent().insertChild(stmt, ind);
+									ind = head.getParent().getIndexOfChild(head);
+									head.getParent().insertChild(stmt, ind);
 
-								nv = tmp;
-								tcount = 1;
+									nv = tmp;
+									tcount = 1;
 
-								//other heads of while
-								if(loop instanceof WhileStmt){
-									WhileStmt ws = (WhileStmt)loop;
-									ws.getStmtList().add(stmt);
-									ws.WeaveLoopStmts(stmt, true);
+									//other heads of while
+									if(loop instanceof WhileStmt){
+										WhileStmt ws = (WhileStmt)loop;
+										ws.getStmtList().add(stmt);
+										ws.WeaveLoopStmts(stmt, true);
+									}
+
+								} else if(!rhs.getWeavability()){
+									nv = rhs;
 								}
-
-							} else if(!rhs.getWeavability()){
-								//TODO: test if its correct in all cases
-								nv = rhs;
 							}
 
-							lstExpr.add(nv);
+							if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0){
+								CellArrayExpr cae = new CellArrayExpr();
+								Row row = new Row();
+								row.addElement(nv);
+								cae.addRow(row);
+								lstExpr.add(cae);
+							} else
+								lstExpr.add(nv);
 						} else
 							lstExpr.add(new CellArrayExpr());
-					} else if(param.getID().compareTo(COUNTER) == 0) {
+					}
+					else if(param.getID().compareTo(COUNTER) == 0) {
 						if(loop instanceof ForStmt && pat.getType().compareTo(LOOPBODY) == 0)
 							lstExpr.add(new NameExpr(new Name(loopVar.replace(",", ""))));
 						else
