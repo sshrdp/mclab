@@ -1,7 +1,5 @@
 function program()
-
-solveHeatEquation(.01,500);
-
+  solveHeatEquation(.01,500);
 end
 
 
