@@ -3,7 +3,7 @@ function test
 % (it's a function so that we can use private functions)
 
 % falling for a dozen seconds down from the earth surface in vacuum (approximate)
-d = mtimes(mrdivide(mtimes(g,m_earth),power(r_earth,2)),mtimes(dozen,s));  %d = (G*m_earth/r_earth^2)*dozen*s; % 1g*12*seconds
+d = mtimes(mrdivide(mtimes(G,m_earth),power(r_earth,2)),mtimes(dozen,s));  %d = (G*m_earth/r_earth^2)*dozen*s; % 1g*12*seconds
 disp(d);
 
 % time for light to travel from sun to earth
@@ -29,11 +29,11 @@ disp(e2);
 % number of olympic sized swimming pools that a small nuclear bomb can vaporize
 disp(mrdivide(e2,e1));
 
-% integrating - distance travelled in 10 seconds when accelerating with v(t) = t*10 km/s
+% integrating - distance travelled in 10 seconds when accelerating with v(t) = t*10 m/s
 function y = F(t)
-  y = mtimes(t,mtimes(10,mrdivide(km,s))); %v = @(t) t.*10.*km./s
+  y = mtimes(t,mtimes(10,mrdivide(m,s))); %v = @(t) t.*10.*m./s
 end
-disp(integrate(@F,[0, 10],mtimes(0.001,s))); % disp(integrate(v,[0 10],0.001*s));
+disp(mtimes(integrate(@F,[0, 10],0.001)),s); % disp(integrate(v,[0 10],0.001)*s);
 end
 
 
@@ -48,9 +48,9 @@ end
 function x = integrate(f,I,dx)
     a = I(1);
     b = I(2);
-    dx = mrdivide(minus(b,a),round(mrdivide(mtimes(b,a),dx))); %dx = (b-a)/round((b*a)/dx); % round dx    
+    dx = mrdivide(minus(b,a),round(mrdivide(minus(b,a),dx))); %dx = (b-a)/round((b-a)/dx); % round dx    
     x = mtimes(mrdivide(dx,2),plus(f(a),f(b)));  %x = dx/2*(f(a) + f(b)); % f(a), f(b) in the above sum
-    for xi = plus(a,dx):dx:minus(b,dx) % sum over all x_i, i = 1,2,3,..,N-1
+    for xi = colon(plus(a,dx),dx,minus(b,dx)) % sum over all x_i, i = 1,2,3,..,N-1
         x = plus(x,mtimes(dx,f(xi))); % x = x + dx*f(xi);
     end
 end

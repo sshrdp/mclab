@@ -32,7 +32,7 @@ constants = struct(... % defines constants or units whose factor (compared to SI
   'G',       {[3,-1,-2, 0, 0, 0, 0], 6.6730e-11},...
   'dozen',   {[0, 0, 0, 0, 0, 0, 0],12},...
   'AU',      {[1, 0, 0, 0, 0, 0, 0],149598000*1000},...
-  'c',       {[1, 0, 1, 0, 0, 0, 0],299792458},...
+  'c',       {[1, 0,-1, 0, 0, 0, 0],299792458},...
   'KJ',      {[2, 1,-2, 0, 0, 0, 0],1000},...
   'g',       {[0, 1, 0, 0, 0, 0, 0],0.001},...
   'L',       {[3, 0, 0, 0, 0, 0, 0],0.001},...
@@ -64,48 +64,57 @@ function [a,b,c] = prepareOp(this,args)
   c = this.one;
 end
 
+% displays a unit on screen
+function display(this,v)
+  if ((isstruct(v)) && isfield(v, 'aspect_annotated'))
+    fprintf('%s:',this.unitString(v.unit));  disp(v.val);
+  else
+    disp(v);
+  end
+end
+    
 function s = unitString(this,v)
 % returns the unit string of a given unit vector
 % this is done greedily/recursively by picking the unit that most reduces the 1-norm
 % of the unit vector.
   s = '';
-  if (v==this.noUnit)
+  if (v == this.noUnit)
     return;
   end
-  names = fieldnames(this.units)
-  print = zeros(length(this.names),1);
-  findPrintVector();
-  
-  for i = 1:length(print)
-    if (print(i)~= 0)
-      s = strcat(s,strcat('*',fieldnames(i)));
+  names = fieldnames(this.units);
+  print = zeros(length(names), 1);
+
+  % this loop picks the unit that most reduces the 1-norm of v, and adds it to 'print' until v is 0
+  while (~same(v,0*v))
+    newPNorm = (print * 0);
+    newMNorm = (print * 0);
+    for i = (1 : length(names))
+      u = getfield(this.units, names{i}); % get vector for unit i
+      newPNorm(i) = norm((v - u), 1); % see how much that unit reduces the unit vector v
+      newMNorm(i) = norm((v + u), 1); % same but with inverted unit
+    end
+    [minPNorm, minPi] = min(newPNorm);
+    [minMNorm, minMi] = min(newMNorm);
+    if (minPNorm < minMNorm) % put the found unit into print vector
+      print(minPi) = (print(minPi) + 1); % positive unit (unit^1)
+      u = -getfield(this.units, names{minPi});
+    else
+      print(minMi) = (print(minMi) - 1); % negativ unit (unit^-1)
+      u = (getfield(this.units, names{minMi}));
+    end
+    v = (v + u);
+  end
+
+  % put whatever is in the print vector into a string
+  for i = (1 : length(print))
+    if (print(i) ~= 0)
+      s = strcat(s, strcat('*', names{i}));
       if (print(i) ~= 1)
-         s = strcat(s,strcat('^',num2str(print(i))));
+        s = strcat(s, strcat('^', num2str(print(i))));
       end
     end
   end
-
-  % picks the unit that most reduces the 1-norm of v, and adds it to 'print' until v is 0
-  function findPrintVector
-    if (v == 0*v); return; end;
-    newPNorm = print*0;
-    newMNorm = print*0;
-    for i = 1:length(names)
-      u = gefield(this.units,names{i}); % get vector for unit i
-      newPNorm(i) = norm(v-u,1); % see how much that unit reduces the unit vector v
-      newMNorm(i) = norm(v+u,1); % same but with inverted unit
-    end
-    [minPNorm,minPi] = min(newNorm);
-    [minMNorm,minMi] = min(newNorm);
-    if (minPNorm < minMNorm)
-      print(minPi) = print(minPi)+1;
-      u = getfield(this.units,names{i});
-    else
-      print(minMi) = print(minMi)-1;
-      u = -getfield(this.units,names{i});
-    end
-    v = v+u;
-  end
+  s = s(2:length(s)); % we know there must be one unit - replace leading '*'
 end
 end
 
@@ -118,13 +127,13 @@ minus : call(minus(*,*));
 mtimes : call(mtimes(*,*));
 mrdivide : call(mrdivide(*,*));
 power : call(power(*,*));
-round : call(round(*,*));
+round : call(round(*));
 colon : call(colon(*,..));
-allCalls : call(*);
+allCalls : call(*());
 loopheader : loophead(*);
 end
 
-x
+
 actions
 % captures all loop invocations for i = range, and overwrites the
 % expression to be a struct-array instead of a structure with an array inside
@@ -135,7 +144,7 @@ loop : around loopheader : (args)
    for i = (range.val)
      acell{length(acell)+1} = i;
    end   
-   varargout{1} = struct('aspect_annotated',true,'val',cell,'unit',range.unit);
+   varargout{1} = struct('aspect_annotated',true,'val',acell,'unit',range.unit);
 end
 
 acalls : around allCalls : (name)
@@ -157,13 +166,12 @@ end
 
 adisp : around disp : (args)
 % overrdes printing so that we add units
-  disp('displaying a variable:');
   if (length(args) ~= 1)
     error('Error using disp -- need exactly one argument)');
   end
   v = args{1};
-  if (~isstruct(v) && isfield(v,'aspect_annotated'))
-    disp({v.val, this.unitString(v.unit)});
+  if (isstruct(v) && isfield(v,'aspect_annotated'))
+    this.display(v);
   else
     disp(v);
   end
@@ -217,7 +225,7 @@ power : around power : (args)
   end
   if (isscalar(b.val))
     c.val = a.val.^b.val;
-    c.unit = a.unit*a.val;
+    c.unit = a.unit*b.val;
   else
     if (a.unit ~= this.noUnit)
       error('cannot use power operation resulting mixed unit matrix');
