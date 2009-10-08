@@ -46,6 +46,9 @@ end
 function s = stdev(this,sum,sumSquared,N)
   mean = sum/N;
   s = sqrt(sumSquared/N - mean^2);
+  if (sumSquared/N < mean^2) % make numerical errors not report imaginary results
+    s = 0;
+  end;
 end
 
 function id = getVarId(this,var) 
@@ -74,9 +77,9 @@ end
 
 
 % returns sparsity
-function s = sparsity(this,val)
+function s = getSparsity(this,val)
   if (numel(val) == 0)
-    s = 0;
+    s = 1;
   else
     s = nnz(val)/numel(val);
   end
@@ -84,8 +87,9 @@ end
 
 
 % given some matrix and a var id, updates the size, sparsity fields
-function s = touch(this,value,id)
-  sp = this.sparsity(value);
+function s = touch(this,id,value)
+  sp = this.getSparsity(value);
+  newSize = numel(value);
   this.sizeSum{id} = this.sizeSum{id}+newSize; % add new size
   this.sizeSumSquared{id} = this.sizeSumSquared{id}+newSize^2; % add new size squared
   this.sparsitySum{id} = this.sparsitySum{id}+sp; % add to the sum of sparsity
@@ -106,7 +110,7 @@ end
 
 actions
 message : before exec
- disp('tracking sparsities of all variables in the following program');
+ disp('tracking sparsities of all variables in the following program...');
 end
 
 
@@ -114,12 +118,12 @@ displayResults : after exec
 % will display the results
   vars = fieldnames(this.variables);
   result = {'var','size','sparsity','arraySet','shape changes','decrease sparsity','increase sparsity','get','indexed get'};
-  pm = '+-';
+  pm = [' ', char(0177)];
   for i=1:length(vars) %iterate over variables
      result{i+1,1} = vars{i};
      touch = this.arraySet{i}+this.arrayGet{i}+this.arrayIndexedGet{i}; % total number of acesses
-     result{i+1,2} = strcat(num2str(this.sizeSum{i}/touch),pm,num2str(this.stdev(this.sizeSum{i},this.sizeSumSquared{i},touch)));
-     result{i+1,3} = strcat(num2str(this.sparsitySum{i}/touch),pm,num2str(this.stdev(this.sparsitySum{i},this.sparsitySumSquared{i},touch)));
+     result{i+1,2} = strcat(num2str(this.sizeSum{i}/touch,'%.1f'),pm,num2str(this.stdev(this.sizeSum{i},this.sizeSumSquared{i},touch),'%.1f'));
+     result{i+1,3} = strcat(num2str(this.sparsitySum{i}/touch,'%1.2f'),pm,num2str(this.stdev(this.sparsitySum{i},this.sparsitySumSquared{i},touch),'%1.2f'));
      result{i+1,4} = this.arraySet{i};
      result{i+1,5} = this.changeShape{i};
      result{i+1,6} = this.decreaseSparsity{i};
@@ -136,14 +140,14 @@ set : before arraySet : (newVal,obj,name)
   if (~isnumeric(newVal))
     return;
   end;
-
+  
   % get id of variable by string-name, update 'variables' if necessary
   id = this.getVarId(name);
 
   % get var infor
   newSize = numel(newVal);
-  sparsity = this.sparsity(newVal);
-  oldSparsity = this.sparsity(obj);
+  sparsity = this.getSparsity(newVal);
+  oldSparsity = this.getSparsity(obj);
 
   % update the number of 'set' operations
   this.arraySet{id}  = this.arraySet{id}+1; 
@@ -152,7 +156,7 @@ set : before arraySet : (newVal,obj,name)
   this.touch(id,newVal);
 
   % set shape/sparsity changes
-  if (~this.sameShape(new,old))
+  if (~this.sameShape(newVal,obj))
     this.changeShape{id} = this.changeShape{id}+1; % how often the dimensions of the array changed (has to exist previously)
   end
   if (sparsity < oldSparsity)
@@ -165,20 +169,25 @@ end
 
 
 get : before arrayWholeGet : (obj,name)
-  id = this.getVarId(obj,name); % get id of variable by string-name, update 'variables' if necessary
+  % we will exit if the value is not a matrix
+  if (~isnumeric(obj))
+    return;
+  end;
+  id = this.getVarId(name); % get id of variable by string-name, update 'variables' if necessary
   this.touch(id,obj);
   this.arrayGet{id} = this.arrayGet{id}+1;
 end
 
-get : before arrayIndexedGet : (obj,name)
-  id = this.getVarId(obj,name); % get id of variable by string-name, update 'variables' if necessary
+indexedGet : before arrayIndexedGet : (obj,name)
+  % we will exit if the value is not a matrix
+  if (~isnumeric(obj))
+    return;
+  end;
+  id = this.getVarId(name); % get id of variable by string-name, update 'variables' if necessary
   this.touch(id,obj);
   this.arrayIndexedGet{id} = this.arrayIndexedGet{id}+1;
 end
-
-
 end
-
 
 
 end
