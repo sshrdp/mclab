@@ -75,6 +75,10 @@ end
 patterns
 arrayset : set(*, *.*);
 arrayget : get(*);
+
+arrayIndizedGet : get(*(..));
+arrayWholeGet : get(*());
+
 exec : execution(program);
 end
 
@@ -106,7 +110,9 @@ end
 
 set : before arrayset : (newVal,obj,name)
   % we will exit if the newval is not a matrix
-  if (~isnumeric(newVal)) return; end;
+  if (~isnumeric(newVal)) 
+    return
+  end;
 
   % we will rename the context variables in case they get changed
   var = name;
@@ -146,7 +152,4 @@ end
 
 
 end
-
-
-
 end

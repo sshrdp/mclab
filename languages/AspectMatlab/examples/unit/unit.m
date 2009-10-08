@@ -12,6 +12,7 @@ properties
 
 % uses structs using the aspect_annoted flag
 noUnit = [0, 0, 0, 0, 0, 0, 0];
+annotated = 'aspect_annotated';
 one = struct('aspect_annotated',true,'val',1,'unit',[0, 0, 0, 0, 0, 0, 0]);
 units = struct(... % defines all SI and SI derived unit names and value (may be used for printing as well)
   'm',  [1, 0, 0, 0, 0, 0, 0],...
@@ -46,10 +47,10 @@ methods
 function s = annotate(this,x)
 % takes in a value and returns value that is unit-annotated for sure
 % if it is annotated already, the same unit is returned
-  if (isstruct(x) && isfield(x,'aspect_annotated'))
+  if (isstruct(x) && isfield(x,this.annotated))
     s = x;
   else
-    s = struct('aspect_annotated',true,'val',x,'unit',this.noUnit);
+    s = struct(this.annotated,true,'val',x,'unit',this.noUnit);
   end
 end
 
@@ -66,7 +67,7 @@ end
 
 % displays a unit on screen
 function display(this,v)
-  if ((isstruct(v)) && isfield(v, 'aspect_annotated'))
+  if ((isstruct(v)) && isfield(v, this.annotated))
     fprintf('%s:',this.unitString(v.unit));  disp(v.val);
   else
     disp(v);
@@ -137,25 +138,25 @@ end
 actions
 % captures all loop invocations for i = range, and overwrites the
 % expression to be a struct-array instead of a structure with an array inside
-loop : around loopheader : (args)
-   range = this.annotate(args{1});
+loop : around loopheader : (newVal)
+   range = this.annotate(newVal);
    % loop through range.val, and record whatever the for loop captures in a cell array
    acell = {};
    for i = (range.val)
      acell{length(acell)+1} = i;
-   end   
-   varargout{1} = struct('aspect_annotated',true,'val',acell,'unit',range.unit);
+   end
+   varargout{1} = struct(this.annotated,true,'val',acell,'unit',range.unit);
 end
 
 acalls : around allCalls : (name)
 % captures all calls and checks whether they are a nuit - if so, return the unit
 % this advice is first so that it gets matched last
   if (isfield(this.units,name))
-    varargout{1} = struct('aspect_annotated',true,'val',1,'unit',getfield(this.units,name));
+    varargout{1} = struct(this.annotated,true,'val',1,'unit',getfield(this.units,name));
   else
     if (isfield(this.constants,name))
       pair = getfield(this.constants,name);
-      varargout{1} = struct('aspect_annotated', true, 'val', getfield(this.constants,{2},name), 'unit', ...
+      varargout{1} = struct(this.annotated, true, 'val', getfield(this.constants,{2},name), 'unit', ...
                              getfield(this.constants,{1},name));
     else
       proceed();
@@ -170,7 +171,7 @@ adisp : around disp : (args)
     error('Error using disp -- need exactly one argument)');
   end
   v = args{1};
-  if (isstruct(v) && isfield(v,'aspect_annotated'))
+  if (isstruct(v) && isfield(v,this.annotated))
     this.display(v);
   else
     disp(v);
@@ -240,7 +241,7 @@ round : around round : (args)
   if (length(args) ~= 1)
     proceed();
   end
-  a = annotate(a);
+  a = this.annotate(args{1});
   a.val = round(a.val);
   varargout{1} = a;  
 end
@@ -250,15 +251,16 @@ colon : around colon : (args)
   if (length(args) ~= 2 && length(args) ~= 3)
     proceed();
   end
-  a = annotate(args{1});
-  b = annotate(args{2});
+  a = this.annotate(args{1});
+  b = this.annotate(args{2});
   c = this.one;
+  o = this.one;
   o.unit = a.unit;
   if (b.unit ~= a.unit)
     error('error in colon: the units need to be the same');
   end
   if (length(args) == 3)
-    c = annotate(args{3});
+    c = this.annotate(args{3});
     if (c.unit ~= a.unit)
       error('error in colon: the units need to be the same');
     end

@@ -33,7 +33,7 @@ disp(mrdivide(e2,e1));
 function y = F(t)
   y = mtimes(t,mtimes(10,mrdivide(m,s))); %v = @(t) t.*10.*m./s
 end
-disp(mtimes(integrate(@F,[0, 10],0.001)),s); % disp(integrate(v,[0 10],0.001)*s);
+disp(mtimes(integrate(@F,[0, 10],0.001),s)); % disp(integrate(v,[0 10],0.001)*s);
 end
 
 
