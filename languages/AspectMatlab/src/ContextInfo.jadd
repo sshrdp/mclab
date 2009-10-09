@@ -1,0 +1,7 @@
+import beaver.Symbol;
+
+aspect ContextInfo {
+    private int Stmt.LineNum = -1; 
+    public int Stmt.getLineNum() { return (LineNum != -1) ? LineNum : Symbol.getLine(getStart()); }
+    public void Stmt.setLineNum(int LineNum) { this.LineNum = LineNum; }
+}

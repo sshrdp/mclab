@@ -8,6 +8,7 @@ import natlab.toolkits.analysis.varorfun.ValueDatumPair;
 import ast.*;
 import ast.List;
 import ast.Properties;
+import beaver.Symbol;
 
 import java.util.*;
 
@@ -223,6 +224,7 @@ public class AspectsEngine {
 						if(node instanceof AssignStmt && node.getParent() instanceof ForStmt)
 							node = node.getParent();
 
+				
 					if(node != null) {
 						String var = generateCorrespondingVariableName();
 						Expr lhs = new NameExpr(new Name(var));
@@ -231,7 +233,8 @@ public class AspectsEngine {
 
 						AssignStmt stmt = new AssignStmt((Expr) lhs.copy(), (Expr) pe.copy());
 						stmt.setOutputSuppressed(true);
-
+						stmt.setLineNum(((Stmt)node).getLineNum());
+						
 						int ind = pe.getParent().getIndexOfChild(pe);
 						pe.getParent().setChild(lhs, ind);
 
@@ -268,7 +271,8 @@ public class AspectsEngine {
 
 					AssignStmt stmt = new AssignStmt(new NameExpr(pe), rhs);
 					stmt.setOutputSuppressed(true);
-
+					//TODO: set line num
+					
 					stmts.insertChild(stmt, 0);
 					input.setChild(new Name(var), i);
 					break;
@@ -680,7 +684,8 @@ public class AspectsEngine {
 					} else if(param.getID().compareTo(NAME) == 0) {
 						lstExpr.add(new StringLiteralExpr(target));
 					} else if(param.getID().compareTo(LINE) == 0) {
-						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
+						//lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(context.getStart())))));
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(getLocation(context)));
 					} else
@@ -789,7 +794,8 @@ public class AspectsEngine {
 						else
 							lstExpr.add(new MatrixExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
-						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
+						//lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(context.getStart())))));
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(getLocation(context)));
 					} else
@@ -1047,7 +1053,8 @@ public class AspectsEngine {
 						else
 							lstExpr.add(new MatrixExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
-						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
+						//lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(context.getStart())))));
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(getLocation(context)));
 					} else
@@ -1190,7 +1197,8 @@ public class AspectsEngine {
 					as_out.setLHS(new NameExpr(new Name(tmpAS)));
 					as_out.setOutputSuppressed(true);
 					as_out.getLHS().setWeavability(false);
-
+					as_out.setLineNum(fs.getLineNum());
+					
 					AssignStmt as_for = new AssignStmt();
 					as_for.setRHS(new RangeExpr(new IntLiteralExpr(new DecIntNumericLiteralValue("1")), new Opt<Expr>(), new ParameterizedExpr(new NameExpr(new Name("numel")), new ast.List<Expr>().add(as_out.getLHS()))));
 					as_for.setLHS(new NameExpr(new Name(tmpFS)));
@@ -1211,7 +1219,8 @@ public class AspectsEngine {
 					fs_new.setAssignStmt(as_for);
 					fs_new.setStmtList(lstFor);
 					fs_new.setAspectTransformed(true);
-
+					fs_new.setLineNum(fs.getLineNum());
+					
 					fs_new.setLoopVar(lhs.FetchTargetExpr());
 					fs_new.setLoopHead(as_out);
 
@@ -1245,7 +1254,8 @@ public class AspectsEngine {
 					AssignStmt as = new AssignStmt(lhs, rhs);
 					as.setOutputSuppressed(true);
 					lhs.setWeavability(false);
-
+					as.setLineNum(ws.getLineNum());
+					
 					ws.setExpr(lhs);
 					stmts.insertChild(as, stmts.getIndexOfChild(ws));
 					//AssignStmt tmp = as.copy();
@@ -1538,7 +1548,8 @@ public class AspectsEngine {
 					} else if(param.getID().compareTo(THIS) == 0) {
 						//do nothing
 					} else if(param.getID().compareTo(LINE) == 0) {
-						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(loop.getLine(loop.getStart())))));
+						//lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(loop.getStart())))));
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(loop.getLineNum()))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(getLocation(loop)));
 					} else
@@ -1662,7 +1673,7 @@ public class AspectsEngine {
 						//lstExpr.add(new FunctionHandleExpr(new Name(func.getName())));
 						lstExpr.add(new CellArrayExpr());
 					} else if(param.getID().compareTo(LINE) == 0) {
-						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(func.getLine(func.getStart())))));
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(func.getStart())))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(func.getName()));
 					} else
