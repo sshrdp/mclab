@@ -629,5 +629,3 @@ function  [s] = sign(x)
     AM_GLOBAL = [];
   end
 end
-
-

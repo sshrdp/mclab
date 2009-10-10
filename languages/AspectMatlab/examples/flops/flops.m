@@ -80,16 +80,6 @@ any    : call(*);
 end
 
 actions
-% before any call - take care of loops on stack (if recording)
-% this gets called after the beforeTrack advice, so that the tracked call can
-% report information
-bany : before any
-  if (~this.record)
-    return; % return if we are not recording
-  end
-  this.s = this.push(this.s,0);
-end
-
 % before tracked call set up vars
 beforeTrack : before tracking : (name)
   fprintf('encountered call to %s, recording flops...\n',name);
@@ -102,22 +92,14 @@ beforeTrack : before tracking : (name)
 end
 
 % before any call - take care of loops on stack (if recording)
-% 'aany' should get called first, because a call to the tracking function should still list
-% said call with the corresponding flops information
-aany : after any : (name,line,loc);
+% this gets called after the beforeTrack advice, so that the tracked call can
+% report information
+bany : before any
   if (~this.record)
     return; % return if we are not recording
   end
-  [this.s,f] = this.pop(this.s); % get flops and return stack    
-  id = this.getId(loc,line,name);
-  this.call(id) = this.call(id) + 1;
-  this.flop(id) = this.flop(id) + f;
-  % if the stack isn't empty, put all those flops on the previous frame    
-      if (this.s(1) ~= 0)
-        [this.s, fold] = this.pop(this.s);
-        this.s = this.push(this.s,f + fold);
-      end
- end
+  this.s = this.push(this.s,0);
+end
 
 % after tracked call print out results
 afterTrack : after tracking
@@ -139,6 +121,23 @@ afterTrack : after tracking
   this.record = false;
 end
 
+% before any call - take care of loops on stack (if recording)
+% 'aany' should get called first, because a call to the tracking function should still list
+% said call with the corresponding flops information
+aany : after any : (name,line,loc);
+  if (~this.record)
+    return; % return if we are not recording
+  end
+  [this.s,f] = this.pop(this.s); % get flops and return stack    
+  id = this.getId(loc,line,name);
+  this.call(id) = this.call(id) + 1;
+  this.flop(id) = this.flop(id) + f;
+  % if the stack isn't empty, put all those flops on the previous frame    
+      if (this.s(1) ~= 0)
+        [this.s, fold] = this.pop(this.s);
+        this.s = this.push(this.s,f + fold);
+      end
+ end
 
 
 
