@@ -721,14 +721,20 @@ public class AspectsEngine {
 				}
 				
 				if(act.getType().compareTo(BEFORE) == 0) {
-					stmts.insertChild(call, s+tcount);
+					//stmts.insertChild(call, s+tcount);
+					//if(existCheck != null){
+					//	stmts.insertChild(existCheck, s+tcount);
+					//	tcount += 1;
+					//}
+					stmts.insertChild(call, s+tcount+bcount);
 					if(existCheck != null){
-						stmts.insertChild(existCheck, s+tcount);
+						stmts.insertChild(existCheck, s+tcount+bcount);
 						tcount += 1;
 					}
 					bcount += 1;
 				} else if(act.getType().compareTo(AFTER) == 0) {
-					stmts.insertChild(call, s+acount+bcount+tcount+1);
+					//stmts.insertChild(call, s+acount+bcount+tcount+1);
+					stmts.insertChild(call, s+bcount+tcount+1);
 					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
@@ -843,10 +849,12 @@ public class AspectsEngine {
 
 				if(varOrFun == null || (varOrFun != null && (((varOrFun.isFunction() || varOrFun.isBottom()) && pat.getType().compareTo(CALL) == 0) || (varOrFun.isVariable() && pat.getType().compareTo(GET) == 0)))){
 					if(act.getType().compareTo(BEFORE) == 0) {
-						stmts.insertChild(call, s);
+						//stmts.insertChild(call, s);
+						stmts.insertChild(call, s+bcount);
 						bcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						stmts.insertChild(call, s+bcount+acount+1);
+						//stmts.insertChild(call, s+bcount+acount+1);
+						stmts.insertChild(call, s+bcount+1);
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
@@ -1090,10 +1098,12 @@ public class AspectsEngine {
 
 				if(varOrFun == null || (varOrFun != null && (((varOrFun.isFunction() || varOrFun.isBottom()) && pat.getType().compareTo(CALL) == 0) || (varOrFun.isVariable() && pat.getType().compareTo(GET) == 0)))){
 					if(act.getType().compareTo(BEFORE) == 0) {
-						stmts.insertChild(call, s);
+						//stmts.insertChild(call, s);
+						stmts.insertChild(call, s+bcount);
 						bcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						stmts.insertChild(call, s+bcount+acount+1);
+						//stmts.insertChild(call, s+bcount+acount+1);
+						stmts.insertChild(call, s+bcount+1);
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
@@ -1409,6 +1419,8 @@ public class AspectsEngine {
 					stmtCount += count;
 				}
 			} else if(stmt instanceof ForStmt || stmt instanceof WhileStmt){
+				stmt.aspectsWeave();
+				
 				int count = weaveLoops(stmt);
 				//other heads of while
 				if(stmt instanceof WhileStmt){
@@ -1418,8 +1430,6 @@ public class AspectsEngine {
 				}
 				s += count;
 				stmtCount += count;
-
-				stmt.aspectsWeave();
 			} else {
 				stmt.aspectsWeave();
 			}
@@ -1461,6 +1471,7 @@ public class AspectsEngine {
 		String loopVar = fetchLoopVariables(loop);
 		AssignStmt head = fetchLoopHeads(loop);
 		int acount = 0, bcount = 0, tcount = 0;
+		int bacount = 0, bbcount = 0;
 		ASTNode parent = loop.getParent();
 
 		for(int j=0; j<actionsList.size(); j++)
@@ -1577,11 +1588,16 @@ public class AspectsEngine {
 				} else if(pat.getType().compareTo(LOOPBODY) == 0){
 					if(act.getType().compareTo(BEFORE) == 0) {
 						if(loop instanceof ForStmt)
-							loop.getChild(1).insertChild(call, 1);
+							loop.getChild(1).insertChild(call, 1+bbcount);
 						else
-							loop.getChild(1).insertChild(call, 0);
+							loop.getChild(1).insertChild(call, 0+bbcount);
+						bbcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						loop.getChild(1).addChild(call);
+						//loop.getChild(1).addChild(call);
+						loop.getChild(1).insertChild(call, loop.getChild(1).getNumChild()-bacount);
+						bacount += 1;
+						
+						//TODO: impose the precedence order
 						//continue, break, return
 						loop.WeaveLoopStmts(call, false);
 					} else if(act.getType().compareTo(AROUND) == 0) {
@@ -1639,6 +1655,8 @@ public class AspectsEngine {
 
 	public static void weaveFunction(Function func)
 	{
+		int acount = 0, bcount = 0;
+		
 		for(int j=0; j<actionsList.size(); j++)
 		{
 			action act = actionsList.get(j);
@@ -1694,12 +1712,15 @@ public class AspectsEngine {
 					call = new AssignStmt(out, pe);
 				else
 					call = new ExprStmt(pe);
-				call.setOutputSuppressed(true);
-
+				call.setOutputSuppressed(true);			
+				
 				if(act.getType().compareTo(BEFORE) == 0) {
-					func.getStmts().insertChild(call, 0);
+					func.getStmts().insertChild(call, 0+bcount);
+					bcount += 1;
 				} else if(act.getType().compareTo(AFTER) == 0) {
-					func.getStmts().addChild(call);
+					//func.getStmts().addChild(call);
+					func.getStmts().insertChild(call, func.getStmts().getNumChild()-acount);
+					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 					convertToHandleFunction(func);
