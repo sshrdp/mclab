@@ -121,7 +121,7 @@ afterTrack : after tracking
   this.record = false;
 end
 
-% before any call - take care of loops on stack (if recording)
+% after call - store info and put flops on previous 'stack frame'
 % 'aany' should get called first, because a call to the tracking function should still list
 % said call with the corresponding flops information
 aany : after any : (name,line,loc);
