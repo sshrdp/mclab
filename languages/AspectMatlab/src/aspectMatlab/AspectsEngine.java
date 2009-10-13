@@ -620,6 +620,7 @@ public class AspectsEngine {
 		Expr lhs = context.getLHS();
 		int args = lhs.FetchArgsCount();
 		int acount = 0, bcount = 0, tcount= 0;
+		boolean aroundExist = false;
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -629,6 +630,12 @@ public class AspectsEngine {
 			if(pat.getType().compareTo(SET) == 0 && (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
 					&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
 			){
+				//only first around is weaved!
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist){
+					System.err.println("[Line: " + context.getLineNum() + "] Skipping action '" + act.getName() + "': Around action already exists on this join point!");
+					continue;
+				}
+				
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
 				Expr nv = null;
@@ -733,8 +740,8 @@ public class AspectsEngine {
 					}
 					bcount += 1;
 				} else if(act.getType().compareTo(AFTER) == 0) {
-					//stmts.insertChild(call, s+acount+bcount+tcount+1);
-					stmts.insertChild(call, s+bcount+tcount+1);
+					stmts.insertChild(call, s+acount+bcount+tcount+1);
+					//stmts.insertChild(call, s+bcount+tcount+1);
 					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
@@ -745,6 +752,7 @@ public class AspectsEngine {
 						stmts.insertChild(existCheck, s+bcount+tcount);
 						tcount += 1;
 					}
+					aroundExist = true;
 				}
 			}
 		}
@@ -757,7 +765,8 @@ public class AspectsEngine {
 		Expr lhs = context.getLHS();
 		int acount = 0, bcount = 0;
 		int args = rhs.FetchArgsCount();
-
+		boolean aroundExist = false;
+		
 		for(int j=0; j<actionsList.size(); j++)
 		{
 			action act = actionsList.get(j);
@@ -767,6 +776,12 @@ public class AspectsEngine {
 					&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
 					&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
 			){
+				//only first around is weaved!
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist){
+					System.err.println("[Line: " + context.getLineNum() + "] Skipping action '" + act.getName() + "': Around action already exists on this join point!");
+					continue;
+				}
+				
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
@@ -853,14 +868,15 @@ public class AspectsEngine {
 						stmts.insertChild(call, s+bcount);
 						bcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						//stmts.insertChild(call, s+bcount+acount+1);
-						stmts.insertChild(call, s+bcount+1);
+						stmts.insertChild(call, s+bcount+acount+1);
+						//stmts.insertChild(call, s+bcount+1);
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 						addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, pat.getType());
 						fun.incCorrespondingCount();
 						stmts.setChild(call, s+bcount);
+						aroundExist = true;
 					}
 				}
 			}
@@ -1018,7 +1034,8 @@ public class AspectsEngine {
 		Expr rhs = context.getExpr();
 		int acount = 0, bcount = 0;
 		int args = rhs.FetchArgsCount();
-
+		boolean aroundExist = false;
+		
 		for(int j=0; j<actionsList.size(); j++)
 		{
 			action act = actionsList.get(j);
@@ -1028,6 +1045,12 @@ public class AspectsEngine {
 					&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
 					&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
 			){
+				//only first around is weaved!
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist){
+					System.err.println("[Line: " + context.getLineNum() + "] Skipping action '" + act.getName() + "': Around action already exists on this join point!");
+					continue;
+				}
+				
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
@@ -1102,14 +1125,15 @@ public class AspectsEngine {
 						stmts.insertChild(call, s+bcount);
 						bcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						//stmts.insertChild(call, s+bcount+acount+1);
-						stmts.insertChild(call, s+bcount+1);
+						stmts.insertChild(call, s+bcount+acount+1);
+						//stmts.insertChild(call, s+bcount+1);
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 						addSwitchCaseToAroundCorrespondingFunction(null, rhs, fun.getNestedFunction(0), ile, pat.getType());
 						fun.incCorrespondingCount();
 						stmts.setChild(call, s+bcount);
+						aroundExist = true;
 					}
 				}
 			}
@@ -1472,7 +1496,9 @@ public class AspectsEngine {
 		AssignStmt head = fetchLoopHeads(loop);
 		int acount = 0, bcount = 0, tcount = 0;
 		int bacount = 0, bbcount = 0;
+		int hacount = 0, hbcount = 0;
 		ASTNode parent = loop.getParent();
+		boolean aroundExist = false;
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -1481,6 +1507,13 @@ public class AspectsEngine {
 
 			if((pat.getType().compareTo(LOOP) == 0 || pat.getType().compareTo(LOOPBODY) == 0 || pat.getType().compareTo(LOOPHEAD) == 0)
 					&& (loopVar.contains(pat.getTarget()+",") || pat.getTarget().compareTo("*") == 0)){
+				
+				//only first around is weaved!
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist){
+					System.err.println("[Line: " + loop.getLineNum() + "] Skipping action '" + act.getName() + "': Around action already exists on this join point!");
+					continue;
+				}
+				
 				Function fun = act.getFunction();
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
 				Expr nv = null;
@@ -1580,7 +1613,8 @@ public class AspectsEngine {
 						parent.insertChild(call, parent.getIndexOfChild(loop));
 						bcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						parent.insertChild(call, parent.getIndexOfChild(loop)+1);
+						//parent.insertChild(call, parent.getIndexOfChild(loop)+1);
+						parent.insertChild(call, parent.getIndexOfChild(loop)+acount+1);
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						//TODO
@@ -1593,8 +1627,8 @@ public class AspectsEngine {
 							loop.getChild(1).insertChild(call, 0+bbcount);
 						bbcount += 1;
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						//loop.getChild(1).addChild(call);
-						loop.getChild(1).insertChild(call, loop.getChild(1).getNumChild()-bacount);
+						loop.getChild(1).addChild(call);
+						//loop.getChild(1).insertChild(call, loop.getChild(1).getNumChild()-bacount);
 						bacount += 1;
 						
 						//TODO: impose the precedence order
@@ -1606,7 +1640,7 @@ public class AspectsEngine {
 				} else if(pat.getType().compareTo(LOOPHEAD) == 0){
 					if(act.getType().compareTo(BEFORE) == 0) {
 						parent.insertChild(call, parent.getIndexOfChild(head));
-						bcount += 1;
+						hbcount += 1;
 
 						//other heads of while
 						if(loop instanceof WhileStmt){
@@ -1615,8 +1649,9 @@ public class AspectsEngine {
 							ws.WeaveLoopStmts(call, true);
 						}
 					} else if(act.getType().compareTo(AFTER) == 0) {
-						parent.insertChild(call, parent.getIndexOfChild(head)+1);
-						acount += 1;
+						//parent.insertChild(call, parent.getIndexOfChild(head)+1);
+						parent.insertChild(call, parent.getIndexOfChild(head)+hacount+1);
+						hacount += 1;
 
 						//other heads of while
 						if(loop instanceof WhileStmt){
@@ -1629,12 +1664,13 @@ public class AspectsEngine {
 						addSwitchCaseToAroundCorrespondingFunction(head.getLHS(), head.getRHS(), fun.getNestedFunction(0), ile, LOOPHEAD);
 						fun.incCorrespondingCount();
 						head.setRHS(pe);
+						aroundExist = true;
 					}
 				}
 			}
 		}
 
-		return acount + bcount + tcount;
+		return acount + bcount + tcount + hacount + hbcount;
 	}
 
 	public static void WeaveLoopStmts(ast.List<Stmt> stmts, Stmt call, boolean onlyContinue){
@@ -1656,6 +1692,7 @@ public class AspectsEngine {
 	public static void weaveFunction(Function func)
 	{
 		int acount = 0, bcount = 0;
+		boolean aroundExist = false;
 		
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -1663,6 +1700,13 @@ public class AspectsEngine {
 			pattern pat = act.getPattern();
 
 			if(pat.getType().compareTo(EXECUTION) == 0 && (pat.getTarget().compareTo(func.getName()) == 0 || pat.getTarget().compareTo("*") == 0)){
+				
+				//only first around is weaved!
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist){
+					System.err.println("[Line: " + Symbol.getLine(func.getStart()) + "] Skipping action '" + act.getName() + "': Around action already exists on this join point!");
+					continue;
+				}
+				
 				Function fun = act.getFunction();
 				NameExpr funcName = new NameExpr(new Name(act.getName()));
 
@@ -1718,8 +1762,8 @@ public class AspectsEngine {
 					func.getStmts().insertChild(call, 0+bcount);
 					bcount += 1;
 				} else if(act.getType().compareTo(AFTER) == 0) {
-					//func.getStmts().addChild(call);
-					func.getStmts().insertChild(call, func.getStmts().getNumChild()-acount);
+					func.getStmts().addChild(call);
+					//func.getStmts().insertChild(call, func.getStmts().getNumChild()-acount);
 					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
@@ -1733,6 +1777,7 @@ public class AspectsEngine {
 					addSwitchCaseToAroundCorrespondingFunction(out, tmp_pe, fun.getNestedFunction(0), ile, EXECUTION);
 					fun.incCorrespondingCount();
 					func.getStmts().addChild(call);
+					aroundExist = true;
 				}
 			}
 		}
