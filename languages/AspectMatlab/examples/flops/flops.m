@@ -99,27 +99,7 @@ bany : before any
     return; % return if we are not recording
   end
   this.s = this.push(this.s,0);
-end
-
-% after tracked call print out results
-afterTrack : after tracking
-  % print info
-  fprintf('finished tracking function call, here are the results:\n');
-  fields = fieldnames((this.callSite));
-  result = {'call site','# of calls','total flops'};
-  format('long');
-  for i = 1:numel(fields);
-    field = fields{i};
-    id = getfield(this.callSite, field);
-    result{i+1,1} = field;
-    result{i+1,2} = this.call(id);
-    result{i+1,3} = this.flop(id);
   end
-  disp(result);
-  % put something in the stack so that calls can modify the 'top' without error
-  this.s = this.push(this.stack(),0);
-  this.record = false;
-end
 
 % after call - store info and put flops on previous 'stack frame'
 % 'aany' should get called first, because a call to the tracking function should still list
@@ -139,10 +119,27 @@ aany : after any : (name,line,loc);
       end
  end
 
+% after tracked call print out results
+afterTrack : after tracking
+  % print info
+  fprintf('finished tracking function call, here are the results:\n');
+  fields = fieldnames((this.callSite));
+  result = {'call site','# of calls','total flops'};
+  format('long');
+  for i = 1:numel(fields);
+    field = fields{i};
+    id = getfield(this.callSite, field);
+    result{i+1,1} = field;
+    result{i+1,2} = this.call(id);
+    result{i+1,3} = this.flop(id);
+  end
+  disp(result);
+  % put something in the stack so that calls can modify the 'top' without error
+  this.s = this.push(this.stack(),0);
+  this.record = false;
+  end
 
-
-
-
+  
 %the operations
 % we assume matrix multiplication of A:mxn, B:nxk takes (2n-1)*k*m operations
 amtimes : around pmtimes : (args)

@@ -83,6 +83,22 @@ classdef flops < handle
       end
       this.s = this.push(this.s, 0);
     end
+    function  [] = flops_aany(this, name, line, loc)
+      if (~this.record)
+% return if we are not recording
+        return;
+      end
+% get flops and return stack    
+      [this.s, f] = this.pop(this.s);
+      id = this.getId(loc, line, name);
+      this.call(id) = (this.call(id) + 1);
+      this.flop(id) = (this.flop(id) + f);
+      if (this.s(1) ~= 0)
+% if the stack isn't empty, put all those flops on the previous frame    
+        [this.s, fold] = this.pop(this.s);
+        this.s = this.push(this.s, (f + fold));
+      end
+    end
     function  [] = flops_afterTrack(this)
 % print info
       fprintf('finished tracking function call, here are the results:\n');
@@ -100,22 +116,6 @@ classdef flops < handle
 % put something in the stack so that calls can modify the 'top' without error
       this.s = this.push(this.stack(), 0);
       this.record = false;
-    end
-    function  [] = flops_aany(this, name, line, loc)
-      if (~this.record)
-% return if we are not recording
-        return;
-      end
-% get flops and return stack    
-      [this.s, f] = this.pop(this.s);
-      id = this.getId(loc, line, name);
-      this.call(id) = (this.call(id) + 1);
-      this.flop(id) = (this.flop(id) + f);
-      if (this.s(1) ~= 0)
-% if the stack isn't empty, put all those flops on the previous frame    
-        [this.s, fold] = this.pop(this.s);
-        this.s = this.push(this.s, (f + fold));
-      end
     end
     function  [varargout] = flops_amtimes(this, args, AM_caseNum, AM_obj, AM_args)
 % first perform call
