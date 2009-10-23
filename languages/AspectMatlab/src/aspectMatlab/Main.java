@@ -15,7 +15,7 @@ public class Main
 		//parse each file and put them in a list of Programs
 		LinkedList<Program> programs = new LinkedList<Program>();
 		LinkedList<Program> aspects = new LinkedList<Program>();
-
+		
 		for( String file : args ){
 			Reader fileReader = new StringReader("");
 
@@ -45,10 +45,13 @@ public class Main
 			if(prog instanceof Aspect) {
 				System.err.println("Fetching Aspect Info: " + file);
 				AspectsEngine.fetchAspectInfo(prog);
-				aspects.add(AspectsEngine.convertToClass(prog));
+				prog = AspectsEngine.convertToClass(prog);
+				aspects.add(prog);
 			} else {
 				programs.add(prog);
 			}
+			
+			prog.setFileName(file.substring(file.lastIndexOf("/")+1));
 		}
 
 		//Take all resulting Program nodes and place them in a
@@ -78,9 +81,30 @@ public class Main
 			cu.addProgram( a );
 		}
 
-		System.err.println("Pretty Printing...");
-		System.out.println(cu.getPrettyPrinted());
-
+		//System.err.println("Pretty Printing...");
+		//System.out.println(cu.getPrettyPrinted());
+		
+		System.err.println("Generating output files...");
+		FileWriter writer;
+		String outPath = "amc/output";
+		File dir = new File(outPath);
+		dir.mkdirs();
+		
+		for( Program p : cu.getPrograms() ){
+			try{
+					File f = new File(outPath+"/"+p.getFileName());
+					f.createNewFile();
+					writer = new FileWriter(f);
+					writer.write(p.getPrettyPrinted());
+					writer.flush();
+					writer.close();
+			}catch(IOException e){
+				System.err.println("File "+p.getFileName()+" can not be opened!\nAborting");
+				System.exit(1);
+			}
+		}
+		
+		System.err.println("Done!");
 		System.exit(0);
 	}
 

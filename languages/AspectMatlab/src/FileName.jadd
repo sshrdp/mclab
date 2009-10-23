@@ -1,0 +1,6 @@
+
+aspect FileName {
+    private String Program.FileName = "";
+    public String Program.getFileName() { return FileName; }
+    public void Program.setFileName(String FileName) { this.FileName = FileName; }
+}

@@ -75,7 +75,7 @@ public class AspectsEngine {
 		VFPreorderAnalysis vfa = new VFPreorderAnalysis(cu);
 		vfa.analyze();
 		vfaMap = vfa.getFlowSets();
-		System.out.println(vfa.getCurrentSet().toString());
+		//System.out.println(vfa.getCurrentSet().toString());
 	}
 
 	public static FunctionVFDatum checkVarOrFun(ASTNode node, String target){
@@ -1821,14 +1821,16 @@ public class AspectsEngine {
 		String loc = "";
 
 		ASTNode node = exp;
-		while(node != null && !(node instanceof Function || node instanceof Script))
+		//while(node != null && !(node instanceof Function || node instanceof Script))
+		while(node != null && !(node instanceof Program))
 			node = node.getParent();
 
 		if(node != null){
-			if(node instanceof Script)
-				loc = "Script";
-			else
-				loc = ((Function)node).getName();
+			//if(node instanceof Script)
+			//	loc = "Script";
+			//else
+			//	loc = ((Function)node).getName();
+			loc = ((Program)node).getFileName();
 		}
 
 		return loc;
