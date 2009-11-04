@@ -19,7 +19,7 @@ public class AspectsEngine {
 	static LinkedList<pattern> patternsList = new LinkedList<pattern>();
 	static ArrayList<String> aspectList = new ArrayList<String>();
 
-	//Advice
+	//Action Types
 	static final public String AFTER = "after";
 	static final public String BEFORE = "before";
 	static final public String AROUND = "around";
@@ -57,20 +57,31 @@ public class AspectsEngine {
 	static final public Name CF_INPUT_OBJ = new Name("AM_obj");
 	static final public Name CF_INPUT_AGRS = new Name("AM_args");
 
+	////////////////////////////////////////////////////////////////////////
+	
+	//Temp Variables Generation
 	static public int correspondingCount = 0;
 	public static int getCorrespondingCount() { return correspondingCount; }
+	
+	/*
 	private static String generateCorrespondingFunctionName(){
 		return AM_CF_SCRIPT + correspondingCount++;
 	}
+	*/
+	
 	private static String generateCorrespondingVariableName(){
 		return AM_CF_VAR + correspondingCount++;
 	}
 
+	//Entry Point Variables Generation
 	static public int entrypointCount = 0;
 	private static String generateEntrypointCountVariableName(){
 		return LOCAL_CHECK + entrypointCount++;
 	}
 
+	///////////////////////////////////////////////////////////////////////
+	
+	//Flow Analysis
 	public static void analysis(ASTNode cu){
 		VFPreorderAnalysis vfa = new VFPreorderAnalysis(cu);
 		vfa.analyze();
@@ -89,6 +100,8 @@ public class AspectsEngine {
 		return new FunctionVFDatum();
 	}
 
+	///////////////////////////////////////////////////////////////////////
+	
 	private static String generateActionName(String aspect, String action){
 		return aspect + "_" + action;
 	}
@@ -193,6 +206,8 @@ public class AspectsEngine {
 		return out;
 	}
 
+	///////////////////////////////////////////////////////////////////////
+	
 	public static void generateCorrespondingStmt(Expr pe) {
 		if(pe.getWeavability() && !pe.getCFStmtDone()) {
 			String target = pe.FetchTargetExpr();
@@ -1313,7 +1328,6 @@ public class AspectsEngine {
 			gs.setOutputSuppressed(true);
 			stmts.add(gs);
 
-			//TODO: checkif it is first file?
 			String var = generateEntrypointCountVariableName();
 			Expr oirhs = new IntLiteralExpr(new DecIntNumericLiteralValue("0"));
 			Expr oerhs = new IntLiteralExpr(new DecIntNumericLiteralValue("1"));
