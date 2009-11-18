@@ -1,0 +1,59 @@
+aspect ShadowMatch {
+	
+	syn boolean Expr.ShadowMatch(String target, String pattern, int args) = false;
+ 	
+ 	eq PatternDesignator.ShadowMatch(String target, String pattern, int args) {
+		String type = getName();
+
+		String variable = "";
+		if(getArgs().getNumChild() > 0) {
+			variable = getArgs().getChild(getArgs().getNumChild()-1).getID();
+			variable = variable.substring(variable.lastIndexOf('.')+1);
+		}
+
+		String tar = variable;
+		String dim = "-1";
+		boolean more = false;
+
+		if(variable.contains("$")) {
+			tar = variable.substring(0, variable.lastIndexOf('$'));
+			dim = variable.substring(variable.lastIndexOf('$')+1);
+
+			if(dim.contains("+")) {
+				more = true;
+				dim = dim.substring(0, dim.lastIndexOf('+'));
+			}
+		}
+		
+		int dims = Integer.valueOf(dim);
+		boolean match = false;
+		
+		if(((tar.compareTo("*") == 0)
+				|| (tar.compareTo(target) == 0)
+				|| (type.contains("loop") && target.contains(tar+","))
+				)
+				
+			&& (args == -1 || dims == -1 || (!more && dims == args) || (more && dims <= args))
+			
+			&& ((type.compareTo(pattern) == 0) 
+				|| (pattern.compareTo("getorcall") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0))
+				//|| (pattern.compareTo("loop") && type.contains("loop"))
+				)
+			)
+			match = true;
+		
+ 		return match;
+ 	}
+ 	
+ 	eq AndExpr.ShadowMatch(String target, String pattern, int args) {
+ 		return (getLHS().ShadowMatch(target, pattern, args) && getRHS().ShadowMatch(target, pattern, args));
+ 	}
+ 	
+ 	eq OrExpr.ShadowMatch(String target, String pattern, int args) {
+ 		return (getLHS().ShadowMatch(target, pattern, args) || getRHS().ShadowMatch(target, pattern, args));
+ 	}
+ 	
+ 	eq NotExpr.ShadowMatch(String target, String pattern, int args) {
+ 		return !(getOperand().ShadowMatch(target, pattern, args));
+ 	}
+}
