@@ -61,14 +61,17 @@ public class Main
 			cu.addProgram( p );
 		}
 
-		System.err.println("Analysing...");
-		AspectsEngine.analysis(cu);
-
-        System.err.println("Matching and Weaving...");
+        System.err.println("Transforming...");
         
 		for( Program p : cu.getPrograms() ){
 			p.aspectsCorrespondingFunctions();
 		}
+		
+		System.err.println("Analysing...");
+		//AspectsEngine.analysis(cu);
+		AspectsEngine.flowAnalysis(cu);
+		
+		System.err.println("Matching and Weaving...");
 		
 		for( Program p : cu.getPrograms() ){
 			p.aspectsWeave();
