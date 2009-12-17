@@ -240,7 +240,7 @@ public class AspectsEngine {
 			//	if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0)
 			//		&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
 			for(Expr pat : patternsListNew.values()) {
-				if(pat.ShadowMatch(target, GETORCALL, -1)) {
+				if(pat.ShadowMatch(target, GETORCALL, -1, pe)) {
 					ASTNode node = pe;
 					while(node != null && !(node instanceof Stmt))
 						node = node.getParent();
@@ -313,7 +313,7 @@ public class AspectsEngine {
 			//	if(pat.getType().compareTo(SET) == 0 && 
 			//			(pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)) {
 			for(Expr pat : patternsListNew.values()) {
-				if(pat.ShadowMatch(target, SET, -1)) {
+				if(pat.ShadowMatch(target, SET, -1, stmts)) {
 					String var = generateCorrespondingVariableName();
 					Expr rhs = new NameExpr(new Name(var));
 					rhs.setWeavability(false);
@@ -678,7 +678,7 @@ public class AspectsEngine {
 			//if(pat.getType().compareTo(SET) == 0 && (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)
 			//		&& (pat.getDims() == -1 || (!pat.getDimsAndMore() && pat.getDims() == args) || (pat.getDimsAndMore() && pat.getDims() <= args))
 			if(patternsListNew.containsKey(act.getPattern()) 
-					&& patternsListNew.get(act.getPattern()).ShadowMatch(target, SET, args)
+					&& patternsListNew.get(act.getPattern()).ShadowMatch(target, SET, args, context)
 			){
 				//only first around is weaved!
 				if(act.getType().compareTo(AROUND) == 0 && aroundExist){
@@ -834,13 +834,12 @@ public class AspectsEngine {
 				Expr pat = patternsListNew.get(act.getPattern());
 				
 				if(varOrFun.isVariable()) //only match if target is variable
-					isGet = pat.ShadowMatch(target, GET, args);
+					isGet = pat.ShadowMatch(target, GET, args, context);
 				else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript))
-					isCall = pat.ShadowMatch(target, CALL, args);
+					isCall = pat.ShadowMatch(target, CALL, args, context);
 				else if(varOrFun.isBottom() && isScript) {
-					System.out.println("inside script.................");
-					isGet = pat.ShadowMatch(target, GET, args);
-					isCall = pat.ShadowMatch(target, CALL, args);
+					isGet = pat.ShadowMatch(target, GET, args, context);
+					isCall = pat.ShadowMatch(target, CALL, args, context);
 
 					if(isGet && isCall && !isExistCheck) {
 						ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
@@ -1185,13 +1184,12 @@ public class AspectsEngine {
 				Expr pat = patternsListNew.get(act.getPattern());
 				
 				if(varOrFun.isVariable()) //only match if target is variable
-					isGet = pat.ShadowMatch(target, GET, args);
+					isGet = pat.ShadowMatch(target, GET, args, context);
 				else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript))
-					isCall = pat.ShadowMatch(target, CALL, args);
+					isCall = pat.ShadowMatch(target, CALL, args, context);
 				else if(varOrFun.isBottom() && isScript) {
-					System.out.println("inside script.................");
-					isGet = pat.ShadowMatch(target, GET, args);
-					isCall = pat.ShadowMatch(target, CALL, args);
+					isGet = pat.ShadowMatch(target, GET, args, context);
+					isCall = pat.ShadowMatch(target, CALL, args, context);
 
 					if(isGet && isCall && !isExistCheck) {
 						ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
@@ -1775,7 +1773,7 @@ public class AspectsEngine {
 		}
 	}
 
-	private static String fetchLoopVariables(Stmt loop)
+	public static String fetchLoopVariables(Stmt loop)
 	{
 		String loopVar = "";
 
@@ -1826,9 +1824,9 @@ public class AspectsEngine {
 
 			if(patternsListNew.containsKey(act.getPattern())) {
 				Expr pat = patternsListNew.get(act.getPattern());
-				isLoop = pat.ShadowMatch(loopVar, LOOP, -1);
-				isBody = pat.ShadowMatch(loopVar, LOOPBODY, -1);
-				isHead = pat.ShadowMatch(loopVar, LOOPHEAD, -1);
+				isLoop = pat.ShadowMatch(loopVar, LOOP, -1, loop);
+				isBody = pat.ShadowMatch(loopVar, LOOPBODY, -1, loop);
+				isHead = pat.ShadowMatch(loopVar, LOOPHEAD, -1, loop);
 
 				if(isLoop || isBody || isHead){
 					//only first around is weaved!
@@ -2036,7 +2034,7 @@ public class AspectsEngine {
 			//pattern pat = act.getPattern();
 			//if(pat.getType().compareTo(EXECUTION) == 0 && (pat.getTarget().compareTo(func.getName()) == 0 || pat.getTarget().compareTo("*") == 0)){
 			if(patternsListNew.containsKey(act.getPattern()) 
-					&& patternsListNew.get(act.getPattern()).ShadowMatch(func.getName(), EXECUTION, func.getInputParams().getNumChild())
+					&& patternsListNew.get(act.getPattern()).ShadowMatch(func.getName(), EXECUTION, func.getInputParams().getNumChild(), func)
 			){
 				//only first around is weaved!
 				if(act.getType().compareTo(AROUND) == 0 && aroundExist){

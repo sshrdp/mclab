@@ -73,14 +73,14 @@ Expr pattern_designator =
   |  LOOP LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loop", l); :}
   |  LOOPBODY LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loopbody", l); :}
   |  LOOPHEAD LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loophead", l); :}
-  |  WITHIN LPAREN pattern_path.l RPAREN {: return new PatternDesignator("within", new List().add(l)); :}
+  |  WITHIN LPAREN pattern_list.l RPAREN {: return new PatternDesignator("within", l); :}
   |  CFLOW LPAREN pattern_path.l RPAREN {: return new PatternDesignator("cflow", new List().add(l)); :}
   ;
   
 List pattern_list =
      {: return new List(); :}
   |  pattern_path_sign.p {: return new List().add(p); :}
-  |  pattern_simple.s COMMA pattern_path_sign.p {: return new List().add(s).add(p); :}
+  |  node_type.n COMMA pattern_path_sign.p {: return new List().add(n).add(p); :}
   ;
 
 Name pattern_path_sign =
@@ -169,4 +169,13 @@ Name action_type =
      BEFORE {: return new Name("before"); :}
   |  AFTER {: return new Name("after"); :}
   |  AROUND {: return new Name("around"); :}
+  ;
+  
+Name node_type = 
+	 STAR {: return new Name("*"); :}
+  |  AFUNCTION {: return new Name("function"); :}
+  |  ACLASS {: return new Name("class"); :}
+  |  AASPECT {: return new Name("aspect"); :}
+  |  ASCRIPT {: return new Name("script"); :}
+  |  ALOOP {: return new Name("loop"); :}
   ;

@@ -1,8 +1,8 @@
 aspect ShadowMatch {
 	
-	syn boolean Expr.ShadowMatch(String target, String pattern, int args) = false;
+	syn boolean Expr.ShadowMatch(String target, String pattern, int args, ASTNode jp) = false;
  	
- 	eq PatternDesignator.ShadowMatch(String target, String pattern, int args) {
+ 	eq PatternDesignator.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
 		String type = getName();
 
 		String variable = "";
@@ -25,16 +25,23 @@ aspect ShadowMatch {
 			}
 		}
 		
+		if(type.compareTo("within") == 0)
+			return checkWithin(jp, (getArgs().getNumChild() < 2) ? "*":getArgs().getChild(0).getID(), tar);
+			
 		int dims = Integer.valueOf(dim);
 		boolean match = false;
 		
-		if(((tar.compareTo("*") == 0)
+		if(
+			//Joinpoint name matching
+			((tar.compareTo("*") == 0)
 				|| (tar.compareTo(target) == 0)
 				|| (type.contains("loop") && target.contains(tar+","))
 				)
-				
+			
+			//Selective matching
 			&& (args == -1 || dims == -1 || (!more && dims == args) || (more && dims <= args))
 			
+			//Joinpoint type matching
 			&& ((type.compareTo(pattern) == 0) 
 				|| (pattern.compareTo("getorcall") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0))
 				//|| (pattern.compareTo("loop") && type.contains("loop"))
@@ -45,15 +52,47 @@ aspect ShadowMatch {
  		return match;
  	}
  	
- 	eq AndExpr.ShadowMatch(String target, String pattern, int args) {
- 		return (getLHS().ShadowMatch(target, pattern, args) && getRHS().ShadowMatch(target, pattern, args));
+ 	eq AndExpr.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
+ 		return (getLHS().ShadowMatch(target, pattern, args, jp) && getRHS().ShadowMatch(target, pattern, args, jp));
  	}
  	
- 	eq OrExpr.ShadowMatch(String target, String pattern, int args) {
- 		return (getLHS().ShadowMatch(target, pattern, args) || getRHS().ShadowMatch(target, pattern, args));
+ 	eq OrExpr.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
+ 		return (getLHS().ShadowMatch(target, pattern, args, jp) || getRHS().ShadowMatch(target, pattern, args, jp));
  	}
  	
- 	eq NotExpr.ShadowMatch(String target, String pattern, int args) {
- 		return !(getOperand().ShadowMatch(target, pattern, args));
+ 	eq NotExpr.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
+ 		return !(getOperand().ShadowMatch(target, pattern, args, jp));
+ 	}
+ 	
+ 	private boolean PatternDesignator.checkWithin(ASTNode node, String type, String name) {
+		if(type.compareTo("*") == 0 && name.compareTo("*") == 0)
+			return true;
+		
+		//while(node != null && !(
+		//		((type.compareTo("function") == 0) && node instanceof Function)
+		//		|| ((type.compareTo("script") == 0) && node instanceof Script)
+		//		|| ((type.compareTo("class") == 0) && node instanceof ClassDef)
+		//		|| ((type.compareTo("aspect") == 0) && node instanceof Aspect)
+		//		|| ((type.compareTo("loop") == 0) && (node instanceof ForStmt || node instanceof WhileStmt))
+		//	))
+		//	node = node.getParent();
+		
+		while(node != null){
+			if(node instanceof Function && (type.compareTo("*") == 0 || type.compareTo("function") == 0))
+				return (name.compareTo("*") == 0) || ((Function)node).getName().compareTo(name) == 0;
+			else if(node instanceof ClassDef && (type.compareTo("*") == 0 || type.compareTo("class") == 0))
+				return (name.compareTo("*") == 0) || ((ClassDef)node).getName().compareTo(name) == 0;
+			else if(node instanceof Aspect && (type.compareTo("*") == 0 || type.compareTo("aspect") == 0))
+				return (name.compareTo("*") == 0) || ((Aspect)node).getName().compareTo(name) == 0;
+			else if(node instanceof Script && (type.compareTo("*") == 0 || type.compareTo("script") == 0)){
+				String file = ((Script)node).getFileName();
+				return (name.compareTo("*") == 0) || file.substring(0, file.lastIndexOf(".")).compareTo(name) == 0;
+			} else if((node instanceof ForStmt || node instanceof WhileStmt) && (type.compareTo("*") == 0 || type.compareTo("loop") == 0))
+				return (name.compareTo("*") == 0) || AspectsEngine.fetchLoopVariables((Stmt)node).contains(name+",");
+			
+			node = node.getParent();
+		}
+		
+		return false;
  	}
 }

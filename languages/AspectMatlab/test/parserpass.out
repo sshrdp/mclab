@@ -20,7 +20,7 @@ end
 actions 
 countseta : before arrayseta : (newVal)
 if (newVal > 100)
-	display(a_exceeds_100);
+	display('a_exceeds_100');
 end
 end
 countsetb : after arraysetb

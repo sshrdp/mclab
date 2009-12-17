@@ -19,7 +19,13 @@ loop {: return symbol(LOOP); :}
 loopbody {: return symbol(LOOPBODY); :}
 loophead {: return symbol(LOOPHEAD); :}
 
-aspect {: return symbol(ASPECT); :} ASPECT
+function {: return symbol(AFUNCTION); :}
+class {: return symbol(ACLASS); :}
+aspect {: return symbol(AASPECT); :}
+script {: return symbol(ASCRIPT); :}
+loops {: return symbol(ALOOP); :}
+  
+//aspect {: return symbol(ASPECT); :} ASPECT
 end {: return symbol(END); :} END
 
 %%inherit shared_keywords
