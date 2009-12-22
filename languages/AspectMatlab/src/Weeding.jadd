@@ -1,0 +1,49 @@
+//Static semantics error collection
+
+aspect Weeding {
+
+  	public boolean Aspect.weeding() {
+	  	java.util.List<String> errors = new java.util.ArrayList<String>();
+	    String match = "";
+	    
+	    for(Patterns pats : getPatterns()) {
+        	for(Pattern pat : pats.getPatterns()) {
+        		String name = pat.getName();
+        		if(match.indexOf(name+",") >= 0)
+	           		errors.add(pat.getPosString() + name + " pattern already exists!");
+	           	else
+	           		match += name+",";
+       		}
+       	}
+       	
+       	match = "";
+       	
+       	for(Actions acts : getActions()) {
+           for(AspectAction act : acts.getAspectActions()) {
+        		String name = act.getName();
+        		if(match.indexOf(name+",") >= 0)
+	           		errors.add(act.getPosString() + name + " action already exists!");
+	           	else
+	           		match += name+",";
+       		}
+       	}
+	    
+	    if(errors.isEmpty())
+	    	return true;
+	    	
+		System.out.println("Error(s):");
+		for(String error : errors) {
+			System.out.println(error);
+		}
+	    
+	    return false;
+	}
+	  
+	public String Pattern.getPosString() {
+    	return "[" + getLine(getStart()) + ", " + getColumn(getStart()) + "]  ";
+	}
+	
+	public String AspectAction.getPosString() {
+    	return "[" + getLine(getStart()) + ", " + getColumn(getStart()) + "]  ";
+	}
+}

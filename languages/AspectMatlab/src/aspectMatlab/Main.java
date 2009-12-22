@@ -44,6 +44,12 @@ public class Main
 
 			if(prog instanceof Aspect) {
 				System.err.println("Fetching Aspect Info: " + file);
+				
+				if(!((Aspect)prog).weeding()){
+					System.err.println("Skipping " + file);
+					continue;
+				}
+				
 				AspectsEngine.fetchAspectInfo(prog);
 				prog = AspectsEngine.convertToClass(prog);
 				aspects.add(prog);
