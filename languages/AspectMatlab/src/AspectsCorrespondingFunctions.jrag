@@ -62,6 +62,8 @@ aspect AspectsCorrespondingFunctions {
            	stmt.aspectsCorrespondingFunctions();
         }
         
+        AspectsEngine.transformForStmt((ast.List)getParent());
+        
         return true;
     }
     
@@ -72,6 +74,8 @@ aspect AspectsCorrespondingFunctions {
 	   	for(Stmt stmt : getStmts()) {
            	stmt.aspectsCorrespondingFunctions();
         }
+        
+        AspectsEngine.transformWhileStmt((ast.List)getParent());
         
         return true;
     } 

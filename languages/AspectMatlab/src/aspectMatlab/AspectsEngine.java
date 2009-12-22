@@ -1414,7 +1414,7 @@ public class AspectsEngine {
 		ss.addSwitchCaseBlock(scb);
 	}
 
-	private static void transformForStmt(ast.List<Stmt> stmts)
+	public static void transformForStmt(ast.List<Stmt> stmts)
 	{
 		int stmtCount = stmts.getNumChild();
 
@@ -1509,6 +1509,9 @@ public class AspectsEngine {
 
 					ws.setLoopHead(as);
 
+					ws.getStmtList().add(ws.getLoopHead());
+					ws.WeaveLoopStmts(ws.getLoopHead(), true);
+					
 					ws.setAspectTransformed(true);
 					s++;
 					stmtCount++;
@@ -1674,8 +1677,8 @@ public class AspectsEngine {
 	
 	public static void weaveStmts(ast.List<Stmt> stmts)
 	{
-		transformForStmt(stmts);
-		transformWhileStmt(stmts);
+		//transformForStmt(stmts);
+		//transformWhileStmt(stmts);
 
 		ASTNode node = stmts;
 		while(node != null && !(node instanceof Script))
@@ -1755,17 +1758,18 @@ public class AspectsEngine {
 					stmtCount += count;
 				}
 			} else if(stmt instanceof ForStmt || stmt instanceof WhileStmt){
-				int count = weaveLoops(stmt);
-				//other heads of while
-				if(stmt instanceof WhileStmt){
-					WhileStmt ws = (WhileStmt)stmt;
-					ws.getStmtList().add(ws.getLoopHead());
-					ws.WeaveLoopStmts(ws.getLoopHead(), true);
-				}
-				s += count;
-				stmtCount += count;
 				
 				stmt.aspectsWeave();
+				
+				int count = weaveLoops(stmt);
+				//other heads of while
+				//if(stmt instanceof WhileStmt){
+				//	WhileStmt ws = (WhileStmt)stmt;
+				//	ws.getStmtList().add(ws.getLoopHead());
+				//	ws.WeaveLoopStmts(ws.getLoopHead(), true);
+				//}
+				s += count;
+				stmtCount += count;
 				
 			} else {
 				stmt.aspectsWeave();
