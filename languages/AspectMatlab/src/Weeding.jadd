@@ -17,6 +17,7 @@ aspect Weeding {
        	}
        	
        	match = "";
+       	String selectors = "args,newVal,obj,name,line,counter,loc,";
        	
        	for(Actions acts : getActions()) {
            for(AspectAction act : acts.getAspectActions()) {
@@ -25,9 +26,13 @@ aspect Weeding {
 	           		errors.add(act.getPosString() + name + " action already exists!");
 	           	else
 	           		match += name+",";
+	           	
+	           	for(Name selector : act.getSelectors())
+		        	if(selectors.indexOf(selector.getID()+",") == -1)
+		            	errors.add(act.getPosString() + selector.getID() + " is not a valid selector!");
        		}
        	}
-	    
+	
 	    if(errors.isEmpty())
 	    	return true;
 	    	
