@@ -1,3 +1,9 @@
+
+/*
+//	Assignment Statement Weavability
+//	helpful in case of weaved statements
+*/
+
 aspect AssignStmtWeavability {
 
 	private boolean AssignStmt.isWeavable = true;

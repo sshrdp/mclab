@@ -1,3 +1,8 @@
+
+/*
+//	Weaving global structure
+*/
+
 aspect GlobalStructure {
 
     syn Boolean Program.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) { throw new UnsupportedOperationException(getClass().getName() + ".weaveGlobalStructure()"); }

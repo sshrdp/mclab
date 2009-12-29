@@ -1,5 +1,9 @@
 import aspectMatlab.AspectsEngine;
 
+/*
+//	Fetching target in an expression
+*/
+
 aspect FetchTargetExpr {
 	
 	syn String Expr.FetchTargetExpr() = "";

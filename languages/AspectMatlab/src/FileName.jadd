@@ -1,4 +1,9 @@
 
+/*
+//	Programs keeping the corresponding file name
+//	helpful in case of script file
+*/
+
 aspect FileName {
     private String Program.FileName = "";
     public String Program.getFileName() { return FileName; }

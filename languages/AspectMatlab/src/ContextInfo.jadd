@@ -1,5 +1,10 @@
 import beaver.Symbol;
 
+/*
+//	Context Info
+//	helpful in case of weaved statements, to preserve the original info
+*/
+
 aspect ContextInfo {
     private int Stmt.LineNum = -1; 
     public int Stmt.getLineNum() { return (LineNum != -1) ? LineNum : Symbol.getLine(getStart()); }

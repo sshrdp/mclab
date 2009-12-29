@@ -1,3 +1,8 @@
+
+/*
+//	Matching a shadow according to patterns
+*/
+
 aspect ShadowMatch {
 	
 	syn boolean Expr.ShadowMatch(String target, String pattern, int args, ASTNode jp) = false;

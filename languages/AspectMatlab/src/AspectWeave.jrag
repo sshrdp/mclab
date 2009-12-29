@@ -1,5 +1,9 @@
 import aspectMatlab.AspectsEngine;
 
+/*
+//	Matching & Weaving
+*/
+
 aspect AspectWeave {
 	syn Boolean Program.aspectsWeave() { throw new UnsupportedOperationException(getClass().getName() + ".aspectsWeave()"); }
      

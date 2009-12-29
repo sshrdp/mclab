@@ -1,5 +1,9 @@
 import aspectMatlab.AspectsEngine;
 
+/*
+//	Weaving into loop statements
+*/
+
 aspect WeaveLoopStmts {
 
 	syn boolean Stmt.WeaveLoopStmts(Stmt call, boolean onlyContinue) { return true; }

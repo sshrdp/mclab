@@ -1,3 +1,9 @@
+
+/*
+//	Loop Transformation
+//	keeps info about loop header and loop variables
+*/
+
 aspect LoopTransformation {
     private boolean ForStmt.aspectTransformed = false; 
     public boolean ForStmt.isAspectTransformed() { return aspectTransformed; }

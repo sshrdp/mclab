@@ -1,5 +1,9 @@
 import aspectMatlab.AspectsEngine;
 
+/*
+//	Proceed transformation in an Around action
+*/
+
 aspect ProceedTransformation {
 
 	syn boolean Stmt.ProceedTransformation() { return true; }

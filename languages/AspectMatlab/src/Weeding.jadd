@@ -1,4 +1,7 @@
-//Static semantics error collection
+
+/*
+//	Static semantics error collection
+*/
 
 aspect Weeding {
 

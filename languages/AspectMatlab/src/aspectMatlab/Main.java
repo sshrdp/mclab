@@ -13,6 +13,7 @@ public class Main
 		StringBuffer errors = new StringBuffer();
 		
 		//parse each file and put them in a list of Programs
+		//aspects are kept separate, as we dont weave into them
 		LinkedList<Program> programs = new LinkedList<Program>();
 		LinkedList<Program> aspects = new LinkedList<Program>();
 		
@@ -43,8 +44,9 @@ public class Main
 			}
 
 			if(prog instanceof Aspect) {
-				System.err.println("Fetching Aspect Info: " + file);
+				System.err.println("Fetching aspect info: " + file);
 				
+				//Weeding checks on Aspect file
 				if(!((Aspect)prog).weeding()){
 					System.err.println("Skipping " + file);
 					continue;
@@ -57,6 +59,7 @@ public class Main
 				programs.add(prog);
 			}
 			
+			//Keep the file name, mainly required in case of scripts
 			prog.setFileName(file.substring(file.lastIndexOf("/")+1));
 		}
 
@@ -67,25 +70,26 @@ public class Main
 			cu.addProgram( p );
 		}
 
+		//Perform different kinds of transformations
+		//including statement simplification, loop transformation...
         System.err.println("Transforming...");
-        
 		for( Program p : cu.getPrograms() ){
 			p.aspectsCorrespondingFunctions();
 		}
 		
+		//Perform the flow analysis to determine name resolution
 		System.err.println("Analysing...");
 		//AspectsEngine.analysis(cu);
 		AspectsEngine.flowAnalysis(cu);
 		
+		//Matching and weaving aspects
 		System.err.println("Matching and Weaving...");
-		
 		for( Program p : cu.getPrograms() ){
 			p.aspectsWeave();
 		}
 		
-		//adding aspect global structure
+		//Post-processing: adding aspect global structure
 		AspectsEngine.weaveGlobalStructure(cu);
-		
 		for( Program a : aspects ){
 			cu.addProgram( a );
 		}
