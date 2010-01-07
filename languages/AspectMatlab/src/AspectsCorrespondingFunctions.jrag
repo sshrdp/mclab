@@ -55,13 +55,14 @@ aspect AspectsCorrespondingFunctions {
     
     eq AssignStmt.aspectsCorrespondingFunctions() {
     	//getLHS().aspectsCorrespondingFunctions();
-    	getRHS().aspectsCorrespondingFunctions();
+    	if(getRHS().getWeavability())
+    		getRHS().aspectsCorrespondingFunctions();
     	
     	return true;
     }
     
     eq ForStmt.aspectsCorrespondingFunctions() {
-	   	getAssignStmt().aspectsCorrespondingFunctions();
+	   	//getAssignStmt().aspectsCorrespondingFunctions();
 	   	for(Stmt stmt : getStmts()) {
            	stmt.aspectsCorrespondingFunctions();
         }

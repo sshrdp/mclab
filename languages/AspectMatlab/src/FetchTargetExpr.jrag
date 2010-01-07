@@ -11,7 +11,8 @@ aspect FetchTargetExpr {
  	eq NameExpr.FetchTargetExpr() {
  		String name = getName().getID();
  		if(name.startsWith("AM_tmpFS_"))
-			name = name.replace("AM_tmpFS_", "");
+			//name = name.replace("AM_tmpFS_", "");
+			name = "";
 		else if(name.startsWith("AM_CVar_"))
 			name = "";
 		else if(!getWeavability())

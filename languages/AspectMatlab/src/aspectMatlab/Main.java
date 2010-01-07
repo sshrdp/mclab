@@ -10,6 +10,9 @@ public class Main
 {
 	public static void main(String[] args)
 	{
+		System.err.println("AspectMatlab - Version 1.0");
+		System.err.println("--------------------------");
+		
 		StringBuffer errors = new StringBuffer();
 		
 		//parse each file and put them in a list of Programs
@@ -70,6 +73,8 @@ public class Main
 			cu.addProgram( p );
 		}
 
+		System.err.println("--------------------------");
+		
 		//Perform different kinds of transformations
 		//including statement simplification, loop transformation...
         System.err.println("Transforming...");

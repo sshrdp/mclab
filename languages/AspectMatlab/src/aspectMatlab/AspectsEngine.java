@@ -511,7 +511,8 @@ public class AspectsEngine {
 					as_in.setLHS(as_old.getLHS());
 					as_in.setOutputSuppressed(true);
 					as_in.getRHS().setWeavability(false);
-
+					as_in.setLineNum(fs.getLineNum());
+					
 					ast.List<Stmt> lstFor = new ast.List<Stmt>();
 					lstFor.add(as_in);
 					for(Stmt stmt : fs.getStmts())
