@@ -178,6 +178,31 @@
 	<target name="clean" depends="CommandLineInterface.clean" description="deletes all files produced by build" />
 	<target name="test" depends="CommandLineInterface.test" description="runs all JUnit tests" />
 
+	<target name="jar" depends="gen, compile" description="creates an executable release jar without cleaning first">
+		<jar destfile="${entrypoint.jarname}">
+			<manifest>
+				<attribute name="Main-Class" value="${entrypoint.class}" />
+			</manifest>
+			<fileset dir="${basedir}/${bin.dir}" includes="**/*.class" />
+			<zipfileset src="${lib.dir}/${beaver.rt.jar.path.prop}">
+              <patternset>
+                <exclude name="META-INF/**" />
+              </patternset>
+            </zipfileset>
+            <zipfileset dir="${natlab.bin.dir}">
+            	<include name="natlab/toolkits/analysis/*.class" />
+            	<include name="natlab/toolkits/analysis/varorfun/*.class" />
+            	<include name="natlab/CommentBuffer.class" />
+            	<include name="natlab/DecIntNumericLiteralValue.class" />
+            	<include name="natlab/IntNumericLiteralValue.class" />
+            	<include name="natlab/NumericLiteralValue.class" />
+            </zipfileset>
+		</jar>
+                <echo file="${entrypoint.script.name}">${entrypoint.script.header}
+java -jar ${basedir}/${entrypoint.jarname} $$*</echo>
+                <chmod file="${entrypoint.script.name}" perm="755" />
+	</target>
+
 	<!-- public versions of eclipse.xml targets -->
 	<target name="eclipse.build" depends="Eclipse.eclipse.build" description="generate all files, let Eclipse build" />
 	<target name="eclipse.clean" depends="Eclipse.eclipse.clean" description="deletes all files produced by build.eclipse" />
