@@ -54,6 +54,7 @@ aspect AspectsCorrespondingFunctions {
     }
     
     eq AssignStmt.aspectsCorrespondingFunctions() {
+    	//TODO
     	//getLHS().aspectsCorrespondingFunctions();
     	if(getRHS().getWeavability())
     		getRHS().aspectsCorrespondingFunctions();

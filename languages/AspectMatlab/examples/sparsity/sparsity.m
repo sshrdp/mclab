@@ -102,7 +102,7 @@ end
 
 
 patterns
-arraySet : set(*, *.*);
+arraySet : set(*);
 arrayWholeGet : get(*());
 arrayIndexedGet : get(*(..));
 exec : execution(program);
@@ -167,7 +167,6 @@ set : before arraySet : (newVal,obj,name)
   end
 end
 
-
 get : before arrayWholeGet : (obj,name)
   % we will exit if the value is not a matrix
   if (~isnumeric(obj))
@@ -188,6 +187,4 @@ indexedGet : before arrayIndexedGet : (obj,name)
   this.arrayIndexedGet{id} = this.arrayIndexedGet{id}+1;
 end
 end
-
-
 end

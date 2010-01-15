@@ -525,8 +525,10 @@ public class AspectsEngine {
 					fs_new.setLineNum(fs.getLineNum());
 
 					fs_new.setLoopVar(lhs.FetchTargetExpr());
+					as_out.setLoopBound(true);
+					as_out.setBoundLoop(fs_new);
 					fs_new.setLoopHead(as_out);
-
+					
 					stmts.removeChild(s);
 					stmts.insertChild(as_out, s);
 					stmts.insertChild(fs_new, s+1);
@@ -569,6 +571,8 @@ public class AspectsEngine {
 					ws.setExpr(lhs);
 					stmts.insertChild(as, stmts.getIndexOfChild(ws));
 
+					as.setLoopBound(true);
+					as.setBoundLoop(ws);
 					ws.setLoopHead(as);
 
 					ws.getStmtList().add(ws.getLoopHead());
@@ -755,7 +759,8 @@ public class AspectsEngine {
 						if(nv == null){
 							if(rhs instanceof IntLiteralExpr || rhs instanceof FPLiteralExpr || rhs instanceof StringLiteralExpr) {
 								nv = rhs;
-							} else if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
+							//} else if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
+							} else if(rhs.getWeavability()) {
 								String var = generateCorrespondingVariableName();
 								Expr tmp = new NameExpr(new Name(var));
 
@@ -1017,6 +1022,15 @@ public class AspectsEngine {
 						fun.incCorrespondingCount();
 						stmts.setChild(call, s+bcount+tcount);
 
+						if(context.getLoopBound())
+						{
+							Stmt loop = context.getBoundLoop();
+							if(loop instanceof ForStmt)
+								((ForStmt)loop).setLoopHead(call);
+							else if(loop instanceof WhileStmt)
+								((WhileStmt)loop).setLoopHead(call);
+						}
+						
 						aroundExist = true;
 						prevAroundName = act.getName();
 						prevAroundILE = ile;
@@ -1186,7 +1200,13 @@ public class AspectsEngine {
 	public static int weaveLoops(Stmt loop)
 	{
 		String loopVar = fetchLoopVariables(loop);
-		AssignStmt head = fetchLoopHeads(loop);
+		
+		//AssignStmt head = fetchLoopHeads(loop);
+		AssignStmt head = null;
+		Stmt headStmt = fetchLoopHeads(loop);
+		if(headStmt instanceof AssignStmt)
+			head = (AssignStmt)headStmt;
+		
 		int acount = 0, bcount = 0, tcount = 0;
 		int bacount = 0, bbcount = 0;
 		int hacount = 0, hbcount = 0;
@@ -1231,7 +1251,8 @@ public class AspectsEngine {
 								lstExpr.add(new CellArrayExpr());
 						} 
 						else if(param.getID().compareTo(NEWVAL) == 0 || param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
-							if(isHead){
+							//if(isHead){
+							if(isHead && head != null){
 								if(nv == null){
 									Expr rhs = head.getRHS();
 
@@ -1349,7 +1370,8 @@ public class AspectsEngine {
 								ws.getStmtList().add(call);
 								ws.WeaveLoopStmts(call, true);
 							}
-						} else if(act.getType().compareTo(AROUND) == 0) {
+						//} else if(act.getType().compareTo(AROUND) == 0) {
+						} else if(act.getType().compareTo(AROUND) == 0 && head != null) {
 							IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 							addSwitchCaseToAroundCorrespondingFunction(head.getLHS(), head.getRHS(), fun.getNestedFunction(0), ile, LOOPHEAD, aroundExist, prevAroundName, prevAroundILE);
 							fun.incCorrespondingCount();
@@ -1383,9 +1405,10 @@ public class AspectsEngine {
 		return loopVar+",";
 	}
 
-	private static AssignStmt fetchLoopHeads(Stmt loop)
+	private static Stmt fetchLoopHeads(Stmt loop)
 	{
-		AssignStmt loopHead = null;
+		//AssignStmt loopHead = null;
+		Stmt loopHead = null;
 
 		if(loop instanceof ForStmt){
 			ForStmt fstmt = (ForStmt) loop;
@@ -1548,12 +1571,11 @@ public class AspectsEngine {
 
 		return loc;
 	}
-}
 
-///////////////////////////////////////////////////////////////////
-//Removed Code
-///////////////////////////////////////////////////////////////////
-
+////////////////
+//Removed Code//
+////////////////
+{
 /*class action {
 	private String name;
 	private String type;
@@ -2210,3 +2232,6 @@ for(int j=0; j<actionsList.size(); j++)
 
 return acount + bcount;
 }*/
+}
+
+}

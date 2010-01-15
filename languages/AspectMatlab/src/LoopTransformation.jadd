@@ -21,11 +21,19 @@ aspect LoopTransformation {
     public String WhileStmt.getLoopVars() { return loopVars; }
     public void WhileStmt.setLoopVars(String loopVars) { this.loopVars = loopVars; }
     
-    private AssignStmt ForStmt.loopHead = null;
-    public AssignStmt ForStmt.getLoopHead() { return loopHead; }
-    public void ForStmt.setLoopHead(AssignStmt loopHead) { this.loopHead = loopHead; }
+    private Stmt ForStmt.loopHead = null;
+    public Stmt ForStmt.getLoopHead() { return loopHead; }
+    public void ForStmt.setLoopHead(Stmt loopHead) { this.loopHead = loopHead; }
     
-    private AssignStmt WhileStmt.loopHead = null;
-    public AssignStmt WhileStmt.getLoopHead() { return loopHead; }
-    public void WhileStmt.setLoopHead(AssignStmt loopHead) { this.loopHead = loopHead; }
+    private Stmt WhileStmt.loopHead = null;
+    public Stmt WhileStmt.getLoopHead() { return loopHead; }
+    public void WhileStmt.setLoopHead(Stmt loopHead) { this.loopHead = loopHead; }
+    
+    private Stmt AssignStmt.boundLoop = null;
+    public Stmt AssignStmt.getBoundLoop() { return boundLoop; }
+    public void AssignStmt.setBoundLoop(Stmt boundLoop) { this.boundLoop = boundLoop; }
+    
+    private boolean AssignStmt.isLoopBound = false; 
+    public boolean AssignStmt.getLoopBound() { return isLoopBound; }
+    public void AssignStmt.setLoopBound(boolean isLoopBound) { this.isLoopBound = isLoopBound; }
 }

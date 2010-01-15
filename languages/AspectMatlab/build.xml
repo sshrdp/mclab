@@ -196,6 +196,7 @@
             	<include name="natlab/DecIntNumericLiteralValue.class" />
             	<include name="natlab/IntNumericLiteralValue.class" />
             	<include name="natlab/NumericLiteralValue.class" />
+		<include name="natlab/FPNumericLiteralValue.class"  />
             </zipfileset>
 		</jar>
                 <echo file="${entrypoint.script.name}">${entrypoint.script.header}

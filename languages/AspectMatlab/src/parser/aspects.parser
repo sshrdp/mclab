@@ -63,7 +63,8 @@ Expr pattern_designators_unary =
      pattern_designator.pd {: return pd; :}
   |  NOT pattern_designator.pd {: return new NotExpr(pd); :}
   ;
-     
+
+/*    
 Expr pattern_designator =
      LPAREN pattern_designators.pd RPAREN {: return pd; :}
   |  CALL LPAREN pattern_list.l RPAREN {: return new PatternDesignator("call", l); :}
@@ -74,9 +75,9 @@ Expr pattern_designator =
   |  LOOPBODY LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loopbody", l); :}
   |  LOOPHEAD LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loophead", l); :}
   |  WITHIN LPAREN pattern_list.l RPAREN {: return new PatternDesignator("within", l); :}
-  |  CFLOW LPAREN pattern_path.l RPAREN {: return new PatternDesignator("cflow", new List().add(l)); :}
+//  |  CFLOW LPAREN pattern_path.l RPAREN {: return new PatternDesignator("cflow", new List().add(l)); :}
   ;
-  
+
 List pattern_list =
      {: return new List(); :}
   |  pattern_path_sign.p {: return new List().add(p); :}
@@ -99,7 +100,31 @@ Name pattern_simple =
 //|  STARSTAR {: return new Name("**"); :}
   |  IDENTIFIER.name {: return new Name(name); :}
   ;
+*/
 
+Expr pattern_designator =
+     LPAREN pattern_designators.pd RPAREN {: return pd; :}
+  |  CALL LPAREN pattern_select.p RPAREN {: return new PatternDesignator("call", new List().add(p)); :}
+  |  EXECUTION LPAREN pattern_select.p RPAREN {: return new PatternDesignator("execution", new List().add(p)); :}
+  |  SET LPAREN pattern_select.p RPAREN {: return new PatternDesignator("set", new List().add(p)); :}
+  |  GET LPAREN pattern_select.p RPAREN {: return new PatternDesignator("get", new List().add(p)); :}
+  |  LOOP LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loop", new List().add(p)); :}
+  |  LOOPBODY LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loopbody", new List().add(p)); :}
+  |  LOOPHEAD LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loophead", new List().add(p)); :}
+  |  WITHIN LPAREN construct_type.n COMMA pattern_select.p RPAREN {: return new PatternDesignator("within", new List().add(n).add(p)); :}
+  ;
+
+Name pattern_select = 
+	pattern_target.s {: return s; :}
+  |	pattern_target.s LPAREN list_dotdot.ls RPAREN 
+		{: int num = ls.getNumChild(); String pattern = s.getID()+"$"+ls.getNumChild(); if(num > 0 && ((Name)ls.getChild(ls.getNumChild()-1)).getID().compareTo("..") == 0) pattern += "+"; return new Name(pattern); :}
+  ;
+
+Name pattern_target =
+     STAR {: return new Name("*"); :}
+  |  IDENTIFIER.name {: return new Name(name); :}
+  ;
+  
 List list_dotdot =
 	 {: return new List<Name>(); :}
   |  list_star.l {: return l; :}
@@ -171,8 +196,8 @@ Name action_type =
   |  AROUND {: return new Name("around"); :}
   ;
   
-Name node_type = 
-	 STAR {: return new Name("*"); :}
+Name construct_type = 
+     STAR {: return new Name("*"); :}
   |  AFUNCTION {: return new Name("function"); :}
   |  ACLASS {: return new Name("class"); :}
   |  AASPECT {: return new Name("aspect"); :}

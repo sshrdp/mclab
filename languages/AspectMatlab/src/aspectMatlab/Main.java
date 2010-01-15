@@ -10,6 +10,7 @@ public class Main
 {
 	public static void main(String[] args)
 	{
+		System.err.println("--------------------------");
 		System.err.println("AspectMatlab - Version 1.0");
 		System.err.println("--------------------------");
 		
