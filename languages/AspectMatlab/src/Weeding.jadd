@@ -20,7 +20,7 @@ aspect Weeding {
        	}
        	
        	match = "";
-       	String selectors = "args,newVal,obj,name,line,counter,loc,";
+       	String selectors = "args,newVal,obj,name,line,counter,loc,file,";
        	
        	for(Actions acts : getActions()) {
            for(AspectAction act : acts.getAspectActions()) {

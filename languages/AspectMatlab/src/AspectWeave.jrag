@@ -17,6 +17,7 @@ aspect AspectWeave {
     
     eq Script.aspectsWeave() {
     	AspectsEngine.weaveStmts(getStmts());
+		AspectsEngine.weaveScript(this);
 		
 		return true;
     } 
@@ -88,7 +89,7 @@ aspect AspectWeave {
     } 
     
     eq WhileStmt.aspectsWeave() {
-    	getExpr().aspectsWeave();
+    	//getExpr().aspectsWeave();
 	   	AspectsEngine.weaveStmts(getStmts());
         
         return true;

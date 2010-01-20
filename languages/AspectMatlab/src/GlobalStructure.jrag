@@ -34,9 +34,7 @@ aspect GlobalStructure {
 		return true;
     } 
     
-    eq Aspect.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {
-    	//TODO: weaving into aspect itself
-    	
+    eq Aspect.weaveGlobalStructure(ast.List<Stmt> stmts, Stmt nis) {	
 		return true;
     }
     

@@ -54,16 +54,26 @@ aspect AspectsCorrespondingFunctions {
     }
     
     eq AssignStmt.aspectsCorrespondingFunctions() {
-    	//TODO
-    	//getLHS().aspectsCorrespondingFunctions();
     	if(getRHS().getWeavability())
     		getRHS().aspectsCorrespondingFunctions();
+    	
+    	if(getLHS() instanceof ParameterizedExpr) {
+    		for(Expr arg : ((ParameterizedExpr)getLHS()).getArgs()) {
+           		if(!arg.aspectsCorrespondingFunctions())
+           			return false;
+        	}
+        } else if(getLHS() instanceof CellIndexExpr) {
+    		for(Expr arg : ((CellIndexExpr)getLHS()).getArgs()) {
+           		if(!arg.aspectsCorrespondingFunctions())
+           			return false;
+        	}
+        }
     	
     	return true;
     }
     
     eq ForStmt.aspectsCorrespondingFunctions() {
-	   	//getAssignStmt().aspectsCorrespondingFunctions();
+	   	getAssignStmt().aspectsCorrespondingFunctions();
 	   	for(Stmt stmt : getStmts()) {
            	stmt.aspectsCorrespondingFunctions();
         }
@@ -134,11 +144,6 @@ aspect AspectsCorrespondingFunctions {
 	    
 	    return true;
     }
-
-	public void Name.aspectsCorrespondingFunctions() {
-		//TODO ???
-		//AspectsEngine.generateCorrespondingFunction(this);
-	}
 	
 	syn boolean Expr.aspectsCorrespondingFunctions() { return true; }
  	
@@ -150,7 +155,8 @@ aspect AspectsCorrespondingFunctions {
 	
 	eq ParameterizedExpr.aspectsCorrespondingFunctions() {
 		for(Expr arg : getArgs()) {
-           	arg.aspectsCorrespondingFunctions();
+           	if(!arg.aspectsCorrespondingFunctions())
+           		return false;
         }
         
         //TODO
@@ -162,18 +168,26 @@ aspect AspectsCorrespondingFunctions {
  	}
  	
  	eq RangeExpr.aspectsCorrespondingFunctions() {
- 		getLower().aspectsCorrespondingFunctions();
- 		getUpper().aspectsCorrespondingFunctions();
+ 		if(!getLower().aspectsCorrespondingFunctions())
+           	return false;
+        if(!getUpper().aspectsCorrespondingFunctions())
+           	return false;
+        //getLower().aspectsCorrespondingFunctions();
+ 		//getUpper().aspectsCorrespondingFunctions();
  		
- 		if(hasIncr())
- 			getIncr().aspectsCorrespondingFunctions();
+ 		if(hasIncr()) {
+ 			if(!getIncr().aspectsCorrespondingFunctions())
+           		return false;
+ 			//getIncr().aspectsCorrespondingFunctions();
+ 		}
  		
  		return true;
  	}
 
 	eq CellIndexExpr.aspectsCorrespondingFunctions() { 		
  		for(Expr arg : getArgs()) {
-           	arg.aspectsCorrespondingFunctions();
+           	if(!arg.aspectsCorrespondingFunctions())
+           		return false;
         }
  		
  		//TODO
@@ -185,7 +199,7 @@ aspect AspectsCorrespondingFunctions {
  	}
  	
  	eq DotExpr.aspectsCorrespondingFunctions() {
- 		getField().aspectsCorrespondingFunctions();
+ 		//getField().aspectsCorrespondingFunctions();
  		
  		//TODO
  		//getTarget().aspectsCorrespondingFunctions();
@@ -216,27 +230,33 @@ aspect AspectsCorrespondingFunctions {
     }
     
     eq SuperClassMethodExpr.aspectsCorrespondingFunctions() {
-		getClassName().aspectsCorrespondingFunctions();
- 		getFuncName().aspectsCorrespondingFunctions();
+		//getClassName().aspectsCorrespondingFunctions();
+ 		//getFuncName().aspectsCorrespondingFunctions();
  		
  		return true;
     }
     
 	eq UnaryExpr.aspectsCorrespondingFunctions() {
-		getOperand().aspectsCorrespondingFunctions();
- 		
+		//getOperand().aspectsCorrespondingFunctions();
+ 		if(!getOperand().aspectsCorrespondingFunctions())
+           		return false;
+           		
  		return true;
     }
 	
 	eq BinaryExpr.aspectsCorrespondingFunctions() {
-		getLHS().aspectsCorrespondingFunctions();
- 		getRHS().aspectsCorrespondingFunctions();
- 		
+		//getLHS().aspectsCorrespondingFunctions();
+ 		//getRHS().aspectsCorrespondingFunctions();
+ 		if(!getLHS().aspectsCorrespondingFunctions())
+           		return false;
+        if(!getRHS().aspectsCorrespondingFunctions())
+           		return false;
+           		
  		return true;
     }
 	
 	eq FunctionHandleExpr.aspectsCorrespondingFunctions() {
-		getName().aspectsCorrespondingFunctions();
+		//getName().aspectsCorrespondingFunctions();
  		
  		return true;
     }
@@ -250,5 +270,10 @@ aspect AspectsCorrespondingFunctions {
         //}
  		
  		return true;
+ 	}
+ 	
+ 	eq EndExpr.aspectsCorrespondingFunctions() {
+ 		//can't take it out of array
+ 		return false;
  	}
 }

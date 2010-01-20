@@ -13,14 +13,14 @@ public class Main
 		System.err.println("--------------------------");
 		System.err.println("AspectMatlab - Version 1.0");
 		System.err.println("--------------------------");
-		
+
 		StringBuffer errors = new StringBuffer();
-		
+
 		//parse each file and put them in a list of Programs
 		//aspects are kept separate, as we dont weave into them
 		LinkedList<Program> programs = new LinkedList<Program>();
 		LinkedList<Program> aspects = new LinkedList<Program>();
-		
+
 		for( String file : args ){
 			Reader fileReader = new StringReader("");
 
@@ -32,7 +32,7 @@ public class Main
 				System.err.println("File "+file+" not found!\nAborting");
 				System.exit(1);
 			}
-			
+
 			//parse the file
 			System.err.println("Parsing: " + file);
 			Program prog = null;
@@ -42,27 +42,27 @@ public class Main
 				//report errors
 				if( errors.length() > 0 )
 					System.err.print( errors.toString() );
-				
+
 				System.err.println("Skipping " + file);
 				continue;
 			}
 
 			if(prog instanceof Aspect) {
 				System.err.println("Fetching aspect info: " + file);
-				
+
 				//Weeding checks on Aspect file
 				if(!((Aspect)prog).weeding()){
 					System.err.println("Skipping " + file);
 					continue;
 				}
-				
+
 				AspectsEngine.fetchAspectInfo(prog);
 				prog = AspectsEngine.convertToClass(prog);
 				aspects.add(prog);
 			} else {
 				programs.add(prog);
 			}
-			
+
 			//Keep the file name, mainly required in case of scripts
 			prog.setFileName(file.substring(file.lastIndexOf("/")+1));
 		}
@@ -75,25 +75,25 @@ public class Main
 		}
 
 		System.err.println("--------------------------");
-		
+
 		//Perform different kinds of transformations
 		//including statement simplification, loop transformation...
-        System.err.println("Transforming...");
+		System.err.println("Transforming...");
 		for( Program p : cu.getPrograms() ){
 			p.aspectsCorrespondingFunctions();
 		}
-		
+
 		//Perform the flow analysis to determine name resolution
 		System.err.println("Analysing...");
 		//AspectsEngine.analysis(cu);
 		AspectsEngine.flowAnalysis(cu);
-		
+
 		//Matching and weaving aspects
 		System.err.println("Matching and Weaving...");
 		for( Program p : cu.getPrograms() ){
 			p.aspectsWeave();
 		}
-		
+
 		//Post-processing: adding aspect global structure
 		AspectsEngine.weaveGlobalStructure(cu);
 		for( Program a : aspects ){
@@ -102,27 +102,28 @@ public class Main
 
 		//System.err.println("Pretty Printing...");
 		//System.out.println(cu.getPrettyPrinted());
-		
+
 		System.err.println("Generating output files...");
 		FileWriter writer;
-		String outPath = "amc/output";
+		//String outPath = "amc/output";
+		String outPath = "weaved";
 		File dir = new File(outPath);
 		dir.mkdirs();
-		
+
 		for( Program p : cu.getPrograms() ){
 			try{
-					File f = new File(outPath+"/"+p.getFileName());
-					f.createNewFile();
-					writer = new FileWriter(f);
-					writer.write(p.getPrettyPrinted());
-					writer.flush();
-					writer.close();
+				File f = new File(outPath+"/"+p.getFileName());
+				f.createNewFile();
+				writer = new FileWriter(f);
+				writer.write(p.getPrettyPrinted());
+				writer.flush();
+				writer.close();
 			}catch(IOException e){
 				System.err.println("File "+p.getFileName()+" can not be opened!\nAborting");
 				System.exit(1);
 			}
 		}
-		
+
 		System.err.println("Done!");
 		System.exit(0);
 	}
@@ -134,14 +135,14 @@ public class Main
 		AspectsParser parser = new AspectsParser();
 		AspectsScanner scanner = null;
 		CommentBuffer cb = new CommentBuffer();
-	
+
 		parser.setCommentBuffer(cb);
-	
+
 		try{
 			scanner = new AspectsScanner( file );
 			scanner.setCommentBuffer( cb );
 			try{
-	
+
 				Program prog = (Program)parser.parse(scanner);
 				if( parser.hasError() ){
 					for( String error : parser.getErrors())
@@ -149,7 +150,7 @@ public class Main
 					prog = null;
 				}
 				return prog;
-	
+
 			}catch(Parser.Exception e){
 				errBuf.append(e.getMessage());
 				for(String error : parser.getErrors()) {

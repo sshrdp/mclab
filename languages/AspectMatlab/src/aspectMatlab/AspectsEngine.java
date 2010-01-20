@@ -58,6 +58,7 @@ public class AspectsEngine {
 	static final public String LINE = "line";
 	static final public String COUNTER = "counter";
 	static final public String LOC = "loc";
+	static final public String FILE = "file";
 
 	/*
 	 * Around Advice Arguments
@@ -314,9 +315,9 @@ public class AspectsEngine {
 		output.add(CF_OUTPUT);
 
 		ast.List<Name> input = action.getSelectors();	
-
 		ast.List<Function> nf = action.getNestedFunctions();
-
+		ast.List<Stmt> stmts = action.getStmts();
+		
 		if(isConvertProceed) {
 			input = new List<Name>();
 			input.add(CF_INPUT_CASE);
@@ -325,6 +326,7 @@ public class AspectsEngine {
 
 			input.add(new Name(ARGS));
 			input.add(new Name(COUNTER));
+			input.add(new Name(FILE));
 			input.add(new Name(LINE));
 			input.add(new Name(LOC));
 			input.add(new Name(NAME));
@@ -337,10 +339,14 @@ public class AspectsEngine {
 			Function pf = createCorrespondingFunction(PROCEED_FUN_NAME, true);
 			pf.setOutputParamList(new List<Name>());
 			nf.add(pf);
+			
+			GlobalStmt gs = new GlobalStmt(new ast.List<Name>().add(new Name(GLOBAL_STRUCTURE)));
+			gs.setOutputSuppressed(true);
+			stmts.insertChild(gs, 0);
 		} else
 			input.insertChild(new Name(THIS), 0);
 
-		return new Function(output, modifiedName, input, new ast.List<HelpComment>(), action.getStmts(), nf);
+		return new Function(output, modifiedName, input, new ast.List<HelpComment>(), stmts, nf);
 	}
 
 	private static Function createCorrespondingFunction(String funName, boolean isScript){
@@ -384,11 +390,11 @@ public class AspectsEngine {
 
 
 	/*
-	 * For each joinpoint of an around action,
-	 * the joinpoint is moved into a switch statement.
+	 * For each join point of an around action,
+	 * the join point is moved into a switch statement.
 	 * Switch statement is part of around action proceed.
 	 */
-	private static void addSwitchCaseToAroundCorrespondingFunction(Expr lhs, Expr pe, Function corFun, IntLiteralExpr ile, String type, boolean aroundExist, String prevAroundName, IntLiteralExpr prevAroundile){
+	private static Expr addSwitchCaseToAroundCorrespondingFunction(Expr lhs, Expr pe, Function corFun, IntLiteralExpr ile, String type, boolean aroundExist, Expr prevCase, String classname){
 		ast.List<Stmt> scsl = new ast.List<Stmt>();
 		ast.List<Expr> input = new ast.List<Expr>();
 		Expr exp = null;
@@ -422,7 +428,7 @@ public class AspectsEngine {
 				exp = new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
 			} else if(type.compareTo(EXECUTION) == 0 || type.compareTo(CALL) == 0) {
 				exp = new ParameterizedExpr(new NameExpr(CF_INPUT_OBJ), input);
-			} else {
+			} else if(type.compareTo(GET) == 0) {
 				tmpStmt = new AssignStmt(tmp, new NameExpr(CF_INPUT_OBJ));
 				tmpStmt.setOutputSuppressed(true);
 				tmpStmt.setWeavability(false, true);
@@ -430,19 +436,22 @@ public class AspectsEngine {
 			}
 		} else {
 			input.add(new NameExpr(new Name(THIS)));
-			input.add(prevAroundile);
+			input.add(ile);
 			input.add(new NameExpr(CF_INPUT_OBJ));
 			input.add(new NameExpr(CF_INPUT_AGRS));
 
 			input.add(new NameExpr(new Name(ARGS)));
 			input.add(new NameExpr(new Name(COUNTER)));
+			input.add(new NameExpr(new Name(FILE)));
 			input.add(new NameExpr(new Name(LINE)));
 			input.add(new NameExpr(new Name(LOC)));
 			input.add(new NameExpr(new Name(NAME)));
 			input.add(new NameExpr(new Name(NEWVAL)));
 			input.add(new NameExpr(new Name(OBJ)));
 			
-			exp = new ParameterizedExpr(new NameExpr(new Name(prevAroundName)), input); 
+			Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(classname));
+			Expr de2 = new DotExpr(de1, new Name(((Function)(corFun.getParent().getParent())).getName()));
+			exp = new ParameterizedExpr(de2, input); 
 		}
 
 		Expr out = null;
@@ -458,6 +467,13 @@ public class AspectsEngine {
 			out = new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
 		}
 
+		if(aroundExist){
+			int ind = prevCase.getParent().getIndexOfChild(prevCase);
+			Expr tmp = (Expr) prevCase.copy();
+			prevCase.getParent().setChild(exp.copy(), ind);
+			exp = tmp;
+		}
+		
 		Stmt stmt = new AssignStmt(out, exp);
 		if(lhs == null) //ExprStmt case
 			stmt = new ExprStmt(exp);
@@ -468,6 +484,8 @@ public class AspectsEngine {
 		SwitchCaseBlock scb = new SwitchCaseBlock(ile, scsl);
 		SwitchStmt ss = (SwitchStmt) corFun.getStmt(0);
 		ss.addSwitchCaseBlock(scb);
+		
+		return exp;
 	}
 
 	/*
@@ -485,6 +503,8 @@ public class AspectsEngine {
 				if( !fs.isAspectTransformed() ) {
 					AssignStmt as_old = fs.getAssignStmt();
 					Expr lhs = as_old.getLHS();
+					Expr rhs = as_old.getRHS();
+					
 					String tmpAS = "AM_" + "tmpAS_";
 					String tmpFS = "AM_" + "tmpFS_";
 
@@ -493,9 +513,9 @@ public class AspectsEngine {
 						tmpAS += ne.getName().getID();
 						tmpFS += ne.getName().getID();
 					}
-
+					
 					AssignStmt as_out = new AssignStmt();
-					as_out.setRHS(as_old.getRHS());
+					as_out.setRHS(rhs);
 					as_out.setLHS(new NameExpr(new Name(tmpAS)));
 					as_out.setOutputSuppressed(true);
 					as_out.getLHS().setWeavability(false);
@@ -740,8 +760,7 @@ public class AspectsEngine {
 		int args = lhs.FetchArgsCount();
 		int acount = 0, bcount = 0, tcount= 0;
 		boolean aroundExist = false;
-		String prevAroundName = "";
-		IntLiteralExpr prevAroundILE = null;
+		Expr prevCase = null;
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -750,6 +769,14 @@ public class AspectsEngine {
 					&& patternsListNew.get(act.getPattern()).ShadowMatch(target, SET, args, context)
 			){
 				Function fun = act.getFunction();
+				
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
+					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+					prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
+					fun.incCorrespondingCount();
+					continue;
+				}
+				
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
 				Expr nv = null;
 				boolean objExist = false;
@@ -808,6 +835,8 @@ public class AspectsEngine {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(getLocation(context)));
+					} else if(param.getID().compareTo(FILE) == 0) {
+						lstExpr.add(new StringLiteralExpr(getFileName(context)));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -853,7 +882,7 @@ public class AspectsEngine {
 					acount += 1;
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-					addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevAroundName, prevAroundILE);
+					prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
 					fun.incCorrespondingCount();
 					stmts.setChild(call, s+bcount+tcount);
 					if(existCheck != null){
@@ -862,8 +891,6 @@ public class AspectsEngine {
 					}
 					
 					aroundExist = true;
-					prevAroundName = act.getName();
-					prevAroundILE = ile;
 				}
 			}
 		}
@@ -881,8 +908,7 @@ public class AspectsEngine {
 		int acount = 0, bcount = 0, tcount = 0;
 		int args = rhs.FetchArgsCount();
 		boolean aroundExist = false;
-		String prevAroundName = "";
-		IntLiteralExpr prevAroundILE = null;
+		Expr prevCase = null;
 		boolean isExistCheck = false;
 		Expr existObj = null;
 
@@ -931,11 +957,18 @@ public class AspectsEngine {
 					}
 				} //else
 					//System.out.println("not var, nor fun");
-
+				
 				if(isGet || isCall) {
 					Function fun = act.getFunction();
 					ast.List<Expr> lstExpr = new ast.List<Expr>();
 
+					if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, isGet ? GET:CALL, aroundExist, prevCase, act.getClassName());
+						fun.incCorrespondingCount();
+						continue;
+					}
+					
 					for(Name param : fun.getInputParams()) {
 						if(param.getID().compareTo(ARGS) == 0) {
 							lstExpr.add(getDims(rhs));
@@ -968,6 +1001,8 @@ public class AspectsEngine {
 							lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
 						} else if(param.getID().compareTo(LOC) == 0) {
 							lstExpr.add(new StringLiteralExpr(getLocation(context)));
+						} else if(param.getID().compareTo(FILE) == 0) {
+							lstExpr.add(new StringLiteralExpr(getFileName(context)));
 						} else
 							lstExpr.add(new CellArrayExpr());
 					}
@@ -1018,7 +1053,7 @@ public class AspectsEngine {
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-						addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, isGet ? GET:CALL, aroundExist, prevAroundName, prevAroundILE);
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, isGet ? GET:CALL, aroundExist, prevCase, act.getClassName());
 						fun.incCorrespondingCount();
 						stmts.setChild(call, s+bcount+tcount);
 
@@ -1032,8 +1067,6 @@ public class AspectsEngine {
 						}
 						
 						aroundExist = true;
-						prevAroundName = act.getName();
-						prevAroundILE = ile;
 					}
 				}
 			}
@@ -1051,8 +1084,7 @@ public class AspectsEngine {
 		int acount = 0, bcount = 0, tcount = 0;
 		int args = rhs.FetchArgsCount();
 		boolean aroundExist = false;
-		String prevAroundName = "";
-		IntLiteralExpr prevAroundILE = null;
+		Expr prevCase = null;
 		boolean isExistCheck = false;
 		Expr existObj = null;
 
@@ -1108,6 +1140,13 @@ public class AspectsEngine {
 					Function fun = act.getFunction();
 					ast.List<Expr> lstExpr = new ast.List<Expr>();
 
+					if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(null, rhs, fun.getNestedFunction(0), ile, isGet ? GET:CALL, aroundExist, prevCase, act.getClassName());
+						fun.incCorrespondingCount();
+						continue;
+					}
+					
 					for(Name param : fun.getInputParams()) {
 						if(param.getID().compareTo(ARGS) == 0) {
 							lstExpr.add(getDims(rhs));
@@ -1140,6 +1179,8 @@ public class AspectsEngine {
 							lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
 						} else if(param.getID().compareTo(LOC) == 0) {
 							lstExpr.add(new StringLiteralExpr(getLocation(context)));
+						} else if(param.getID().compareTo(FILE) == 0) {
+							lstExpr.add(new StringLiteralExpr(getFileName(context)));
 						} else
 							lstExpr.add(new CellArrayExpr());
 					}
@@ -1178,13 +1219,11 @@ public class AspectsEngine {
 						acount += 1;
 					} else if(act.getType().compareTo(AROUND) == 0) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-						addSwitchCaseToAroundCorrespondingFunction(null, rhs, fun.getNestedFunction(0), ile, isGet ? GET:CALL, aroundExist, prevAroundName, prevAroundILE);
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(null, rhs, fun.getNestedFunction(0), ile, isGet ? GET:CALL, aroundExist, prevCase, act.getClassName());
 						fun.incCorrespondingCount();
 						stmts.setChild(call, s+bcount+tcount);
 						
 						aroundExist = true;
-						prevAroundName = act.getName();
-						prevAroundILE = ile;
 					}
 				}
 			}
@@ -1212,8 +1251,7 @@ public class AspectsEngine {
 		int hacount = 0, hbcount = 0;
 		ASTNode parent = loop.getParent();
 		boolean aroundExist = false;
-		String prevAroundName = "";
-		IntLiteralExpr prevAroundILE = null;
+		Expr prevCase = null;
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -1233,6 +1271,13 @@ public class AspectsEngine {
 					ast.List<Expr> lstExpr = new ast.List<Expr>();
 					Expr nv = null;
 
+					if(act.getType().compareTo(AROUND) == 0 && aroundExist && isHead && head != null) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(head.getLHS(), head.getRHS(), fun.getNestedFunction(0), ile, LOOPHEAD, aroundExist, prevCase, act.getClassName());
+						fun.incCorrespondingCount();
+						continue;
+					}
+					
 					for(Name param : fun.getInputParams()) {
 						if(param.getID().compareTo(ARGS) == 0) {
 							if(loop instanceof ForStmt && !(isHead && (act.getType().compareTo(BEFORE) == 0 || act.getType().compareTo(AROUND) == 0))){
@@ -1308,6 +1353,8 @@ public class AspectsEngine {
 							lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(loop.getLineNum()))));
 						} else if(param.getID().compareTo(LOC) == 0) {
 							lstExpr.add(new StringLiteralExpr(getLocation(loop)));
+						} else if(param.getID().compareTo(FILE) == 0) {
+							lstExpr.add(new StringLiteralExpr(getFileName(loop)));
 						} else
 							lstExpr.add(new CellArrayExpr());
 					}
@@ -1373,13 +1420,11 @@ public class AspectsEngine {
 						//} else if(act.getType().compareTo(AROUND) == 0) {
 						} else if(act.getType().compareTo(AROUND) == 0 && head != null) {
 							IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-							addSwitchCaseToAroundCorrespondingFunction(head.getLHS(), head.getRHS(), fun.getNestedFunction(0), ile, LOOPHEAD, aroundExist, prevAroundName, prevAroundILE);
+							prevCase = addSwitchCaseToAroundCorrespondingFunction(head.getLHS(), head.getRHS(), fun.getNestedFunction(0), ile, LOOPHEAD, aroundExist, prevCase, act.getClassName());
 							fun.incCorrespondingCount();
 							head.setRHS(pe);
 							
 							aroundExist = true;
-							prevAroundName = act.getName();
-							prevAroundILE = ile;
 						}
 					}
 				}
@@ -1449,8 +1494,7 @@ public class AspectsEngine {
 	{
 		int acount = 0, bcount = 0;
 		boolean aroundExist = false;
-		String prevAroundName = "";
-		IntLiteralExpr prevAroundILE = null;
+		Expr prevCase = null;
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -1462,6 +1506,18 @@ public class AspectsEngine {
 				Function fun = act.getFunction();
 				NameExpr funcName = new NameExpr(new Name(act.getName()));
 
+				List<Expr> lst = new List<Expr>();
+				for(Name arg : func.getOutputParams())
+					lst.add((new NameExpr(arg)));
+				Expr out = new MatrixExpr(new List<Row>().add(new Row(lst)));
+				
+				if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
+					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+					prevCase = addSwitchCaseToAroundCorrespondingFunction(out, null, fun.getNestedFunction(0), ile, EXECUTION, aroundExist, prevCase, act.getClassName());
+					fun.incCorrespondingCount();
+					continue;
+				}
+				
 				ast.List<Expr> lstExpr = new ast.List<Expr>();
 
 				for(Name param : fun.getInputParams()) {
@@ -1488,6 +1544,8 @@ public class AspectsEngine {
 						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(func.getStart())))));
 					} else if(param.getID().compareTo(LOC) == 0) {
 						lstExpr.add(new StringLiteralExpr(func.getName()));
+					} else if(param.getID().compareTo(FILE) == 0) {
+						lstExpr.add(new StringLiteralExpr(getFileName(func)));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -1496,11 +1554,6 @@ public class AspectsEngine {
 				Expr de2 = new DotExpr(de1, new Name(act.getName()));
 				ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
 				pe.setWeavability(false);
-
-				List<Expr> lst = new List<Expr>();
-				for(Name arg : func.getOutputParams())
-					lst.add((new NameExpr(arg)));
-				Expr out = new MatrixExpr(new List<Row>().add(new Row(lst)));
 
 				Stmt call;
 				if(act.getType().compareTo(AROUND) == 0)
@@ -1524,13 +1577,77 @@ public class AspectsEngine {
 					}
 					ParameterizedExpr tmp_pe = new ParameterizedExpr(funcName, tmp);
 
-					addSwitchCaseToAroundCorrespondingFunction(out, tmp_pe, fun.getNestedFunction(0), ile, EXECUTION, aroundExist, prevAroundName, prevAroundILE);
+					prevCase = addSwitchCaseToAroundCorrespondingFunction(out, tmp_pe, fun.getNestedFunction(0), ile, EXECUTION, aroundExist, prevCase, act.getClassName());
 					fun.incCorrespondingCount();
 					func.getStmts().addChild(call);
 					
 					aroundExist = true;
-					prevAroundName = act.getName();
-					prevAroundILE = ile;
+				}
+			}
+		}
+	}
+	
+	/*
+	 * Matching & Weaving
+	 * EXECUTION: script execution
+	 */
+	public static void weaveScript(Script script)
+	{
+		int acount = 0, bcount = 0;
+		String name = script.getFileName().replace(".m", "");
+		
+		for(int j=0; j<actionsList.size(); j++)
+		{
+			ActionInfo act = actionsList.get(j);
+			
+			if(patternsListNew.containsKey(act.getPattern()) 
+					&& patternsListNew.get(act.getPattern()).ShadowMatch(name, EXECUTION, 0, script)
+			){
+				
+				if(act.getType().compareTo(AROUND) == 0) {
+					System.out.println("Skipped Action "+act.getName()+": Around actions for Execution of Script are not allowed!");
+					continue;
+				}
+				
+				Function fun = act.getFunction();
+				NameExpr funcName = new NameExpr(new Name(act.getName()));
+
+				ast.List<Expr> lstExpr = new ast.List<Expr>();
+
+				for(Name param : fun.getInputParams()) {
+					if(param.getID().compareTo(THIS) == 0) {
+						//do nothing
+					} else if(param.getID().compareTo(NAME) == 0) {
+						lstExpr.add(new StringLiteralExpr(name));
+					} else if(param.getID().compareTo(OBJ) == 0) {
+						lstExpr.add(new CellArrayExpr());
+					} else if(param.getID().compareTo(LINE) == 0) {
+						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(Symbol.getLine(script.getStart())))));
+					} else if(param.getID().compareTo(LOC) == 0) {
+						lstExpr.add(new StringLiteralExpr(name));
+					} else if(param.getID().compareTo(FILE) == 0) {
+						lstExpr.add(new StringLiteralExpr(getFileName(script)));
+					} else
+						lstExpr.add(new CellArrayExpr());
+				}
+
+				Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(act.getClassName()));
+				Expr de2 = new DotExpr(de1, new Name(act.getName()));
+				ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
+				pe.setWeavability(false);
+
+
+				Stmt call = new ExprStmt(pe);
+				call.setOutputSuppressed(true);		
+
+				if(act.getType().compareTo(BEFORE) == 0) {
+					script.getStmts().insertChild(call, 0+bcount);
+					bcount += 1;
+				} else if(act.getType().compareTo(AFTER) == 0) {
+					script.getStmts().addChild(call);
+					acount += 1;
+				} else if(act.getType().compareTo(AROUND) == 0) {
+					//Not allowed!
 				}
 			}
 		}
@@ -1562,14 +1679,31 @@ public class AspectsEngine {
 		String loc = "";
 
 		ASTNode node = exp;
+		while(node != null && !(node instanceof Function || node instanceof Script))
+			node = node.getParent();
+
+		if(node != null){
+			if(node instanceof Function)
+				loc = ((Function)node).getName();
+			else if(node instanceof Script)
+				loc = ((Script)node).getFileName().replace(".m", "");
+		}
+
+		return loc;
+	}
+	
+	private static String getFileName(ASTNode exp){
+		String file = "";
+
+		ASTNode node = exp;
 		while(node != null && !(node instanceof Program))
 			node = node.getParent();
 
 		if(node != null){
-			loc = ((Program)node).getFileName();
+			file = ((Program)node).getFileName();
 		}
 
-		return loc;
+		return file;
 	}
 
 ////////////////
@@ -1635,6 +1769,90 @@ class pattern {
 }
 */
 
+	/*
+	 private static void addSwitchCaseToAroundCorrespondingFunction(Expr lhs, Expr pe, Function corFun, IntLiteralExpr ile, String type, boolean aroundExist, String prevAroundName, IntLiteralExpr prevAroundile){
+		ast.List<Stmt> scsl = new ast.List<Stmt>();
+		ast.List<Expr> input = new ast.List<Expr>();
+		Expr exp = null;
+			
+		if(!aroundExist){
+			exp = (Expr) pe.copy();
+			Expr tmp = (Expr) pe.copy();
+
+			if(exp instanceof ParameterizedExpr || exp instanceof CellIndexExpr) {
+				int size = 0;
+
+				if(exp instanceof ParameterizedExpr) {
+					size = ((ParameterizedExpr)exp).getArgs().getNumChild();
+					tmp = ((ParameterizedExpr)exp).getTarget();
+				} else if(exp instanceof CellIndexExpr) {
+					size = ((CellIndexExpr)exp).getArgs().getNumChild();
+					tmp = ((CellIndexExpr)exp).getTarget();
+				}
+
+				for(int i=1; i<=size; i++)
+					input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
+
+				if(exp instanceof ParameterizedExpr)
+					exp = new ParameterizedExpr(((ParameterizedExpr)exp).getTarget(), input);
+				else if(exp instanceof CellIndexExpr)
+					exp = new CellIndexExpr(((CellIndexExpr)exp).getTarget(), input);
+			}
+
+			AssignStmt tmpStmt = new AssignStmt();
+			if(type.compareTo(SET) == 0 || type.compareTo(LOOPHEAD) == 0) {
+				exp = new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
+			} else if(type.compareTo(EXECUTION) == 0 || type.compareTo(CALL) == 0) {
+				exp = new ParameterizedExpr(new NameExpr(CF_INPUT_OBJ), input);
+			} else {
+				tmpStmt = new AssignStmt(tmp, new NameExpr(CF_INPUT_OBJ));
+				tmpStmt.setOutputSuppressed(true);
+				tmpStmt.setWeavability(false, true);
+				scsl.add(tmpStmt);
+			}
+		} else {
+			input.add(new NameExpr(new Name(THIS)));
+			input.add(prevAroundile);
+			input.add(new NameExpr(CF_INPUT_OBJ));
+			input.add(new NameExpr(CF_INPUT_AGRS));
+
+			input.add(new NameExpr(new Name(ARGS)));
+			input.add(new NameExpr(new Name(COUNTER)));
+			input.add(new NameExpr(new Name(FILE)));
+			input.add(new NameExpr(new Name(LINE)));
+			input.add(new NameExpr(new Name(LOC)));
+			input.add(new NameExpr(new Name(NAME)));
+			input.add(new NameExpr(new Name(NEWVAL)));
+			input.add(new NameExpr(new Name(OBJ)));
+			
+			exp = new ParameterizedExpr(new NameExpr(new Name(prevAroundName)), input); 
+		}
+
+		Expr out = null;
+		if(lhs instanceof MatrixExpr){
+			MatrixExpr me = (MatrixExpr)lhs;
+			int size = me.getRow(0).getNumElement();
+			List<Expr> lst = new List<Expr>();
+
+			for(int i=1; i<=size; i++)
+				lst.add(new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
+			out = new MatrixExpr(new List<Row>().add(new Row(lst)));
+		} else {
+			out = new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
+		}
+
+		Stmt stmt = new AssignStmt(out, exp);
+		if(lhs == null) //ExprStmt case
+			stmt = new ExprStmt(exp);
+
+		stmt.setOutputSuppressed(true);
+		scsl.add(stmt);
+
+		SwitchCaseBlock scb = new SwitchCaseBlock(ile, scsl);
+		SwitchStmt ss = (SwitchStmt) corFun.getStmt(0);
+		ss.addSwitchCaseBlock(scb);
+	}*/
+	
 /*
 
 	public static void analysis(ASTNode cu){
