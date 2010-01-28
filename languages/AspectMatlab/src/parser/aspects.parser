@@ -4,7 +4,7 @@ Program program_before_comments =
   ;
   
 Aspect aspect =
-     ASPECT IDENTIFIER.name stmt_separator_list help_comment.comments* aspect_body.body* END 
+     ASPECT IDENTIFIER.name stmt_separator_list help_comment.comments* aspect_body.body* END stmt_separator_opt_list 
 	 	{: //return aspect(name, comments, body);
 		 	List<Properties> prop = new List<Properties>();
 	        List<Methods> methods = new List<Methods>();

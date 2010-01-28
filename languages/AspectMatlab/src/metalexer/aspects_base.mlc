@@ -1,4 +1,12 @@
 %component aspects_base
+
+%extern "Symbol symbol(short)"
 %%
+%%inherit shared_symbols
+
 %%inherit aspects_start
 %%inherit base
+
+{LineTerminator} {: :} WHITE_SPACE
+{OtherWhiteSpace} {: :} WHITE_SPACE
+

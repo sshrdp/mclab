@@ -18,6 +18,15 @@ import static aspectMatlab.AspectsParser.Terminals.*;
 
 %%inherit helper_beaver
 
+//// Leading whitespace ////////////////////////////////////////////////////////
+
+%%embed
+%name aspect_leading_ws
+%host aspects_base
+%guest leading_ws
+%start WHITE_SPACE
+%end END_LEADING_WS
+
 %%embed
 %name aspects
 %host aspects_base
