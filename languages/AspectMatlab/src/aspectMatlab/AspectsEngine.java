@@ -46,6 +46,7 @@ public class AspectsEngine {
 	static final public String LOOPHEAD = "loophead";
 
 	static final public String GETORCALL = "getorcall";
+	static final public String GETORCALLSIMPLE = "getorcallsimple";
 
 	/*
 	 * Selectors
@@ -60,7 +61,7 @@ public class AspectsEngine {
 	static final public String COUNTER = "counter";
 	static final public String LOC = "loc";
 	static final public String FILE = "file";
-	
+
 	//Added for copy analysis
 	static final public String AOBJ = "aobj";
 	static final public String AINPUT = "ainput";
@@ -223,7 +224,7 @@ public class AspectsEngine {
 			String target = pe.FetchTargetExpr();
 
 			for(Expr pat : patternsListNew.values()) {
-				if(pat.ShadowMatch(target, GETORCALL, -1, pe)) {
+				if(pat.ShadowMatch(target, GETORCALLSIMPLE, -1, pe)) {
 					ASTNode node = pe;
 					while(node != null && !(node instanceof Stmt))
 						node = node.getParent();
@@ -236,8 +237,7 @@ public class AspectsEngine {
 					if(pe.getParent() instanceof AssignStmt){
 						Expr exp = ((AssignStmt)node).getLHS();
 						if(exp instanceof MatrixExpr){
-							//TODO: how to weave
-							exp.setWeavability(false);
+							//exp.setWeavability(false);
 							return;
 						}
 
@@ -294,9 +294,9 @@ public class AspectsEngine {
 	public static void generateCorrespondingStmt(Function func) {
 		List<Stmt> stmts = func.getStmts();
 		List<Name> input = func.getInputParams();
-		
+
 		func.setInputParamNames(input.copy());
-		
+
 		for(int i = input.getNumChild()-1; i>= 0; i--) {
 			Name pe = input.getChild(i);
 			String target = pe.getID();
@@ -344,7 +344,7 @@ public class AspectsEngine {
 			input.add(new Name(NAME));
 			input.add(new Name(NEWVAL));
 			input.add(new Name(OBJ));
-			
+
 			input.add(new Name(AOBJ));
 			input.add(new Name(AINPUT));
 			input.add(new Name(AOUTPUT));
@@ -464,11 +464,11 @@ public class AspectsEngine {
 			input.add(new NameExpr(new Name(NAME)));
 			input.add(new NameExpr(new Name(NEWVAL)));
 			input.add(new NameExpr(new Name(OBJ)));
-			
+
 			input.add(new NameExpr(new Name(AOBJ)));
 			input.add(new NameExpr(new Name(AINPUT)));
 			input.add(new NameExpr(new Name(AOUTPUT)));
-			
+
 			Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(classname));
 			Expr de2 = new DotExpr(de1, new Name(((Function)(corFun.getParent().getParent())).getName()));
 			exp = new ParameterizedExpr(de2, input); 
@@ -742,10 +742,11 @@ public class AspectsEngine {
 					if(lhs.getWeavability()) {
 						varName = lhs.FetchTargetExpr();
 						if(varName.compareTo("") != 0) {
-							StringTokenizer st = new StringTokenizer(varName, ",");
-							while (st.hasMoreTokens()) {
-								count += setMatchAndWeave(stmts, stmts.getIndexOfChild(as), st.nextToken(), as);
-							}
+							//StringTokenizer st = new StringTokenizer(varName, ",");
+							//while (st.hasMoreTokens()) {
+							//	count += setMatchAndWeave(stmts, stmts.getIndexOfChild(as), st.nextToken(), as);
+							//}
+							count += setMatchAndWeave(stmts, stmts.getIndexOfChild(as), varName, as);
 						}
 					}
 
@@ -785,7 +786,7 @@ public class AspectsEngine {
 	 * Matching & Weaving
 	 * SET: lhs of assignment statement
 	 */
-	private static int setMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
+	private static int setMatchAndWeave(ast.List<Stmt> stmts, int s, String varName, AssignStmt context) {
 		Expr rhs = context.getRHS();
 		Expr lhs = context.getLHS();
 		int args = lhs.FetchArgsCount();
@@ -793,144 +794,156 @@ public class AspectsEngine {
 		boolean aroundExist = false;
 		Expr prevCase = null;
 
-		for(int j=0; j<actionsList.size(); j++)
-		{
-			ActionInfo act = actionsList.get(j);
-			if(patternsListNew.containsKey(act.getPattern()) 
-					&& patternsListNew.get(act.getPattern()).ShadowMatch(target, SET, args, context)
-			){
-				Function fun = act.getFunction();
+		StringTokenizer st = new StringTokenizer(varName, ",");
+		int tokens = st.countTokens();
+		
+		while (st.hasMoreTokens()) {
+			String target = st.nextToken();
 
-				if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
-					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-					prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
-					fun.incCorrespondingCount();
-					continue;
-				}
+			for(int j=0; j<actionsList.size(); j++)
+			{
+				ActionInfo act = actionsList.get(j);
+				if(patternsListNew.containsKey(act.getPattern()) 
+						&& patternsListNew.get(act.getPattern()).ShadowMatch(target, SET, args, context)
+				){
+					Function fun = act.getFunction();
 
-				ast.List<Expr> lstExpr = new ast.List<Expr>();
-				Expr nv = null;
-				boolean objExist = false;
+					if(act.getType().compareTo(AROUND) == 0 && tokens > 1) {
+						System.out.println("Skipped Action "+act.getName()+": Around actions on setting the matrix expression are not allowed!");
+						continue;
+					}
+					
+					if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
+						fun.incCorrespondingCount();
+						continue;
+					}
 
-				for(Name param : fun.getInputParams()) {
-					if(param.getID().compareTo(NEWVAL) == 0 || param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
-						if(nv == null){
-							if(rhs instanceof IntLiteralExpr || rhs instanceof FPLiteralExpr || rhs instanceof StringLiteralExpr) {
-								nv = rhs;
-								//} else if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
-							} else if(rhs.getWeavability()) {
-								String var = generateCorrespondingVariableName();
-								Expr tmp = new NameExpr(new Name(var));
+					ast.List<Expr> lstExpr = new ast.List<Expr>();
+					Expr nv = null;
+					boolean objExist = false;
 
-								AssignStmt stmt = new AssignStmt((Expr) tmp.copy(), (Expr) rhs.copy());
-								stmt.setOutputSuppressed(true);
+					for(Name param : fun.getInputParams()) {
+						if(param.getID().compareTo(NEWVAL) == 0 || param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
+							if(nv == null){
+								if(rhs instanceof IntLiteralExpr || rhs instanceof FPLiteralExpr || rhs instanceof StringLiteralExpr) {
+									nv = rhs;
+									//} else if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
+								} else if(rhs.getWeavability()) {
+									String var = generateCorrespondingVariableName();
+									Expr tmp = new NameExpr(new Name(var));
 
-								tmp.setWeavability(false);
-								rhs.setWeavability(false);
-								rhs.setCFStmtDone(true);
+									AssignStmt stmt = new AssignStmt((Expr) tmp.copy(), (Expr) rhs.copy());
+									stmt.setOutputSuppressed(true);
 
-								int ind = context.getIndexOfChild(rhs);
-								context.setChild(tmp, ind);
+									tmp.setWeavability(false);
+									rhs.setWeavability(false);
+									rhs.setCFStmtDone(true);
 
-								ind = context.getParent().getIndexOfChild(context);
-								context.getParent().insertChild(stmt, ind);
+									int ind = context.getIndexOfChild(rhs);
+									context.setChild(tmp, ind);
 
-								nv = tmp;
-								tcount = 1;
-							} else if(!rhs.getWeavability()){
-								nv = rhs;
+									ind = context.getParent().getIndexOfChild(context);
+									context.getParent().insertChild(stmt, ind);
+
+									nv = tmp;
+									tcount = 1;
+								} else if(!rhs.getWeavability()){
+									nv = rhs;
+								}
 							}
+
+							if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0){
+								CellArrayExpr cae = new CellArrayExpr();
+								Row row = new Row();
+								row.addElement(nv);
+								cae.addRow(row);
+								lstExpr.add(cae);
+							} else
+								lstExpr.add(nv);
+						} else if(param.getID().compareTo(ARGS) == 0) {
+							lstExpr.add(getDims(lhs));
+						} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
+							IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+							lstExpr.add(ile);
+						} else if(param.getID().compareTo(OBJ) == 0 || param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
+							objExist = true;
+							lstExpr.add(new NameExpr(new Name(target)));
+						} else if(param.getID().compareTo(THIS) == 0) {
+							//do nothing
+						} else if(param.getID().compareTo(NAME) == 0) {
+							lstExpr.add(new StringLiteralExpr(target));
+						} else if(param.getID().compareTo(LINE) == 0) {
+							lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
+						} else if(param.getID().compareTo(LOC) == 0) {
+							lstExpr.add(new StringLiteralExpr(getLocation(context)));
+						} else if(param.getID().compareTo(FILE) == 0) {
+							lstExpr.add(new StringLiteralExpr(getFileName(context)));
+						} else if(param.getID().compareTo(AOBJ) == 0) {
+							String aobj = "";
+							if(rhs.getWeavability() && rhs instanceof NameExpr)
+								aobj = ((NameExpr)rhs).getName().getID();
+							lstExpr.add(new StringLiteralExpr(aobj));
+						} else
+							lstExpr.add(new CellArrayExpr());
+					}
+
+					Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(act.getClassName()));
+					Expr de2 = new DotExpr(de1, new Name(act.getName()));
+					ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
+					pe.setWeavability(false);
+
+					Stmt action;
+					if(act.getType().compareTo(AROUND) == 0)
+						action = new AssignStmt(lhs, pe);
+					else
+						action = new ExprStmt(pe);
+
+					Stmt call = action;
+					action.setOutputSuppressed(true);
+
+					Stmt existCheck = null;
+					if(objExist){
+						ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
+						elst.add(new StringLiteralExpr("var"));
+						ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
+
+						BinaryExpr cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
+						AssignStmt tmp = new AssignStmt(new NameExpr(new Name(target)), new MatrixExpr());
+						tmp.setWeavability(false, true);
+						tmp.setOutputSuppressed(true);
+						IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(tmp));
+
+						existCheck = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
+					}
+
+					if(act.getType().compareTo(BEFORE) == 0) {
+						stmts.insertChild(call, s+tcount+bcount);
+						if(existCheck != null){
+							stmts.insertChild(existCheck, s+tcount+bcount);
+							tcount += 1;
+						}
+						bcount += 1;
+					} else if(act.getType().compareTo(AFTER) == 0) {
+						stmts.insertChild(call, s+acount+bcount+tcount+1);
+						acount += 1;
+					} else if(act.getType().compareTo(AROUND) == 0) {
+						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
+						prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
+						fun.incCorrespondingCount();
+						stmts.setChild(call, s+bcount+tcount);
+						if(existCheck != null){
+							stmts.insertChild(existCheck, s+bcount+tcount);
+							tcount += 1;
 						}
 
-						if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0){
-							CellArrayExpr cae = new CellArrayExpr();
-							Row row = new Row();
-							row.addElement(nv);
-							cae.addRow(row);
-							lstExpr.add(cae);
-						} else
-							lstExpr.add(nv);
-					} else if(param.getID().compareTo(ARGS) == 0) {
-						lstExpr.add(getDims(lhs));
-					} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
-						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-						lstExpr.add(ile);
-					} else if(param.getID().compareTo(OBJ) == 0 || param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
-						objExist = true;
-						lstExpr.add(new NameExpr(new Name(target)));
-					} else if(param.getID().compareTo(THIS) == 0) {
-						//do nothing
-					} else if(param.getID().compareTo(NAME) == 0) {
-						lstExpr.add(new StringLiteralExpr(target));
-					} else if(param.getID().compareTo(LINE) == 0) {
-						lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLineNum()))));
-					} else if(param.getID().compareTo(LOC) == 0) {
-						lstExpr.add(new StringLiteralExpr(getLocation(context)));
-					} else if(param.getID().compareTo(FILE) == 0) {
-						lstExpr.add(new StringLiteralExpr(getFileName(context)));
-					} else if(param.getID().compareTo(AOBJ) == 0) {
-						String aobj = "";
-						if(rhs instanceof NameExpr)
-							aobj = ((NameExpr)rhs).getName().getID();
-						lstExpr.add(new StringLiteralExpr(aobj));
-					} else
-						lstExpr.add(new CellArrayExpr());
-				}
-
-				Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(act.getClassName()));
-				Expr de2 = new DotExpr(de1, new Name(act.getName()));
-				ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
-				pe.setWeavability(false);
-
-				Stmt action;
-				if(act.getType().compareTo(AROUND) == 0)
-					action = new AssignStmt(lhs, pe);
-				else
-					action = new ExprStmt(pe);
-
-				Stmt call = action;
-				action.setOutputSuppressed(true);
-
-				Stmt existCheck = null;
-				if(objExist){
-					ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
-					elst.add(new StringLiteralExpr("var"));
-					ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
-
-					BinaryExpr cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-					AssignStmt tmp = new AssignStmt(new NameExpr(new Name(target)), new MatrixExpr());
-					tmp.setWeavability(false, true);
-					tmp.setOutputSuppressed(true);
-					IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(tmp));
-
-					existCheck = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-				}
-
-				if(act.getType().compareTo(BEFORE) == 0) {
-					stmts.insertChild(call, s+tcount+bcount);
-					if(existCheck != null){
-						stmts.insertChild(existCheck, s+tcount+bcount);
-						tcount += 1;
+						aroundExist = true;
 					}
-					bcount += 1;
-				} else if(act.getType().compareTo(AFTER) == 0) {
-					stmts.insertChild(call, s+acount+bcount+tcount+1);
-					acount += 1;
-				} else if(act.getType().compareTo(AROUND) == 0) {
-					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-					prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
-					fun.incCorrespondingCount();
-					stmts.setChild(call, s+bcount+tcount);
-					if(existCheck != null){
-						stmts.insertChild(existCheck, s+bcount+tcount);
-						tcount += 1;
-					}
-
-					aroundExist = true;
 				}
 			}
-		}
-
+		} 
+		
 		return acount + bcount + tcount;
 	}
 
@@ -1620,9 +1633,9 @@ public class AspectsEngine {
 				} else if(act.getType().compareTo(AFTER) == 0) {
 					func.getStmts().addChild(call);
 					acount += 1;
-					
+
 					WeaveBeforeReturn(func.getStmts(), call);
-					
+
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 					convertToHandleFunction(func);
@@ -1701,9 +1714,9 @@ public class AspectsEngine {
 				} else if(act.getType().compareTo(AFTER) == 0) {
 					script.getStmts().addChild(call);
 					acount += 1;
-					
+
 					WeaveBeforeReturn(script.getStmts(), call);
-					
+
 				} else if(act.getType().compareTo(AROUND) == 0) {
 					//Not allowed!
 				}
@@ -1782,7 +1795,7 @@ public class AspectsEngine {
 				stmt.WeaveBeforeReturn(call);
 		}
 	}
-	
+
 	private static String generateHandleName(String func){
 		return "AM_Handle_" + func;
 	}
@@ -1802,14 +1815,14 @@ public class AspectsEngine {
 			Expr target = pe.getTarget();
 			int count = pe.getNumArg();
 			IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)));
-			
+
 			ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr("end"));
 			elst.add(target);
-			
+
 			ast.List<Expr> args = new ast.List<Expr>();			
 			for(int i=0; i<count; i++){
 				Expr arg = pe.getArg(i);
-				
+
 				if(arg instanceof ColonExpr) {
 					elst.add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i+1))));
 					elst.add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(count))));
@@ -1818,7 +1831,7 @@ public class AspectsEngine {
 				} else //TODO: resolve end expression
 					args.add(arg);
 			}
-			
+
 			dims.addRow(new Row(args));
 		}
 

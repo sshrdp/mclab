@@ -61,8 +61,10 @@ public class Main
 				System.err.println("Translating "+file+" to Natlab");
 				fileReader = natlab.Main.translateFile( file, errors );
 
-				if( errors.size() > 0 )
+				if( errors.size() > 0 ){
 					System.err.print( errors.toString() );
+					errors.clear();
+				}
 				if( fileReader == null ){
 					System.err.println("\nSkipping " + file);
 					break;
@@ -88,9 +90,10 @@ public class Main
 
 			if( prog == null ){
 				//report errors
-				if( errors.size() > 0 )
+				if( errors.size() > 0 ) {
 					System.err.print( errors.toString() );
-
+					errors.clear();
+				}
 				System.err.println("Skipping " + file);
 				continue;
 			}

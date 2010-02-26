@@ -41,6 +41,7 @@ aspect ShadowMatch {
 			((tar.compareTo("*") == 0)
 				|| (tar.compareTo(target) == 0)
 				|| (type.contains("loop") && target.contains(tar+","))
+				|| (pattern.compareTo("getorcallsimple") == 0) //for expression simplification
 				)
 			
 			//Selective matching
@@ -49,6 +50,7 @@ aspect ShadowMatch {
 			//Joinpoint type matching
 			&& ((type.compareTo(pattern) == 0) 
 				|| (pattern.compareTo("getorcall") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0))
+				|| (pattern.compareTo("getorcallsimple") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0)) //for expression simplification
 				//|| (pattern.compareTo("loop") && type.contains("loop"))
 				)
 			)
