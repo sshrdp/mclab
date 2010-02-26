@@ -50,13 +50,13 @@ Pattern patterns_body =
   ;
 
 Expr pattern_designators =
-     pattern_designators_or.pd {: return pd; :}
-  |  pattern_designators.l AND pattern_designators_or.pd {: return new AndExpr(l, pd); :}
+     pattern_designators_and.pd {: return pd; :}
+  |  pattern_designators.l OR pattern_designators_and.pd {: return new OrExpr(l, pd); :}
   ;
   
-Expr pattern_designators_or = 
+Expr pattern_designators_and = 
      pattern_designators_unary.pd {: return pd; :}
-  |  pattern_designators_or.l OR pattern_designators_unary.pd {: return new OrExpr(l, pd); :}
+  |  pattern_designators_and.l AND pattern_designators_unary.pd {: return new AndExpr(l, pd); :}
   ;
 
 Expr pattern_designators_unary = 
@@ -64,48 +64,11 @@ Expr pattern_designators_unary =
   |  NOT pattern_designator.pd {: return new NotExpr(pd); :}
   ;
 
-/*    
-Expr pattern_designator =
-     LPAREN pattern_designators.pd RPAREN {: return pd; :}
-  |  CALL LPAREN pattern_list.l RPAREN {: return new PatternDesignator("call", l); :}
-  |  EXECUTION LPAREN pattern_list.l RPAREN {: return new PatternDesignator("execution", l); :}
-  |  SET LPAREN pattern_list.l RPAREN {: return new PatternDesignator("set", l); :}
-  |  GET LPAREN pattern_list.l RPAREN {: return new PatternDesignator("get", l); :}
-  |  LOOP LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loop", l); :}
-  |  LOOPBODY LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loopbody", l); :}
-  |  LOOPHEAD LPAREN pattern_list.l RPAREN {: return new PatternDesignator("loophead", l); :}
-  |  WITHIN LPAREN pattern_list.l RPAREN {: return new PatternDesignator("within", l); :}
-//  |  CFLOW LPAREN pattern_path.l RPAREN {: return new PatternDesignator("cflow", new List().add(l)); :}
-  ;
-
-List pattern_list =
-     {: return new List(); :}
-  |  pattern_path_sign.p {: return new List().add(p); :}
-  |  node_type.n COMMA pattern_path_sign.p {: return new List().add(n).add(p); :}
-  ;
-
-Name pattern_path_sign =
-     pattern_path.b {: return b; :}
-  |  pattern_path.s LPAREN list_dotdot.ls RPAREN {: int num = ls.getNumChild(); String pattern = s.getID()+"$"+ls.getNumChild(); if(num > 0 && ((Name)ls.getChild(ls.getNumChild()-1)).getID().compareTo("..") == 0) pattern += "+"; return new Name(pattern); :}
-  ;
-  
-Name pattern_path =
-     pattern_simple.s {: return s; :}
-  |  pattern_path.p DOT pattern_simple.s {: return new Name(p.getID()+"."+s.getID()); :}
-  |  pattern_path.p DOTDOT pattern_simple.s {: return new Name(p.getID()+".."+s.getID()); :}
-  ;
-
-Name pattern_simple =
-     STAR {: return new Name("*"); :}
-//|  STARSTAR {: return new Name("**"); :}
-  |  IDENTIFIER.name {: return new Name(name); :}
-  ;
-*/
-
 Expr pattern_designator =
      LPAREN pattern_designators.pd RPAREN {: return pd; :}
   |  CALL LPAREN pattern_select.p RPAREN {: return new PatternDesignator("call", new List().add(p)); :}
   |  EXECUTION LPAREN pattern_select.p RPAREN {: return new PatternDesignator("execution", new List().add(p)); :}
+  |  MAINEXECUTION LPAREN RPAREN {: return new PatternDesignator("mainexecution", new List()); :}
   |  SET LPAREN pattern_select.p RPAREN {: return new PatternDesignator("set", new List().add(p)); :}
   |  GET LPAREN pattern_select.p RPAREN {: return new PatternDesignator("get", new List().add(p)); :}
   |  LOOP LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loop", new List().add(p)); :}

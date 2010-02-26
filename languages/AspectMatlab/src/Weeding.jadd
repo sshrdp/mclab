@@ -9,6 +9,9 @@ aspect Weeding {
 	  	java.util.List<String> errors = new java.util.ArrayList<String>();
 	    String match = "";
 	    
+	    if(getName().compareTo(getFileName().replace(".m", "")) != 0)
+	    	errors.add(getPosString() + "Aspect name must be same as the file name!");
+	    
 	    for(Patterns pats : getPatterns()) {
         	for(Pattern pat : pats.getPatterns()) {
         		String name = pat.getName();
@@ -20,7 +23,7 @@ aspect Weeding {
        	}
        	
        	match = "";
-       	String selectors = "args,newVal,obj,name,line,counter,loc,file,";
+       	String selectors = "args,newVal,obj,name,line,counter,loc,file,aobj,ainput,aoutput,";
        	
        	for(Actions acts : getActions()) {
            for(AspectAction act : acts.getAspectActions()) {
@@ -46,7 +49,11 @@ aspect Weeding {
 	    
 	    return false;
 	}
-	  
+	
+	public String Aspect.getPosString() {
+    	return "[" + getLine(getStart()) + ", " + getColumn(getStart()) + "]  ";
+	}
+	
 	public String Pattern.getPosString() {
     	return "[" + getLine(getStart()) + ", " + getColumn(getStart()) + "]  ";
 	}

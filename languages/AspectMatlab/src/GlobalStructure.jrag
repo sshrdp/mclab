@@ -21,6 +21,7 @@ aspect GlobalStructure {
 			getStmts().insertChild(s, 0);
 		}
 		
+		AspectsEngine.WeaveBeforeReturn(getStmts(), nis);
 		getStmts().addChild(nis);
 		
 		return true;
@@ -44,6 +45,7 @@ aspect GlobalStructure {
 			getStmts().insertChild(s, 0);
 		}
 		
+		AspectsEngine.WeaveBeforeReturn(getStmts(), nis);
 		getStmts().addChild(nis);
     }
     
@@ -61,7 +63,60 @@ aspect GlobalStructure {
 			getStmts().insertChild(s, 0);
 		}
 		
+		AspectsEngine.WeaveBeforeReturn(getStmts(), nis);
 		getStmts().addChild(nis);
     }
 
+
+    syn Boolean Program.weaveGlobalStructureWithEntry(Stmt gs, ast.List<Stmt> bstmts, ast.List<Stmt> astmts) { throw new UnsupportedOperationException(getClass().getName() + ".weaveGlobalStructureWithEntry()"); }
+     
+	eq FunctionList.weaveGlobalStructureWithEntry(Stmt gs, ast.List<Stmt> bstmts, ast.List<Stmt> astmts) {
+		getFunction(0).weaveGlobalStructureWithEntry(gs, bstmts, astmts);
+		
+		for(int i=1; i<getNumFunction(); i++) {
+			Function func = getFunction(i);
+			func.weaveGlobalStructureWithEntry(gs, new ast.List<Stmt>(), new ast.List<Stmt>());
+		}
+
+		return true;
+    }  
+    
+    eq ClassDef.weaveGlobalStructureWithEntry(Stmt gs, ast.List<Stmt> bstmts, ast.List<Stmt> astmts) {
+		//maybe constructor can be an entry point?
+		return true;
+    } 
+    
+    eq Aspect.weaveGlobalStructureWithEntry(Stmt gs, ast.List<Stmt> bstmts, ast.List<Stmt> astmts) {	
+		return true;
+    }
+    
+    eq Script.weaveGlobalStructureWithEntry(Stmt gs, ast.List<Stmt> bstmts, ast.List<Stmt> astmts) {
+    	getStmts().insertChild(gs, 0);
+    	
+    	for(int i=bstmts.getNumChild()-1; i>=0; i--) {
+    		Stmt s = bstmts.getChild(i);
+			getStmts().insertChild(s, 0);
+		}
+		
+		for(Stmt s : astmts) {
+			AspectsEngine.WeaveBeforeReturn(getStmts(), s);
+			getStmts().addChild(s);
+		}
+		
+		return true;
+    } 
+    
+    public void Function.weaveGlobalStructureWithEntry(Stmt gs, ast.List<Stmt> bstmts, ast.List<Stmt> astmts) {
+    	getStmts().insertChild(gs, 0);
+    	
+    	for(int i=bstmts.getNumChild()-1; i>=0; i--) {
+    		Stmt s = bstmts.getChild(i);
+			getStmts().insertChild(s, 1);
+		}
+		
+		for(Stmt s : astmts) {
+			AspectsEngine.WeaveBeforeReturn(getStmts(), s);
+			getStmts().addChild(s);
+		}
+    }
 }

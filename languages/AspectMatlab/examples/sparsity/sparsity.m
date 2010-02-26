@@ -135,7 +135,11 @@ displayResults : after exec
 end
 
 
-set : before arraySet : (newVal,obj,name)
+set : before arraySet : (newVal,obj,name,args)
+   t = obj;
+   t(args{1:numel(args)}) = newVal;
+   newVal = t;
+
   % we will exit if the newval is not a matrix
   if (~isnumeric(newVal))
     return;

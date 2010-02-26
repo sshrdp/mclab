@@ -9,4 +9,8 @@ aspect ContextInfo {
     private int Stmt.LineNum = -1; 
     public int Stmt.getLineNum() { return (LineNum != -1) ? LineNum : Symbol.getLine(getStart()); }
     public void Stmt.setLineNum(int LineNum) { this.LineNum = LineNum; }
+    
+    private ast.List<Name> Function.InputParamNames = new ast.List<Name>();
+    public ast.List<Name> Function.getInputParamNames() { return InputParamNames; }
+    public void Function.setInputParamNames(ast.List<Name> InputParamNames) { this.InputParamNames = InputParamNames; }
 }

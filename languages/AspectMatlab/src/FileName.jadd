@@ -2,10 +2,19 @@
 /*
 //	Programs keeping the corresponding file name
 //	helpful in case of script file
+//  Also, knowing that a file is an entry point helps reduce the checks added in post-processing
 */
 
 aspect FileName {
     private String Program.FileName = "";
     public String Program.getFileName() { return FileName; }
     public void Program.setFileName(String FileName) { this.FileName = FileName; }
+    
+    private boolean Program.isEntryPoint = false;
+    public boolean Program.getEntryPoint() { return isEntryPoint; }
+    public void Program.setEntryPoint(boolean isEntryPoint) { this.isEntryPoint = isEntryPoint; }
+    
+    private boolean CompilationUnits.hasEntryPoint = false;
+    public boolean CompilationUnits.getEntryPoint() { return hasEntryPoint; }
+    public void CompilationUnits.setEntryPoint(boolean hasEntryPoint) { this.hasEntryPoint = hasEntryPoint; }
 }

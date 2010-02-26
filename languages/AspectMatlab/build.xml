@@ -61,31 +61,42 @@
 
 	<!-- Overriding to define classpaths (may depend on bin.dir) -->
 	<target name="set.annotations.bin.dir.eclipse" if="inside.eclipse">
-			<property name="annotations.bin.dir" value="${annotations.eclipse.bin.dir}" />
+		<property name="annotations.bin.dir" value="${annotations.eclipse.bin.dir}" />
 	</target>
 	
 	<target name="set.annotations.bin.dir.no.eclipse" unless="inside.eclipse">
-				<property name="annotations.bin.dir" value="${annotations.ant.bin.dir}" />
+		<property name="annotations.bin.dir" value="${annotations.ant.bin.dir}" />
 	</target>
 	
 	<target name="set.annotations.bin.dir" depends="set.annotations.bin.dir.no.eclipse, set.annotations.bin.dir.eclipse" />
 	
 	<target name="set.natlab.bin.dir.eclipse" if="inside.eclipse">
-			<property name="natlab.bin.dir" value="${natlab.eclipse.bin.dir}" />
+		<property name="natlab.bin.dir" value="${natlab.eclipse.bin.dir}" />
 	</target>
 	
 	<target name="set.natlab.bin.dir.no.eclipse" unless="inside.eclipse">
-				<property name="natlab.bin.dir" value="${natlab.ant.bin.dir}" />
+		<property name="natlab.bin.dir" value="${natlab.ant.bin.dir}" />
 	</target>
 	
 	<target name="set.natlab.bin.dir" depends="set.natlab.bin.dir.no.eclipse, set.natlab.bin.dir.eclipse" />
 	
-	<target name="set.bin.dir" depends="set.annotations.bin.dir, set.natlab.bin.dir, BinDir.set.bin.dir">
+	<target name="set.matlab.bin.dir.no.eclipse" unless="inside.eclipse">
+		<property name="matlab.bin.dir" value="${matlab.ant.bin.dir}" />
+	</target>
+
+	<target name="set.matlab.bin.dir.eclipse" if="inside.eclipse">
+		<property name="matlab.bin.dir" value="${matlab.eclipse.bin.dir}" />
+	</target>
+
+	<target name="set.matlab.bin.dir" depends="set.matlab.bin.dir.no.eclipse, set.matlab.bin.dir.eclipse" />
+	
+	<target name="set.bin.dir" depends="set.annotations.bin.dir, set.natlab.bin.dir, set.matlab.bin.dir, BinDir.set.bin.dir">
 		<path id="compile.classpath">
 			<path refid="junit.jar.path" />
 			<path refid="beaver.rt.jar.path" />
 			<path location="${basedir}/${bin.dir}" />
 			<path location="${basedir}/${natlab.bin.dir}" />
+			<path location="${basedir}/${matlab.bin.dir}" />
 			<path location="${basedir}/${annotations.bin.dir}" />
 		</path>
 		<path id="test.classpath">
@@ -93,6 +104,7 @@
 			<path refid="beaver.rt.jar.path" />
 			<path location="${basedir}/${bin.dir}" />
 			<path location="${basedir}/${natlab.bin.dir}" />
+			<path location="${basedir}/${matlab.bin.dir}" />
 			<path location="${basedir}/${annotations.bin.dir}" />
 		</path>
 	</target>
@@ -193,15 +205,34 @@
             	<include name="natlab/toolkits/analysis/*.class" />
             	<include name="natlab/toolkits/analysis/varorfun/*.class" />
             	<include name="natlab/CommentBuffer.class" />
+            	<include name="natlab/Main.class" />
+            	<include name="natlab/NatlabScanner.class" />
+            	<include name="natlab/server/HeartBeatTask.class" />
             	<include name="natlab/DecIntNumericLiteralValue.class" />
             	<include name="natlab/IntNumericLiteralValue.class" />
             	<include name="natlab/NumericLiteralValue.class" />
-		<include name="natlab/FPNumericLiteralValue.class"  />
+				<include name="natlab/FPNumericLiteralValue.class"  />
             </zipfileset>
+			<zipfileset src="${lib.dir}/${antlr3.rt.jar.path.prop}" >
+				<patternset>
+	                <exclude name="META-INF/**" />
+	            </patternset>
+			</zipfileset>
+			<zipfileset dir="${matlab.bin.dir}/" includes="**/*.class" />
+			<zipfileset src="${lib.dir}/${string.template.jar.path.prop}">
+                  <patternset>
+                    <exclude name="META-INF/**" />
+                  </patternset>
+            </zipfileset>
+            <zipfileset src="${lib.dir}/${antlr2.jar.path.prop}">
+                  <patternset>
+                    <exclude name="META-INF/**" />
+                  </patternset>
+        	</zipfileset>
 		</jar>
-                <echo file="${entrypoint.script.name}">${entrypoint.script.header}
-java -jar ${basedir}/${entrypoint.jarname} $$*</echo>
-                <chmod file="${entrypoint.script.name}" perm="755" />
+        <echo file="${entrypoint.script.name}">${entrypoint.script.header}
+			java -jar ${basedir}/${entrypoint.jarname} $$*</echo>
+        <chmod file="${entrypoint.script.name}" perm="755" />
 	</target>
 
 	<!-- public versions of eclipse.xml targets -->

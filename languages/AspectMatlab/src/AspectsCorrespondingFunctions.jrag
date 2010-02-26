@@ -38,7 +38,7 @@ aspect AspectsCorrespondingFunctions {
 	        }
 	        
 	        //Transform the input params to assignment stmts
-	        AspectsEngine.generateCorrespondingStmt(getStmts(), getInputParams());
+	        AspectsEngine.generateCorrespondingStmt(this);
 	        
 	        for(Function func : getNestedFunctions()) {
 	    			func.aspectsCorrespondingFunctions();

@@ -1,0 +1,51 @@
+import aspectMatlab.AspectsEngine;
+
+/*
+//	Weaving before return statements
+*/
+
+aspect WeaveBeforeReturn {
+
+	syn boolean Stmt.WeaveBeforeReturn(Stmt call) { return true; }
+    
+    eq ForStmt.WeaveBeforeReturn(Stmt call) {
+	   	AspectsEngine.WeaveBeforeReturn(getStmts(), call);
+        return true;
+    }
+    
+    eq WhileStmt.WeaveBeforeReturn(Stmt call) {    	
+	   	AspectsEngine.WeaveBeforeReturn(getStmts(), call);
+        return true;
+    } 
+    
+    eq TryStmt.WeaveBeforeReturn(Stmt call) {
+	   	AspectsEngine.WeaveBeforeReturn(getTryStmts(), call);
+        AspectsEngine.WeaveBeforeReturn(getCatchStmts(), call);
+        return true;
+    } 
+    
+    eq SwitchStmt.WeaveBeforeReturn(Stmt call) {    	
+	   	for(SwitchCaseBlock sb : getSwitchCaseBlocks()) {	   	
+           	AspectsEngine.WeaveBeforeReturn(sb.getStmts(), call);
+        }
+        
+        if(hasDefaultCaseBlock()) {
+        	AspectsEngine.WeaveBeforeReturn(getDefaultCaseBlock().getStmts(), call);
+	    }
+	    
+	    return true;
+    } 
+    
+    eq IfStmt.WeaveBeforeReturn(Stmt call) {
+	   	for(IfBlock ib : getIfBlocks()) {   		
+           	AspectsEngine.WeaveBeforeReturn(ib.getStmts(), call);
+        }
+        
+        if(hasElseBlock()) {
+        	AspectsEngine.WeaveBeforeReturn(getElseBlock().getStmts(), call);
+	    }
+	    
+	    return true;
+    }
+
+}

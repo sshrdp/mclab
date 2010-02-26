@@ -12,6 +12,7 @@
 call {: return symbol(CALL); :}
 //cflow {: return symbol(CFLOW); :}
 execution {: return symbol(EXECUTION); :}
+mainexecution {: return symbol(MAINEXECUTION); :}
 get {: return symbol(GET); :}
 set {: return symbol(SET); :}
 within {: return symbol(WITHIN); :}

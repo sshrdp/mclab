@@ -11,17 +11,17 @@ function  [] = solveHeatEquation(AM_CVar_14, AM_CVar_13)
   if (exist('a', 'var') ~= 1)
     a = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_14, a, 'a');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_14, a, 'a', {});
   a = AM_CVar_14;
   if (exist('steps', 'var') ~= 1)
     steps = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_13, steps, 'steps');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_13, steps, 'steps', {});
   steps = AM_CVar_13;
   if (exist('tN', 'var') ~= 1)
     tN = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(3, tN, 'tN');
+  AM_GLOBAL.sparsity.sparsity_set(3, tN, 'tN', {});
 % function solveHeatEquation(a,steps)
 % solves the heat equation
 %    Ut = a*Uxx,    x ? [0, 2pi], t > 0
@@ -42,57 +42,57 @@ function  [] = solveHeatEquation(AM_CVar_14, AM_CVar_13)
   if (exist('N', 'var') ~= 1)
     N = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(300, N, 'N');
+  AM_GLOBAL.sparsity.sparsity_set(300, N, 'N', {});
 % set total steps
   N = 300;
   AM_CVar_0 = pi;
   AM_GLOBAL.sparsity.sparsity_get(N, 'N');
   AM_CVar_1 = N;
-  AM_CVar_86 = ((2 * AM_CVar_0) / (AM_CVar_1 - 1));
+  AM_CVar_89 = ((2 * AM_CVar_0) / (AM_CVar_1 - 1));
   if (exist('h', 'var') ~= 1)
     h = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_86, h, 'h');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_89, h, 'h', {});
 % set spacial step
-  h = AM_CVar_86;
+  h = AM_CVar_89;
   AM_GLOBAL.sparsity.sparsity_get(h, 'h');
   AM_CVar_2 = h;
   AM_CVar_3 = pi;
   AM_GLOBAL.sparsity.sparsity_get(h, 'h');
   AM_CVar_4 = h;
-  AM_CVar_87 = ([(AM_CVar_2 : AM_CVar_4 : (2 * AM_CVar_3))].');
+  AM_CVar_90 = ([(AM_CVar_2 : AM_CVar_4 : (2 * AM_CVar_3))].');
   if (exist('X', 'var') ~= 1)
     X = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_87, X, 'X');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_90, X, 'X', {});
 % set X axis points - the first point is ommitted (0)
-  X = AM_CVar_87;
+  X = AM_CVar_90;
   AM_GLOBAL.sparsity.sparsity_get(X, 'X');
   AM_CVar_5 = X;
-  AM_CVar_88 = (0 * AM_CVar_5);
+  AM_CVar_91 = (0 * AM_CVar_5);
   if (exist('U0', 'var') ~= 1)
     U0 = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_88, U0, 'U0');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_91, U0, 'U0', {});
 % set initial condition
-  U0 = AM_CVar_88;
+  U0 = AM_CVar_91;
   if (exist('U0', 'var') ~= 1)
     U0 = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(1, U0, 'U0');
+  AM_GLOBAL.sparsity.sparsity_set(1, U0, 'U0', {});
   U0((round((end / 2.2)) : round((end / 1.8)))) = 1;
   AM_GLOBAL.sparsity.sparsity_get(N, 'N');
   AM_CVar_6 = N;
   AM_CVar_7 = Dxx(AM_CVar_6);
   AM_GLOBAL.sparsity.sparsity_get(h, 'h');
   AM_CVar_8 = h;
-  AM_CVar_89 = (AM_CVar_7 / (AM_CVar_8 ^ 2));
+  AM_CVar_92 = (AM_CVar_7 / (AM_CVar_8 ^ 2));
   if (exist('D', 'var') ~= 1)
     D = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_89, D, 'D');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_92, D, 'D', {});
 % set second spatial derivative matrix
-  D = AM_CVar_89;
+  D = AM_CVar_92;
   AM_GLOBAL.sparsity.sparsity_get(tN, 'tN');
   AM_CVar_9 = tN;
   AM_GLOBAL.sparsity.sparsity_get(U0, 'U0');
@@ -103,7 +103,7 @@ function  [] = solveHeatEquation(AM_CVar_14, AM_CVar_13)
   if (exist('W', 'var') ~= 1)
     W = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_12, W, 'W');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_12, W, 'W', {});
 % find the solution
   W = AM_CVar_12;
   disp('computation finished');
@@ -114,12 +114,12 @@ function  [] = solveHeatEquation(AM_CVar_14, AM_CVar_13)
     if (exist('t', 'var') ~= 1)
       t = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_19, t, 't');
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_19, t, 't', {});
     t = AM_CVar_19;
     if (exist('u', 'var') ~= 1)
       u = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_18, u, 'u');
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_18, u, 'u', {});
     u = AM_CVar_18;
     AM_GLOBAL.sparsity.sparsity_get(a, 'a');
     AM_CVar_15 = a;
@@ -127,13 +127,13 @@ function  [] = solveHeatEquation(AM_CVar_14, AM_CVar_13)
     AM_CVar_16 = D;
     AM_GLOBAL.sparsity.sparsity_get(u, 'u');
     AM_CVar_17 = u;
-    AM_CVar_90 = ((AM_CVar_15 * AM_CVar_16) * AM_CVar_17);
+    AM_CVar_93 = ((AM_CVar_15 * AM_CVar_16) * AM_CVar_17);
     if (exist('y', 'var') ~= 1)
       y = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_90, y, 'y');
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_93, y, 'y', {});
 % set rhs of ODE, i.e. Ut
-    y = AM_CVar_90;
+    y = AM_CVar_93;
   end
 end
 function  [D] = Dxx(AM_CVar_25)
@@ -149,7 +149,7 @@ function  [D] = Dxx(AM_CVar_25)
   if (exist('N', 'var') ~= 1)
     N = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_25, N, 'N');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_25, N, 'N', {});
   N = AM_CVar_25;
   AM_GLOBAL.sparsity.sparsity_get(N, 'N');
   AM_CVar_20 = N;
@@ -161,7 +161,7 @@ function  [D] = Dxx(AM_CVar_25)
   if (exist('D', 'var') ~= 1)
     D = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_24, D, 'D');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_24, D, 'D', {});
 % creates a centered-in-space finite difference differentiation matrix,
 % for the second spatial derivative.
 % uses mixed boundary conditions, i.e. u(0)=u'(end)=0.
@@ -182,14 +182,14 @@ function  [D] = Dxx(AM_CVar_25)
   if (exist('D', 'var') ~= 1)
     D = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(2, D, 'D');
+  AM_GLOBAL.sparsity.sparsity_set(2, D, 'D', {});
 % set nondiagonal in first row => enforce Neumann condition
   D(end, (end - 1)) = 2;
   if AM_EntryPoint_1
     AM_GLOBAL = [];
   end
 end
-function  [W] = RungeKutta4(AM_CVar_85, AM_CVar_84, AM_CVar_83, AM_CVar_82, AM_CVar_81)
+function  [W] = RungeKutta4(AM_CVar_88, AM_CVar_87, AM_CVar_86, AM_CVar_85, AM_CVar_84)
   global AM_GLOBAL;
   if (~isempty(AM_GLOBAL))
     AM_EntryPoint_1 = 0;
@@ -202,34 +202,34 @@ function  [W] = RungeKutta4(AM_CVar_85, AM_CVar_84, AM_CVar_83, AM_CVar_82, AM_C
   if (exist('f', 'var') ~= 1)
     f = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_85, f, 'f');
-  f = AM_CVar_85;
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_88, f, 'f', {});
+  f = AM_CVar_88;
   if (exist('tspan', 'var') ~= 1)
     tspan = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_84, tspan, 'tspan');
-  tspan = AM_CVar_84;
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_87, tspan, 'tspan', {});
+  tspan = AM_CVar_87;
   if (exist('alpha', 'var') ~= 1)
     alpha = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_83, alpha, 'alpha');
-  alpha = AM_CVar_83;
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_86, alpha, 'alpha', {});
+  alpha = AM_CVar_86;
   if (exist('N', 'var') ~= 1)
     N = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_82, N, 'N');
-  N = AM_CVar_82;
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_85, N, 'N', {});
+  N = AM_CVar_85;
   if (exist('o', 'var') ~= 1)
     o = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_81, o, 'o');
-  o = AM_CVar_81;
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_84, o, 'o', {});
+  o = AM_CVar_84;
   AM_GLOBAL.sparsity.sparsity_indexedGet(tspan, 'tspan');
   AM_CVar_26 = tspan(1);
   if (exist('a', 'var') ~= 1)
     a = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_26, a, 'a');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_26, a, 'a', {});
 % function output=RungeKutta4(f,tspan,alpha,N,o)
 % This is an implementation of the Runge-Kutta 4 algorithm for solving the system
 %   - y'=f(t,y) 
@@ -247,7 +247,7 @@ function  [W] = RungeKutta4(AM_CVar_85, AM_CVar_84, AM_CVar_83, AM_CVar_82, AM_C
   if (exist('b', 'var') ~= 1)
     b = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_27, b, 'b');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_27, b, 'b', {});
 % this is the final time
   b = AM_CVar_27;
   AM_GLOBAL.sparsity.sparsity_get(b, 'b');
@@ -260,7 +260,7 @@ function  [W] = RungeKutta4(AM_CVar_85, AM_CVar_84, AM_CVar_83, AM_CVar_82, AM_C
   if (exist('h', 'var') ~= 1)
     h = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_94, h, 'h');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_94, h, 'h', {});
 % step size
   h = AM_CVar_94;
   AM_GLOBAL.sparsity.sparsity_get(alpha, 'alpha');
@@ -272,174 +272,174 @@ function  [W] = RungeKutta4(AM_CVar_85, AM_CVar_84, AM_CVar_83, AM_CVar_82, AM_C
   if (exist('W', 'var') ~= 1)
     W = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_34, W, 'W');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_34, W, 'W', {});
 % set output matrix
   W = AM_CVar_34;
-  AM_GLOBAL.sparsity.sparsity_get(alpha, 'alpha');
-  AM_CVar_35 = alpha;
+  AM_CVar_95 = alpha;
   if (exist('W', 'var') ~= 1)
     W = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_35, W, 'W');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_95, W, 'W', {1:builtin('end',W,1,2), 1});
 % set initial value
-  W(:, 1) = AM_CVar_35;
+  W(:, 1) = AM_CVar_95;
   AM_GLOBAL.sparsity.sparsity_get(a, 'a');
-  AM_CVar_36 = a;
+  AM_CVar_35 = a;
   AM_GLOBAL.sparsity.sparsity_get(b, 'b');
-  AM_CVar_37 = b;
+  AM_CVar_36 = b;
   AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-  AM_CVar_38 = h;
-  AM_CVar_95 = (AM_CVar_36 : AM_CVar_38 : AM_CVar_37);
+  AM_CVar_37 = h;
+  AM_CVar_96 = (AM_CVar_35 : AM_CVar_37 : AM_CVar_36);
   if (exist('t', 'var') ~= 1)
     t = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_95, t, 't');
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_96, t, 't', {});
 % set times   
-  t = AM_CVar_95;
+  t = AM_CVar_96;
   if (exist('j', 'var') ~= 1)
     j = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(1, j, 'j');
+  AM_GLOBAL.sparsity.sparsity_set(1, j, 'j', {});
 % iteration
   j = 1;
   AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_92 = j;
+    AM_CVar_81 = j;
   AM_GLOBAL.sparsity.sparsity_get(N, 'N');
-    AM_CVar_93 = N;
-    AM_CVar_91 = (AM_CVar_92 <= AM_CVar_93);
-  while AM_CVar_91
+    AM_CVar_82 = N;
+    AM_CVar_80 = (AM_CVar_81 <= AM_CVar_82);
+  while AM_CVar_80
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_39 = h;
+    AM_CVar_38 = h;
     AM_GLOBAL.sparsity.sparsity_get(f, 'f');
-    AM_CVar_40 = f;
+    AM_CVar_39 = f;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_41 = j;
+    AM_CVar_40 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(t, 't');
-    AM_CVar_42 = t(AM_CVar_41);
+    AM_CVar_41 = t(AM_CVar_40);
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_43 = j;
+    AM_CVar_42 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(W, 'W');
-    AM_CVar_44 = W(:, AM_CVar_43);
-    AM_CVar_45 = feval(AM_CVar_40, AM_CVar_42, AM_CVar_44);
-    AM_CVar_96 = (AM_CVar_39 * AM_CVar_45);
+    AM_CVar_43 = W(:, AM_CVar_42);
+    AM_CVar_44 = feval(AM_CVar_39, AM_CVar_41, AM_CVar_43);
+    AM_CVar_97 = (AM_CVar_38 * AM_CVar_44);
     if (exist('k1', 'var') ~= 1)
       k1 = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_96, k1, 'k1');
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_97, k1, 'k1', {});
 % set k1, k2, k3 and k4
-    k1 = AM_CVar_96;
+    k1 = AM_CVar_97;
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_46 = h;
+    AM_CVar_45 = h;
     AM_GLOBAL.sparsity.sparsity_get(f, 'f');
-    AM_CVar_47 = f;
+    AM_CVar_46 = f;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_48 = j;
+    AM_CVar_47 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(t, 't');
-    AM_CVar_49 = t(AM_CVar_48);
+    AM_CVar_48 = t(AM_CVar_47);
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_50 = h;
+    AM_CVar_49 = h;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_51 = j;
+    AM_CVar_50 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(W, 'W');
-    AM_CVar_52 = W(:, AM_CVar_51);
+    AM_CVar_51 = W(:, AM_CVar_50);
     AM_GLOBAL.sparsity.sparsity_get(k1, 'k1');
-    AM_CVar_53 = k1;
-    AM_CVar_54 = feval(AM_CVar_47, (AM_CVar_49 + (AM_CVar_50 / 2)), (AM_CVar_52 + ((1 / 2) * AM_CVar_53)));
-    AM_CVar_97 = (AM_CVar_46 * AM_CVar_54);
+    AM_CVar_52 = k1;
+    AM_CVar_53 = feval(AM_CVar_46, (AM_CVar_48 + (AM_CVar_49 / 2)), (AM_CVar_51 + ((1 / 2) * AM_CVar_52)));
+    AM_CVar_98 = (AM_CVar_45 * AM_CVar_53);
     if (exist('k2', 'var') ~= 1)
       k2 = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_97, k2, 'k2');
-    k2 = AM_CVar_97;
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_98, k2, 'k2', {});
+    k2 = AM_CVar_98;
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_55 = h;
+    AM_CVar_54 = h;
     AM_GLOBAL.sparsity.sparsity_get(f, 'f');
-    AM_CVar_56 = f;
+    AM_CVar_55 = f;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_57 = j;
+    AM_CVar_56 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(t, 't');
-    AM_CVar_58 = t(AM_CVar_57);
+    AM_CVar_57 = t(AM_CVar_56);
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_59 = h;
+    AM_CVar_58 = h;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_60 = j;
+    AM_CVar_59 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(W, 'W');
-    AM_CVar_61 = W(:, AM_CVar_60);
+    AM_CVar_60 = W(:, AM_CVar_59);
     AM_GLOBAL.sparsity.sparsity_get(k2, 'k2');
-    AM_CVar_62 = k2;
-    AM_CVar_63 = feval(AM_CVar_56, (AM_CVar_58 + (AM_CVar_59 / 2)), (AM_CVar_61 + ((1 / 2) * AM_CVar_62)));
-    AM_CVar_98 = (AM_CVar_55 * AM_CVar_63);
+    AM_CVar_61 = k2;
+    AM_CVar_62 = feval(AM_CVar_55, (AM_CVar_57 + (AM_CVar_58 / 2)), (AM_CVar_60 + ((1 / 2) * AM_CVar_61)));
+    AM_CVar_99 = (AM_CVar_54 * AM_CVar_62);
     if (exist('k3', 'var') ~= 1)
       k3 = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_98, k3, 'k3');
-    k3 = AM_CVar_98;
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_99, k3, 'k3', {});
+    k3 = AM_CVar_99;
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_64 = h;
+    AM_CVar_63 = h;
     AM_GLOBAL.sparsity.sparsity_get(f, 'f');
-    AM_CVar_65 = f;
+    AM_CVar_64 = f;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_66 = j;
+    AM_CVar_65 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(t, 't');
-    AM_CVar_67 = t(AM_CVar_66);
+    AM_CVar_66 = t(AM_CVar_65);
     AM_GLOBAL.sparsity.sparsity_get(h, 'h');
-    AM_CVar_68 = h;
+    AM_CVar_67 = h;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_69 = j;
+    AM_CVar_68 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(W, 'W');
-    AM_CVar_70 = W(:, AM_CVar_69);
+    AM_CVar_69 = W(:, AM_CVar_68);
     AM_GLOBAL.sparsity.sparsity_get(k3, 'k3');
-    AM_CVar_71 = k3;
-    AM_CVar_72 = feval(AM_CVar_65, (AM_CVar_67 + AM_CVar_68), (AM_CVar_70 + AM_CVar_71));
-    AM_CVar_99 = (AM_CVar_64 * AM_CVar_72);
+    AM_CVar_70 = k3;
+    AM_CVar_71 = feval(AM_CVar_64, (AM_CVar_66 + AM_CVar_67), (AM_CVar_69 + AM_CVar_70));
+    AM_CVar_100 = (AM_CVar_63 * AM_CVar_71);
     if (exist('k4', 'var') ~= 1)
       k4 = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_99, k4, 'k4');
-    k4 = AM_CVar_99;
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_100, k4, 'k4', {});
+    k4 = AM_CVar_100;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_73 = j;
+    AM_CVar_72 = j;
     AM_GLOBAL.sparsity.sparsity_indexedGet(W, 'W');
-    AM_CVar_74 = W(:, AM_CVar_73);
+    AM_CVar_73 = W(:, AM_CVar_72);
     AM_GLOBAL.sparsity.sparsity_get(k1, 'k1');
-    AM_CVar_75 = k1;
+    AM_CVar_74 = k1;
     AM_GLOBAL.sparsity.sparsity_get(k2, 'k2');
-    AM_CVar_76 = k2;
+    AM_CVar_75 = k2;
     AM_GLOBAL.sparsity.sparsity_get(k3, 'k3');
-    AM_CVar_77 = k3;
+    AM_CVar_76 = k3;
     AM_GLOBAL.sparsity.sparsity_get(k4, 'k4');
-    AM_CVar_78 = k4;
-    AM_CVar_100 = (AM_CVar_74 + ((1 / 6) * (((AM_CVar_75 + (2 * AM_CVar_76)) + (2 * AM_CVar_77)) + AM_CVar_78)));
+    AM_CVar_77 = k4;
+    AM_GLOBAL.sparsity.sparsity_get(j, 'j');
+    AM_CVar_78 = j;
+    AM_CVar_101 = (AM_CVar_73 + ((1 / 6) * (((AM_CVar_74 + (2 * AM_CVar_75)) + (2 * AM_CVar_76)) + AM_CVar_77)));
     if (exist('W', 'var') ~= 1)
       W = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_100, W, 'W');
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_101, W, 'W', {1:builtin('end',W,1,2), (AM_CVar_78 + 1)});
 % Runge-Kutta 4 - step
-    W(:, (j + 1)) = AM_CVar_100;
+    W(:, (AM_CVar_78 + 1)) = AM_CVar_101;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
     AM_CVar_79 = j;
-    AM_CVar_101 = (AM_CVar_79 + 1);
+    AM_CVar_102 = (AM_CVar_79 + 1);
     if (exist('j', 'var') ~= 1)
       j = [];
     end
-    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_101, j, 'j');
-    j = AM_CVar_101;
+    AM_GLOBAL.sparsity.sparsity_set(AM_CVar_102, j, 'j', {});
+    j = AM_CVar_102;
     AM_GLOBAL.sparsity.sparsity_get(j, 'j');
-    AM_CVar_92 = j;
+    AM_CVar_81 = j;
     AM_GLOBAL.sparsity.sparsity_get(N, 'N');
-    AM_CVar_93 = N;
-    AM_CVar_91 = (AM_CVar_92 <= AM_CVar_93);
+    AM_CVar_82 = N;
+    AM_CVar_80 = (AM_CVar_81 <= AM_CVar_82);
   end
   AM_GLOBAL.sparsity.sparsity_get(W, 'W');
-  AM_CVar_80 = W;
-  AM_CVar_102 = (AM_CVar_80');
+  AM_CVar_83 = W;
+  AM_CVar_103 = (AM_CVar_83');
   if (exist('W', 'var') ~= 1)
     W = [];
   end
-  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_102, W, 'W');
-  W = AM_CVar_102;
+  AM_GLOBAL.sparsity.sparsity_set(AM_CVar_103, W, 'W', {});
+  W = AM_CVar_103;
   if AM_EntryPoint_1
     AM_GLOBAL = [];
   end
 end
-

@@ -131,7 +131,11 @@ classdef sparsity < handle
       end
       disp(result);
     end
-    function  [] = sparsity_set(this, newVal, obj, name)
+    function  [] = sparsity_set(this, newVal, obj, name, args)
+      t = obj;
+      t(args{(1 : numel(args))}) = newVal;
+      newVal = t;
+      
       if (~isnumeric(newVal))
 % we will exit if the newval is not a matrix
         return;
