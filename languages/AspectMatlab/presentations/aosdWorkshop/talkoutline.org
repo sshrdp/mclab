@@ -3,126 +3,126 @@
 ** goal of project
    - Provide an extensible 
 ** basic structure
-* Extensible design
-** intro
-   provide different abstractions and paradigms to scientific
-   programmers
-   - new data structure capabilities
-   - new control flow 
-   - different language constructs
-** Tools
-*** Metalexer
-    boxy picture with colours explaining how it merges new stuff
-*** JastAdd Parser
-*** JastAdd
-*** Analysis system
-    Just a brief mention saying we think this is important hav
+** Extensible design
+*** intro
+    provide different abstractions and paradigms to scientific
+    programmers
+    - new data structure capabilities
+    - new control flow 
+    - different language constructs
+*** Tools
+**** Metalexer
+     boxy picture with colours explaining how it merges new stuff
+**** JastAdd Parser
+**** JastAdd
+**** Analysis system
+     Just a brief mention saying we think this is important hav
 * Aspect Matlab
   glue that sticks the general discussion of the frontend to the
   specific case 
   This is a specific extension
   Maybe talk about the possibility of having other extensions of the
   main project and 
-* Anton applications
-** Matlab intro
-   - scope of matlab. Who does Matlab?
+** Anton applications
+*** Matlab intro
+    - scope of matlab. Who does Matlab?
 
-** language
-   - dynamically typed
-   - everything is an array
-   - all operations are on matrizes
-   - functions and array indexing looks the same
+*** language
+    - dynamically typed
+    - everything is an array
+    - all operations are on matrizes
+    - functions and array indexing looks the same
 
-   - scripts 
-   - functions
+    - scripts 
+    - functions
 
-** why an aspect matlab?
-   seems weird:
-   matlab programs small, scientific computing doesn't rely on classes
+*** why an aspect matlab?
+    seems weird:
+    matlab programs small, scientific computing doesn't rely on classes
 
 
-   matlab has some domain
-   aspect matlab has some domain
-   - so far aspects are not written for specific programs
-   - two scopes
-     - profiling existing programs
-     - extending functionality
+    matlab has some domain
+    aspect matlab has some domain
+    - so far aspects are not written for specific programs
+    - two scopes
+      - profiling existing programs
+      - extending functionality
 
-* Domain specific challenges
-** describe matlab issues
-*** Matlab very dynamic
-*** confusing syntax and semantics
-**** change depending on environment
-     fn vs script
-*** weaving 
-    - if you can't tell if a name use is a variable access or a
-      function call then how do you weave gets
-    - simple runtime checks could work, but naive ones change
-      semantics of the code and introduce unwanted use of unwanted
-      features
-*** need analysis
-**** how it fits into the projects
-**** what it does
-* Use cases
-** profiling
-*** overview
-    - extra pointcuts allow very detailed view of whats going on
-    - all the context information provides even more info
-      at the same time
-    - scientific programming is basically matrix computations
-    - performance is of paramount importance
-    - also, knowing all sorts of other properties of your programs helps
-      --> it's a domain where you want to know exactly what's going on in your program
+** Domain specific challenges
+*** describe matlab issues
+**** Matlab very dynamic
+**** confusing syntax and semantics
+***** change depending on environment
+      fn vs script
+**** weaving 
+     - if you can't tell if a name use is a variable access or a
+       function call then how do you weave gets
+     - simple runtime checks could work, but naive ones change
+       semantics of the code and introduce unwanted use of unwanted
+       features
+**** need analysis
+***** how it fits into the projects
+***** what it does
+** Use cases
+*** profiling
+**** overview
+     - extra pointcuts allow very detailed view of whats going on
+     - all the context information provides even more info
+       at the same time
+     - scientific programming is basically matrix computations
+     - performance is of paramount importance
+     - also, knowing all sorts of other properties of your programs helps
+       --> it's a domain where you want to know exactly what's going on in your program
 
-*** examples
-**** flops 1)
-     just count flops - could be done in matlab
-     -- aspects: one file
+**** examples
+***** flops 1)
+      just count flops - could be done in matlab
+      -- aspects: one file
 
-**** flops 2)
-     enclosing balablabla
-     -- need aspects now
-     -- keep 'stack'
+***** flops 2)
+      enclosing balablabla
+      -- need aspects now
+      -- keep 'stack'
 
-**** track sparsity
-**** numerical errors?
-     -- now we are doing something crazy, overriding all data etc.
-     -- override loops, too
+***** track sparsity
+***** numerical errors?
+      -- now we are doing something crazy, overriding all data etc.
+      -- override loops, too
 
-** extending functionality
-   - we have an extensible toolkit (McLab)
-   - we can use aspects for rapid prototyping of new functionality
+*** extending functionality
+    - we have an extensible toolkit (McLab)
+    - we can use aspects for rapid prototyping of new functionality
 
-*** examples
-**** case 1)
-     add some functions
-     - really simple, could be done with just dumping some .m files in the
-       same dir
+**** examples
+***** case 1)
+      add some functions
+      - really simple, could be done with just dumping some .m files in the
+        same dir
 
-**** case 2)
-     iteration space tricks
-     consier new sntax addition
-     for [x,i] = Z
-     ...
-     end
+***** case 2)
+      iteration space tricks
+      consier new sntax addition
+      for [x,i] = Z
+      ...
+      end
 
-     - more complicated - functions expose context information
+      - more complicated - functions expose context information
 
-**** case 3)
-     unit benchmark
-     consider new addition of units
-     x = 3*m
-     ... (example from example)
+***** case 3)
+      unit benchmark
+      consider new addition of units
+      x = 3*m
+      ... (example from example)
 
-     - we have some functions, but they affect all the data types. we have
-       to annotate all data
-     - we need to override loops as well
+      - we have some functions, but they affect all the data types. we have
+        to annotate all data
+      - we need to override loops as well
 
-* outlook
-** theme in current examples
-   all these ideas regarding abstract interpretation
-   - many aspects attach information to variables
-   - one cold create a special kind of aspect that allows one to attach
-     data like attributes, and then specifies how this data changes
-     (flows) through operations etc.
+** outlook
+*** theme in current examples
+    all these ideas regarding abstract interpretation
+    - many aspects attach information to variables
+    - one cold create a special kind of aspect that allows one to attach
+      data like attributes, and then specifies how this data changes
+      (flows) through operations etc.
 
