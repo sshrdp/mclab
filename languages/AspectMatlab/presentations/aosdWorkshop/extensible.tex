@@ -1,2 +1,39 @@
-%\subsection{intro}
-%\subsection{Tools}
+\begin{frame}{Extensible design}
+  \begin{columns}
+    \begin{column}{5cm}
+      \only<1>{Show Entire McLab diagram}
+      \only<2>{Show Mclab with Scanner highlighted}
+      \only<3>{Parser and AST highlighted}
+      \only<4>{Analysis highlighted}
+    \end{column}
+    \begin{column}{5cm}
+      \begin{onlyenv}<2>
+        \begin{block}{Metalexer}
+          Metalexer diagram (not sure if I can actually put a fig in a block)
+        \end{block}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{block}{JastAdd}
+          \begin{itemize}
+          \item JastAdd parser generator
+          \item JastAdd 
+            \begin{itemize}
+            \item Extensible AST specification
+            \item Attribute grammar
+            \item Specialized aspect system
+            \item Used in ABC
+            \end{itemize}
+          \end{itemize}
+        \end{block}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{block}{Analysis framework}
+          \begin{itemize}
+          \item Extendable to new language features
+          \item Use existing analyses in extensions
+          \end{itemize}
+        \end{block}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
