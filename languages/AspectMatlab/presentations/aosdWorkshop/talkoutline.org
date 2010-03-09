@@ -18,10 +18,8 @@
      Just a brief mention saying we think this is important hav
 * Aspect Matlab
   glue that sticks the general discussion of the frontend to the
-  specific case 
-  This is a specific extension
-  Maybe talk about the possibility of having other extensions of the
-  main project and 
+  specific case This is a specific extension Maybe talk about the
+  possibility of having other extensions of the main project and
 ** Anton applications
 *** Matlab intro
     - scope of matlab. Who does Matlab?
