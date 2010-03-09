@@ -5,8 +5,7 @@
 ** basic structure
 ** Extensible design
 *** intro
-    provide different abstractions and paradigms to scientific
-    programmers
+    provide different abstractions and paradigms to scientific programmers
     - new data structure capabilities
     - new control flow 
     - different language constructs
