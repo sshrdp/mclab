@@ -22,16 +22,16 @@
   possibility of having other extensions of the main project and
 ** Anton applications
 *** Matlab intro
+    - oh btw, its a language
     - scope of matlab. Who does Matlab?
 
 *** language
     - dynamically typed
     - everything is an array
-    - all operations are on matrizes
+    - all operations are on matrices
     - functions and array indexing looks the same
 
-    - scripts 
-    - functions
+    - scripts vs functions
 
 *** why an aspect matlab?
     seems weird:
@@ -59,7 +59,7 @@
        features
 **** need analysis
 ***** how it fits into the projects
-***** what it does
+***** what intot does
 ** Use cases
 *** profiling
 **** overview
@@ -115,7 +115,7 @@
         to annotate all data
       - we need to override loops as well
 
-** outlook
+** outlook and conclusion
 *** theme in current examples
     all these ideas regarding abstract interpretation
     - many aspects attach information to variables
