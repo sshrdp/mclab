@@ -1,0 +1,41 @@
+
+* McLab
+** goal of project
+** basic structure
+* Extensible design
+** intro
+   provide different abstractions and paradigms to scientific
+   programmers
+   - new data structure capabilities
+   - new control flow 
+   - different language constructs
+** Tools
+*** Metalexer
+    boxy picture with colours explaining how it merges new stuff
+*** JastAdd Parser
+*** JastAdd
+*** Analysis system
+    Just a brief mention saying we think this is important have
+* Aspect Matlab
+  glue that sticks the general discussion of the frontend to the
+  specific case 
+  This is a specific extension
+  Maybe talk about the possibility of having other extensions of the
+  main project and 
+* Anton applications
+* Domain specific challenges
+** describe matlab issues
+*** Matlab very dynamic
+*** confusing syntax and semantics
+**** change depending on environment
+     fn vs script
+*** weaving 
+    - if you can't tell if a name use is a variable access or a
+      function call then how do you weave gets
+    - simple runtime checks could work, but naive ones change
+      semantics of the code and introduce unwanted use of unwanted
+      features
+*** need analysis
+**** how it fits into the projects
+**** what it does
+* Anton examples 
