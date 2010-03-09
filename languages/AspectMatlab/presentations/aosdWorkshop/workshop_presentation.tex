@@ -1,0 +1,254 @@
+\documentclass{beamer}
+
+
+
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+\newcommand\PYZat{@}
+\newcommand\PYZlb{[}
+\newcommand\PYZrb{]}
+\newcommand\PYbh[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand\PYbg[1]{\textcolor[rgb]{0.73,0.40,0.53}{\textbf{#1}}}
+\newcommand\PYbf[1]{\textcolor[rgb]{0.82,0.25,0.23}{\textbf{#1}}}
+\newcommand\PYbe[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYbd[1]{\textcolor[rgb]{0.73,0.13,0.13}{#1}}
+\newcommand\PYbc[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand\PYbb[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand\PYba[1]{\textcolor[rgb]{0.00,0.00,0.50}{\textbf{#1}}}
+\newcommand\PYaJ[1]{\textcolor[rgb]{0.69,0.00,0.25}{#1}}
+\newcommand\PYaK[1]{\textcolor[rgb]{0.73,0.13,0.13}{#1}}
+\newcommand\PYaH[1]{\textcolor[rgb]{0.50,0.00,0.50}{\textbf{#1}}}
+\newcommand\PYaI[1]{\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{#1}}
+\newcommand\PYaN[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand\PYaO[1]{\textcolor[rgb]{0.00,0.00,1.00}{\textbf{#1}}}
+\newcommand\PYaL[1]{\textcolor[rgb]{0.00,0.00,1.00}{#1}}
+\newcommand\PYaM[1]{\textcolor[rgb]{0.73,0.73,0.73}{#1}}
+\newcommand\PYaB[1]{\textcolor[rgb]{0.73,0.13,0.13}{#1}}
+\newcommand\PYaC[1]{\textcolor[rgb]{0.67,0.13,1.00}{#1}}
+\newcommand\PYaA[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand\PYaF[1]{\textcolor[rgb]{0.63,0.00,0.00}{#1}}
+\newcommand\PYaG[1]{\textcolor[rgb]{1.00,0.00,0.00}{#1}}
+\newcommand\PYaD[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand\PYaE[1]{\textcolor[rgb]{0.25,0.50,0.50}{\textit{#1}}}
+\newcommand\PYaZ[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand\PYaX[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand\PYaY[1]{\textcolor[rgb]{0.73,0.13,0.13}{#1}}
+\newcommand\PYaR[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYaS[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand\PYaP[1]{\textcolor[rgb]{0.00,0.00,0.50}{\textbf{#1}}}
+\newcommand\PYaQ[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand\PYaV[1]{\textcolor[rgb]{0.00,0.00,1.00}{\textbf{#1}}}
+\newcommand\PYaW[1]{\textcolor[rgb]{0.73,0.13,0.13}{#1}}
+\newcommand\PYaT[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYaU[1]{\textcolor[rgb]{0.25,0.50,0.50}{\textit{#1}}}
+\newcommand\PYaj[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand\PYak[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand\PYah[1]{\textcolor[rgb]{0.63,0.63,0.00}{#1}}
+\newcommand\PYai[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand\PYan[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYao[1]{\textcolor[rgb]{0.73,0.40,0.13}{\textbf{#1}}}
+\newcommand\PYal[1]{\textcolor[rgb]{0.25,0.50,0.50}{\textit{#1}}}
+\newcommand\PYam[1]{\textbf{#1}}
+\newcommand\PYab[1]{\textit{#1}}
+\newcommand\PYac[1]{\textcolor[rgb]{0.73,0.13,0.13}{#1}}
+\newcommand\PYaa[1]{\textcolor[rgb]{0.50,0.50,0.50}{#1}}
+\newcommand\PYaf[1]{\textcolor[rgb]{0.25,0.50,0.50}{\textit{#1}}}
+\newcommand\PYag[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYad[1]{\textcolor[rgb]{0.00,0.25,0.82}{#1}}
+\newcommand\PYae[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYaz[1]{\textcolor[rgb]{0.00,0.63,0.00}{#1}}
+\newcommand\PYax[1]{\textcolor[rgb]{0.60,0.60,0.60}{\textbf{#1}}}
+\newcommand\PYay[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand\PYar[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand\PYas[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand\PYap[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand\PYaq[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand\PYav[1]{\textcolor[rgb]{0.67,0.13,1.00}{\textbf{#1}}}
+\newcommand\PYaw[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand\PYat[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand\PYau[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+
+
+
+
+
+
+
+
+% own commands
+\newcommand{\pv}{\pause \vspace{1ex}}
+
+\newcommand{\tbf}{\textbf}
+\newcommand{\tsc}{\textsc}
+\newcommand{\Ra}{\Rightarrow}
+\newcommand{\La}{\Leftarrow}
+\newcommand{\agn}{\leftarrow}
+\newcommand{\nat}{\mathbb{N}}
+\newcommand{\natn}{\mathbb{N}_0}
+\newcommand{\Ree}{\mathbb{R}}
+\newcommand{\Rn}{\mathbb{R}^n}
+\newcommand{\Rm}{\mathbb{R}^m}
+\newcommand{\Rmn}{\mathbb{R}^{m \times n}}
+\newcommand{\Gr}{$G = (V,E)$ }
+\newcommand{\gGr}{$D = (V,E)$ }
+\newcommand{\Gwfkt}{$c: E \rightarrow \mathbb{R}$ }
+\newcommand{\Gwfktp}{$c: E \rightarrow \mathbb{R}_0^+$ }
+\newcommand{\Gwfktg}{$c: E \rightarrow \mathbb{N}_0$ }
+\newcommand{\Gwfktn}{$c: E \rightarrow \mathbb{N}$ }
+\newcommand{\Cut}{$(S,V \setminus S)$ }
+\newcommand{\Lra}{\Leftrightarrow}
+\newcommand{\Nw}{$(D;s,t;c)$ }
+\newcommand{\Flu}{$f: E \rightarrow \mathbb{R}_0^+$ }
+\newcommand{\Flue}{$f: E' \rightarrow \mathbb{R}$ }
+\newcommand{\NP}{\mathcal{NP}}
+\newcommand{\NPC}{\mathcal{NPC}}
+\newcommand{\RP}{\mathcal{RP}}
+\newcommand{\PP}{\mathcal{PP}}
+\newcommand{\BPP}{\mathcal{BPP}}
+\renewcommand{\Pr}{\text{Pr}}
+\newcommand{\NC}{\mathcal{NC}}
+\newcommand{\SC}{\mathcal{SC}}
+\newcommand{\FPT}{\mathcal{FPT}}
+
+
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calK}{\mathcal{K}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calU}{\mathcal{U}}
+
+
+\newcommand{\isep}{\addtolength{\itemsep}{0.25\baselineskip}}
+\newcommand{\isepp}{\addtolength{\itemsep}{0.125\baselineskip}}
+
+%\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tikz}
+
+\usepackage[usenames,dvipsnames]{pstricks}
+\usepackage{epsfig}
+\usepackage{pst-grad} % For gradients
+\usepackage{pst-plot} % For axes
+
+
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\floatname{algorithm}{Algorithmus}
+\renewcommand{\listalgorithmname}{Liste der Algorithmen}
+\newcommand{\Eingabe}[1]{\STATE \tbf{Eingabe}: #1 \\}
+\newcommand{\Ausgabe}[1]{\STATE \tbf{Ausgabe}: #1 \\}
+\newcommand{\Seffekte}[1]{\STATE \tbf{Seiteneffekte}: #1 \\}
+\newcommand{\Vorb}[1]{\STATE \tbf{Vorbedingungen}: #1 \\}
+\renewcommand{\algorithmicif}{\textbf{Falls}}
+\renewcommand{\algorithmicthen}{}
+\renewcommand{\algorithmicelse}{\textbf{Sonst}}
+\renewcommand{\algorithmicwhile}{\textbf{Solange}}
+\renewcommand{\algorithmicdo}{}
+\renewcommand{\algorithmicfor}{\textbf{Für}}
+\renewcommand{\algorithmicforall}{\textbf{Für alle}}
+\definecolor{mygray}{gray}{.20}
+\renewcommand{\algorithmiccomment}[1]{\textcolor{mygray}{ // #1}}
+
+\usepackage{stmaryrd}
+
+
+
+\usetheme{Singapore}
+\usecolortheme{seahorse}
+\usecolortheme{rose}
+\setbeamercovered{invisible}
+\beamertemplatenavigationsymbolsempty
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{theorems}[numbered]
+\setbeamertemplate{navigation symbols}{}
+
+\setlength{\parindent}{0pt}
+\setcounter{topnumber}{1}
+
+%\renewcommand{\qedsymbol}{\ }
+%\theoremstyle{default}
+\newtheorem{satz}[theorem]{Satz}
+%\newtheorem{behauptung}{Behauptung}
+
+% \usepackage{setspace}
+% \onehalfspacing
+\renewcommand{\baselinestretch}{1.25}
+
+\definecolor{darkblue}{rgb}{0,0,.5}
+
+
+% \newenvironment{Ventry}[1]%
+% {\begin{list}{}{\renewcommand{\makelabel}[1]{\textsf{##1:}\hfil}%
+% \settowidth{\labelwidth}{\textsf{#1:}}%
+% \setlength{\leftmargin}{\labelwidth + \labelsep}}}%
+% {\end{list}}
+
+\mode<presentation>
+
+% shadow of not yet presented items
+\setbeamercovered{invisible}
+\beamertemplatenavigationsymbolsempty
+
+% View structure of presentation before new section
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>{AspectJ}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>{AspectJ}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+\begin{document}
+\title{McLab and AspectMatlab}
+\subtitle{\small{A Domain Specific Extensible Compiler Framework and
+    Example Extension}}
+
+\author{Jesse Doherty and Anto Dubrau} 
+\date{Some date?} 
+
+
+\small
+\setbeamerfont{block title}{size=\small}
+\setbeamerfont{frametitle}{size=\normalsize}
+
+\frame{\titlepage} 
+
+\frame{\frametitle{AspectJ}\tableofcontents[pausesections,pausesubsections]} 
+
+\section{Introduction}
+\subsection{McLab!!!}
+\begin{frame}
+McLab is awesome!
+\end{frame}
+\begin{frame}
+  \begin{block}
+    foo
+  \end{block}
+  \begin{block}
+    bar
+  \end{block}
+\end{frame}
+\begin{frame}
+  \begin{itemize}
+  \item this is a bullet list
+  \end{itemize}
+\end{frame}
+\end{document}
