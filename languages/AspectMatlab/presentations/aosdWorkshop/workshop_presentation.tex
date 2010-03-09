@@ -172,7 +172,7 @@
 \beamertemplatenavigationsymbolsempty
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{theorems}[numbered]
-\setbeamertemplate{navigation symbols}{}
+%\setbeamertemplate{navigation symbols}{}
 
 \setlength{\parindent}{0pt}
 \setcounter{topnumber}{1}
@@ -202,19 +202,19 @@
 \beamertemplatenavigationsymbolsempty
 
 % View structure of presentation before new section
-\AtBeginSection[]
-{
-  \begin{frame}<beamer>{AspectJ}
-    \tableofcontents[currentsection,currentsubsection]
-  \end{frame}
-}
+% \AtBeginSection[]
+% {
+%   \begin{frame}<beamer>{AspectJ}
+%     \tableofcontents[currentsection,currentsubsection]
+%   \end{frame}
+% }
 
-\AtBeginSubsection[]
-{
-  \begin{frame}<beamer>{AspectJ}
-    \tableofcontents[currentsection,currentsubsection]
-  \end{frame}
-}
+% \AtBeginSubsection[]
+% {
+%   \begin{frame}<beamer>{AspectJ}
+%     \tableofcontents[currentsection,currentsubsection]
+%   \end{frame}
+% }
 
 \begin{document}
 \title{McLab and AspectMatlab}
@@ -231,7 +231,7 @@
 
 \frame{\titlepage} 
 
-\frame{\frametitle{AspectJ}\tableofcontents[pausesections,pausesubsections]} 
+%\frame{\frametitle{AspectJ}\tableofcontents[pausesections,pausesubsections]} 
 
 \section{Introduction}
 \subsection{McLab!!!}
@@ -239,10 +239,10 @@
 McLab is awesome!
 \end{frame}
 \begin{frame}
-  \begin{block}
+  \begin{block}{foo block title?}
     foo
   \end{block}
-  \begin{block}
+  \begin{block}{bar block title?}
     bar
   \end{block}
 \end{frame}
