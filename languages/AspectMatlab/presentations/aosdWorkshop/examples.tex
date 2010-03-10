@@ -1,0 +1,95 @@
+\section{Examples}
+\subsection{Profiling}
+% intro
+** Use cases
+
+*** profiling
+**** overview
+     - extra pointcuts allow very detailed view of whats going on
+     - all the context information provides even more info
+       at the same time
+     - scientific programming is basically matrix computations
+     - performance is of paramount importance
+     - also, knowing all sorts of other properties of your programs helps
+       --> it's a domain where you want to know exactly what's going on in your program
+% flops 1
+\begin{frame}{Profiling I - flops}
+  \begin{itemize}
+  \item in scientific/numerical computing, computational complexity is
+  counted in flops
+  \item knowing how many flops are made is useful
+  \item we can intercept all calls to operations and accumulate
+  estimates for flops
+  \item (example for estimating flops of mul?) ... example code?
+  \item this could be done with just plain Matlab
+  \item aspect matlab allows us to collect all this functionatliay
+  (concern?) into one single aspect
+  \end{itemize}
+\end{frame}
+
+% flops 2
+\begin{frame}{Profiling II - flops extended}
+  \begin{itemize}
+  \item supposse now we want to know where the flops occur, with
+  enclosing info like in a profiler
+  \item example
+  \item now we don't only intercept functions, but also function calls
+  \item we keep track of the flops in a stack
+  \item we need context information
+  \item in plain matlab, this is not possible without extensively
+  modifying the original code
+  \end{itemize}
+\end{frame}
+
+% flops 3
+\begin{frame}{Profiling III - interval arithmetic}
+  \begin{itemize}
+  \item lets go deeper into acally changing the original program
+  \item supposse we want upper ad lower bounds on numerical errors
+  (precision)
+  \item we can override all variables to be a structure including the
+  original value and the new annotated information
+  \item diagram (var) --> structure: value, some tag, annotated info
+  ---- should this actually be a class???
+  \item 
+  \end{itemize}
+\end{frame}
+
+
+\subsection{Extending Functionality}
+
+*** extending functionality
+    - we have an extensible toolkit (McLab)
+    - we can use aspects for rapid prototyping of new functionality
+    - we can use aspects for writing libraries
+
+\begin{frame}{Extending Functionality I}
+***** case 1)
+      add some functions
+      - really simple, could be done with just dumping some .m files in the
+        same dir
+\end{frame}
+\begin{frame}{Extending Functionality II}
+***** case 2)
+      iteration space tricks
+      consier new sntax addition
+      for [x,i] = Z
+      ...
+      end
+
+      - more complicated - functions expose context information
+
+\end{frame}
+\begin{frame}{Extending Functionality III}
+***** case 3)
+      unit benchmark
+      consider new addition of units
+      x = 3*m
+      ... (example from example)
+
+      - we have some functions, but they affect all the data types. we have
+        to annotate all data
+      - we need to override loops as well
+
+\end{frame}
+

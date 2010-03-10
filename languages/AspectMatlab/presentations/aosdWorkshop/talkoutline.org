@@ -1,5 +1,14 @@
 
 * McLab
+** Matlab intro
+    - scope of matlab. Who does Matlab?
+*** language
+    - dynamically typed
+    - everything is an array
+    - all operations are on matrices
+    - functions and array indexing looks the same
+    - scripts vs functions
+
 ** goal of project
    - Provide an extensible 
 ** basic structure
@@ -21,18 +30,6 @@
   specific case This is a specific extension Maybe talk about the
   possibility of having other extensions of the main project and
 ** Anton applications
-*** Matlab intro
-    - oh btw, its a language
-    - scope of matlab. Who does Matlab?
-
-*** language
-    - dynamically typed
-    - everything is an array
-    - all operations are on matrices
-    - functions and array indexing looks the same
-
-    - scripts vs functions
-
 *** why an aspect matlab?
     seems weird:
     matlab programs small, scientific computing doesn't rely on classes
@@ -45,21 +42,6 @@
       - profiling existing programs
       - extending functionality
 
-** Domain specific challenges
-*** describe matlab issues
-**** Matlab very dynamic
-**** confusing syntax and semantics
-***** change depending on environment
-      fn vs script
-**** weaving 
-     - if you can't tell if a name use is a variable access or a
-       function call then how do you weave gets
-     - simple runtime checks could work, but naive ones change
-       semantics of the code and introduce unwanted use of unwanted
-       features
-**** need analysis
-***** how it fits into the projects
-***** what intot does
 ** Use cases
 *** profiling
 **** overview
@@ -116,10 +98,27 @@
       - we need to override loops as well
 
 ** outlook and conclusion
+** Domain specific challenges
+*** describe matlab issues
+**** Matlab very dynamic
+**** confusing syntax and semantics
+***** change depending on environment
+      fn vs script
+**** weaving 
+     - if you can't tell if a name use is a variable access or a
+       function call then how do you weave gets
+     - simple runtime checks could work, but naive ones change
+       semantics of the code and introduce unwanted use of unwanted
+       features
+**** need analysis
+***** how it fits into the projects
+***** what intot does
 *** theme in current examples
     all these ideas regarding abstract interpretation
     - many aspects attach information to variables
     - one cold create a special kind of aspect that allows one to attach
       data like attributes, and then specifies how this data changes
       (flows) through operations etc.
+
+
 
