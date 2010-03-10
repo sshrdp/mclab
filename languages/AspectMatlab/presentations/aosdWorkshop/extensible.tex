@@ -1,10 +1,10 @@
-\begin{frame}{Extensible design}
-  \begin{columns}
+\begin{frame}[t]{Extensible design}
+  \begin{columns}[T]
     \begin{column}{5cm}
-      \only<1>{Show Entire McLab diagram}
-      \only<2>{Show Mclab with Scanner highlighted}
-      \only<3>{Parser and AST highlighted}
-      \only<4>{Analysis highlighted}
+      \only<1>{\includegraphics{images/mclab_plain.pdf}}
+      \only<2>{\includegraphics{images/mclab_scanner.pdf}}
+      \only<3>{\includegraphics{images/mclab_jastadd.pdf}}
+      \only<4>{\includegraphics{images/mclab_analysis.pdf}}
     \end{column}
     \begin{column}{5cm}
       \begin{onlyenv}<1>
@@ -17,8 +17,12 @@
         \end{block}
       \end{onlyenv}
       \begin{onlyenv}<2>
-        \begin{block}{Metalexer}
-          Metalexer diagram (not sure if I can actually put a fig in a block)
+        \begin{block}{Metalexer
+          \vspace{1ex}}
+          \begin{center}
+            \includegraphics[scale=0.7]{images/metalexer.pdf}
+          \end{center}
+
         \end{block}
       \end{onlyenv}
       \begin{onlyenv}<3>
