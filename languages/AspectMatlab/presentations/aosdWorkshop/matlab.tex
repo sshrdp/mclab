@@ -1,3 +1,103 @@
-\begin{frame}
-  introduction to matlab
+\begin{frame}[fragile]
+  \begin{columns}
+    % code on the left
+    \begin{column}{5cm}
+      \begin{onlyenv}<1>
+        \begin{Verbatim}[commandchars=@\[\]]
+function plotThis(f,n)
+  for i = 1:n
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+end
+
+
+
+>> plotThis(at log,100) %TODO
+        \end{Verbatim}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{Verbatim}[commandchars=@\[\]]
+function plotThis(f,n)
+  for i = 1:n
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+end
+
+
+
+>> plotThis(at log,100) %TODO
+        \end{Verbatim}
+      \end{onlyenv}
+      \begin{onlyenv}<3>
+        \begin{Verbatim}[commandchars=@\[\]]
+function plotThis(f,n,M)
+  for i = 1:n
+    y(i) = f(i)
+  end
+  y = M*y
+  plot(1:n,y)
+end
+
+
+>> plotThis(at log,100)
+        \end{Verbatim}
+      \end{onlyenv}
+      \begin{onlyenv}<4>
+        \begin{Verbatim}[commandchars=@\[\]]
+function plotThis(f,x,M)
+  y = [];
+  for t = x
+    y = [y; f(i)]
+  end
+  y = M*y
+  plot(1:n,y)
+end
+
+>> plotThis(at log,0:.1:10)
+        \end{Verbatim}
+      \end{onlyenv}
+      \begin{onlyenv}<5>
+        \begin{Verbatim}[commandchars=@\[\]]
+
+  y = [];
+  for t = x
+    y = [y; f(i)]
+  end
+  y = M*y
+  plot(1:n,y)
+
+x, y, M = ?
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+    \end{column}
+
+
+    % descriptions on the right
+    \begin{column}{5cm}
+      \begin{onlyenv}<1>
+        \begin{itemize}
+          \item Matlab! (mad scientist!)
+        \end{itemize}
+      \end{onlyenv}
+      \begin{onlyenv}<2>
+        \begin{itemize}
+          \item dynamically typed
+          \item everything is an array (even loops iterate over arrays)
+          \item functions vs variables confusion
+          \item functions vs scripts
+        \end{itemize}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+
+
+
 \end{frame}
+
+
+
+
+

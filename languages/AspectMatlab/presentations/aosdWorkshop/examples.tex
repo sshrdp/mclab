@@ -1,16 +1,15 @@
-%\subsection{Profiling}
+\subsection*{Profiling}
 % intro
-** Use cases
-
-*** profiling
-**** overview
-     - extra pointcuts allow very detailed view of whats going on
-     - all the context information provides even more info
+ profiling
+  \begin{itemize}
+  \item extra pointcuts allow very detailed view of whats going on
+  \item all the context information provides even more info
        at the same time
-     - scientific programming is basically matrix computations
-     - performance is of paramount importance
-     - also, knowing all sorts of other properties of your programs helps
-       --> it's a domain where you want to know exactly what's going on in your program
+   \item scientific programming is basically matrix computations
+   \item performance is of paramount importance
+    \item also, knowing all sorts of other properties of your programs helps
+    \item --> it's a domain where you want to know exactly what's going on in your program
+  \end{itemize}
 % flops 1
 \begin{frame}{Profiling I - flops}
   \begin{itemize}
@@ -55,40 +54,79 @@
 \end{frame}
 
 
-%\subsection{Extending Functionality}
+\subsection*{Extending Functionality}
 
-*** extending functionality
-    - we have an extensible toolkit (McLab)
-    - we can use aspects for rapid prototyping of new functionality
-    - we can use aspects for writing libraries
+ extending functionality
+\begin{itemize}
+\item we have an extensible toolkit (McLab)
+\item we can use aspects for rapid prototyping of new functionality
+\item we can use aspects for writing libraries
+\end{itemize}
 
 \begin{frame}{Extending Functionality I}
-***** case 1)
-      add some functions
-      - really simple, could be done with just dumping some .m files in the
+case 1)
+\begin{itemize}
+\item add some functions
+\item really simple, could be done with just dumping some .m files in the
         same dir
+\end{itemize}
 \end{frame}
-\begin{frame}{Extending Functionality II}
-***** case 2)
-      iteration space tricks
+\begin{frame}[fragile]{Extending Functionality II}
+ case 2)
+\begin{itemize}
+\item
       consier new sntax addition
+\begin{Verbatim}[commandchars=@\[\]]
       for [x,i] = Z
+\end{Verbatim}
       ...
       end
-
-      - more complicated - functions expose context information
-
+\item where x is the iteration variable, and i is the iteration count
+\item more complicated - functions expose context information
+\item code(?)
+\end{itemize}
 \end{frame}
-\begin{frame}{Extending Functionality III}
-***** case 3)
-      unit benchmark
-      consider new addition of units
-      x = 3*m
-      ... (example from example)
 
-      - we have some functions, but they affect all the data types. we have
-        to annotate all data
-      - we need to override loops as well
+
+
+
+\begin{frame}[fragile]{Extending Functionality III}
+case 3)
+\begin{itemize}
+\item unit benchmark
+\item consider new addition of units
+\end{itemize}
+\begin{lstlisting}[language=Matlab]
+bmi = 180*lb/(5*feet + 8*inches)^2
+t = AU/c
+\end{lstlisting}
+\begin{itemize}
+ \item we have some functions, but they affect all the data types.
+ \item we have to (override) annotate all data
+ \item we need to override loops as well
+\end{itemize}
+\begin{lstlisting}
+aspect unit
+properties
+units = struct(...
+  'm',  [1, 0, 0, 0, 0, 0, 0],...
+  'Kg', [0, 1, 0, 0, 0, 0, 0],...
+  's',  [0, 0, 1, 0, 0, 0, 0],...
+...
+  'J',  [2, 1,-2, 0, 0, 0, 0],...
+  'N',  [1, 1,-2, 0, 0, 0, 0]);
+end
+
+patterns
+allCalls : call(*());
+...
+end
+
+acalls : around allCalls : (name)
+if (isfield(this.units,name))
+...
+end
+\end{lstlisting}
 
 \end{frame}
 
