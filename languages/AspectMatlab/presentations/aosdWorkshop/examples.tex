@@ -1,35 +1,167 @@
+\begin{frame}{Why Aspect Matlab?}
+  \begin{onlyenv}<1>
+    An aspect extension to Matlab seems odd:
+    \begin{itemize}
+    \item matlab programs small, scientific computing doesn't rely on classes
+    \item cross cutting concerns is not an issue
+    \end{itemize}
+  \end{onlyenv}
+  \begin{onlyenv}<2-3>
+    % i was basically given the existing language and compiler and told
+    % "hey, you've taking some numerical classes, figure out how this is useful."
+     
+    % let's look at matlab's domain...
+    \begin{itemize}
+    \item matlab has some domain
+      \begin{itemize}
+      \item numerical/scientific computing
+      \end{itemize}
+    \end{itemize}
+  \end{onlyenv}
+  \begin{onlyenv}<3>
+    % ...and what are the core issues to programmers
+    \begin{itemize}
+    \item issues:
+      \begin{itemize}
+      \item performance
+        \begin{itemize}
+        \item matlab's libraries are fast, and the language is easy
+        \item but there are still many tricks to vastly improve
+          performance
+        \end{itemize}
+      \item domain specific utilities
+        \begin{itemize}
+        \item thousands of extensions
+        \end{itemize}
+      \end{itemize}
+    \end{itemize}
+  \end{onlyenv}
+  \begin{onlyenv}<4>
+    aspect matlab has some domain
+    \begin{itemize}
+    \item leverage these domains (performance, extensions)
+      \begin{itemize}
+      \item reusable aspects that help increase performance
+        by domain specific profiling
+      \end{itemize}
+    \item add domain specific utilities
+      \begin{itemize}
+      \item we can use aspects to extend functionality
+      \end{itemize}
+    \end{itemize}
+  \end{onlyenv}
+\end{frame}
+
+
 \subsection*{Profiling}
 % intro
- profiling
+%  profiling
+% matlab has fast libraries, but the language has a lot of bottlenecks
+% having a lot of detailed knowledge about one's program can help speed up performance
+% the aspect matlab language allows for very detailed pointcuts
+% before, around, after calling functions, setting and getting arrays
+% and provides a lot of context information for every shadow (?)
+% -- more on that in the actual talk on x
+
+% we can write reusable aspects that profile very specific properties
+% of a program
+% examples:
+\begin{frame}{Profiling}
   \begin{itemize}
-  \item extra pointcuts allow very detailed view of whats going on
-  \item all the context information provides even more info
-       at the same time
-   \item scientific programming is basically matrix computations
-   \item performance is of paramount importance
-    \item also, knowing all sorts of other properties of your programs helps
-    \item --> it's a domain where you want to know exactly what's going on in your program
-  \end{itemize}
+\item pointcuts get/set/call % allow very detailed view of whats going on
+\item a lot of context info  %all the context information provides even more info at the same time
+\item performance is important in this domain
+\begin{itemize}
+\item more knowledge improves performance 
+\end{itemize}
+%\item --> it's a domain where you want to know exactly what's going on in your program
+\end{itemize}
+\end{frame}
 % flops 1
-\begin{frame}{Profiling I - flops}
-  \begin{itemize}
-  \item in scientific/numerical computing, computational complexity is
-  counted in flops
-  \item knowing how many flops are made is useful
-  \item we can intercept all calls to operations and accumulate
-  estimates for flops
-  \item (example for estimating flops of mul?) ... example code?
-  \item this could be done with just plain Matlab
-  \item aspect matlab allows us to collect all this functionatliay
-  (concern?) into one single aspect
-  \end{itemize}
+\begin{frame}[fragile]{Profiling I - flops}
+  \begin{onlyenv}<1>
+    % let's say as a scientist/engineer i want to know where most
+    % compuations happens
+    % since my program is all matrizes, most of the program is spent doing
+    % matrix operations
+    % the basic unit of computational complexity is the floating point
+    % operation -- tend to be the most numerous and expensive part of a
+    % program -- numerical algorithms are counted and analyzed in flops
+    \begin{itemize}
+     \item where does computation happen?
+    \item most of the program - matrix computations
+    \item basic unit of computational complexity - flop
+      \begin{itemize}
+      \item most expensive and numerous
+      \item we count counted/analyze programs in flops
+      \end{itemize}
+    \item goal: aspect that tells us the total flops
+    \end{itemize}
+  \end{onlyenv}
+    \begin{columns}
+      \begin{column}{5cm}
+        \begin{onlyenv}<2>
+          \begin{Verbatim}[commandchars=@\[\]]
+aspect flops
+  ...
+  patterns
+    pplus : call(plus)
+    pmul  : call(mtimes)
+    ...
+  end
+
+  actions
+    ...
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+        \begin{onlyenv}<3>
+          \begin{Verbatim}[commandchars=@\[\]]
+actions
+  around pplus : 
+    this.flops = this.flops + ..
+      numel(args{1})
+  end
+        
+  before pmtimes : (args)
+    [m,n] = size(args{1})
+    [n,k] = size(args{2})
+    this.flops = this.flops+2*m*n*k
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+      \end{column}
+      \begin{column}{5cm}
+        \begin{itemize}
+          \begin{onlyenv}<2-3>
+          \item we catch all operations
+          \item in a before we add estimated flops
+          \item we display result at the end
+            % this can be done in core matlab - but involves some
+            % hackery. also aspects allows this to be in one file,
+            % much shorter and easier
+          \end{onlyenv}
+        \end{itemize}
+      \end{column}
+    \end{columns}
+
+
+  % so we want to write an aspect that tells us how many flops
+  % every operation takes
+
+  % start left/right
+  % we simply overrade all operations (show aspect code overriding operations)
+  % and in the operations we can add up an estimate for computational of
+  % the flops (show advice adding stuff)
 \end{frame}
 
 % flops 2
 \begin{frame}{Profiling II - flops extended}
   \begin{itemize}
   \item supposse now we want to know where the flops occur, with
-  enclosing info like in a profiler
+    enclosing info like in a profiler
   \item example
   \item now we don't only intercept functions, but also function calls
   \item we keep track of the flops in a stack
@@ -40,58 +172,98 @@
 \end{frame}
 
 % flops 3
-\begin{frame}{Profiling III - interval arithmetic}
-  \begin{itemize}
-  \item lets go deeper into acally changing the original program
-  \item supposse we want upper ad lower bounds on numerical errors
-  (precision)
-  \item we can override all variables to be a structure including the
-  original value and the new annotated information
-  \item diagram (var) --> structure: value, some tag, annotated info
-  ---- should this actually be a class???
-  \item 
-  \end{itemize}
-\end{frame}
+%\begin{frame}{Profiling III - interval arithmetic}
+%  \begin{itemize}
+%  \item lets go deeper into acally changing the original program
+%  \item supposse we want upper ad lower bounds on numerical errors
+%  (precision)
+%  \item we can override all variables to be a structure including the
+%  original value and the new annotated information
+%  \item diagram (var) --> structure: value, some tag, annotated info
+%  ---- should this actually be a class???
+%  \item 
+%  \end{itemize}
+%\end{frame}
 
 
 \subsection*{Extending Functionality}
-
- extending functionality
-\begin{itemize}
-\item we have an extensible toolkit (McLab)
-\item we can use aspects for rapid prototyping of new functionality
-\item we can use aspects for writing libraries
-\end{itemize}
-
-\begin{frame}{Extending Functionality I}
-case 1)
-\begin{itemize}
-\item add some functions
-\item really simple, could be done with just dumping some .m files in the
-        same dir
-\end{itemize}
+\begin{frame}{Extending Functionality}
+  extending functionality
+  \begin{itemize}
+  \item we have an extensible toolkit (McLab)
+  \item we can use aspects for rapid prototyping of new functionality
+  \item we can use aspects for writing libraries
+  \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]{Extending Functionality I}
+  \begin{columns}
+    \begin{column}{5cm}
+          \begin{onlyenv}<1>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = empty
+  for t = x
+    y = [y; f(t)]
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
+          \begin{onlyenv}<2>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = x;
+  for [t,i] = x
+    y(i) = f(t);
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
+          \begin{onlyenv}<3>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = x;
+  for t = x
+    y(iteration) = f(t);
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
+
+      \end{column}
+      \begin{column}{5cm}
+      \begin{itemize}
+        \begin{onlyenv}<1-2>
+        \item consider our original example
+        \item we don't want to grow the array
+        \end{onlyenv}
+        \begin{onlyenv}<2>
+        \item now we need to now i
+        \item we propose a language extension 
+          \begin{itemize}
+          \item simply add iteration counter as second variable
+          \end{itemize}
+        \end{onlyenv}
+        \begin{onlyenv}<3>
+        \item implement via aspect
+        \item capture all loops
+        \item also capture calls to 'iteration'
+        \item store context info in loop advice
+        \item return that in around 'iteration'
+        \item 'iteration' will give us the count
+        \end{onlyenv}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+
+
 \begin{frame}[fragile]{Extending Functionality II}
- case 2)
-\begin{itemize}
-\item
-      consier new sntax addition
-\begin{Verbatim}[commandchars=@\[\]]
-      for [x,i] = Z
-\end{Verbatim}
-      ...
-      end
-\item where x is the iteration variable, and i is the iteration count
-\item more complicated - functions expose context information
-\item code(?)
-\end{itemize}
-\end{frame}
-
-
-
-
-\begin{frame}[fragile]{Extending Functionality III}
-case 3)
 \begin{itemize}
 \item unit benchmark
 \item consider new addition of units
@@ -128,5 +300,18 @@ if (isfield(this.units,name))
 end
 \end{lstlisting}
 
+\end{frame}
+
+\begin{frame}{Domain Specific Outlook}
+\begin{itemize}
+  \item several of our aspects override variables
+    \begin{itemize}
+    \item attach extra information to them
+    \end{itemize}
+  \item idea: incorporate this theme into a new class of aspects
+  \item one could have an aspect that annotates existing variables
+  \item operations should be specified on the annoations
+  \item a sort of abstract interpretation of annotations at runtime
+\end{itemize}
 \end{frame}
 

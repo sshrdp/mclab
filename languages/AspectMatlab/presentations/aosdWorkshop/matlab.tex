@@ -1,95 +1,361 @@
-\begin{frame}[fragile]
+
+\begin{frame}{Matlab}
+
+mad scientist
+
+Matlab!
+\begin{itemize}
+\item high level dynamic domain specific language
+\item focus on solving numerical problems quickly
+\item over one million users
+\end{itemize}
+
+\end{frame}
+\begin{frame}[fragile]{Matlab Features}
   \begin{columns}
     % code on the left
     \begin{column}{5cm}
+% let's look at some matlab features
+% we some script here that fills some variable y with the first n
+% values of some function f and plots them 
       \begin{onlyenv}<1>
-        \begin{Verbatim}[commandchars=@\[\]]
-function plotThis(f,n)
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
   for i = 1:n
     y(i) = f(i)
   end
   plot(1:n,y)
-end
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
 
-
-
->> plotThis(at log,100) %TODO
-        \end{Verbatim}
-      \end{onlyenv}
-      \begin{onlyenv}<2>
-        \begin{Verbatim}[commandchars=@\[\]]
-function plotThis(f,n)
-  for i = 1:n
-    y(i) = f(i)
-  end
-  plot(1:n,y)
-end
-
-
-
->> plotThis(at log,100) %TODO
-        \end{Verbatim}
-      \end{onlyenv}
-      \begin{onlyenv}<3>
-        \begin{Verbatim}[commandchars=@\[\]]
-function plotThis(f,n,M)
-  for i = 1:n
-    y(i) = f(i)
-  end
-  y = M*y
-  plot(1:n,y)
-end
-
-
->> plotThis(at log,100)
-        \end{Verbatim}
-      \end{onlyenv}
-      \begin{onlyenv}<4>
-        \begin{Verbatim}[commandchars=@\[\]]
-function plotThis(f,x,M)
-  y = [];
-  for t = x
-    y = [y; f(i)]
-  end
-  y = M*y
-  plot(1:n,y)
-end
-
->> plotThis(at log,0:.1:10)
-        \end{Verbatim}
-      \end{onlyenv}
-      \begin{onlyenv}<5>
-        \begin{Verbatim}[commandchars=@\[\]]
-
-  y = [];
-  for t = x
-    y = [y; f(i)]
-  end
-  y = M*y
-  plot(1:n,y)
-
-x, y, M = ?
+>> n = 100
 >> plotThis
         \end{Verbatim}
       \end{onlyenv}
+% we see that there is a simple and expressive syntax, like a
+% scripting language. Also notice that function calls and indexing expressions use the
+% same syntax, and from a compiler point of view we don't even know
+% which one is a function or a variable in this script
+      \begin{onlyenv}<2>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = 1:n
+    @PYaG[y(i) = f(i)]
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+>> n = 100
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% in particular the call to f looks like a function call - but only if
+% there is a function f.m on the environment path
+      \begin{onlyenv}<3>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = 1:n
+    y(i) = @PYaG[f(i)]
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+>> n = 100
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% but we could also just define f to be a variable, for example a
+% function handle - a function pointer of sorts - to the builtin in
+% logarithm function
+      \begin{onlyenv}<4>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = 1:n
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> n = 100
+@PYaG[>> f = at log]
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% This leads to another feature: Matlab is dynamically typed
+% in this case f is used as a function handle
+      \begin{onlyenv}<5>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = 1:n
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> n = 100
+@PYaG[>> f = at log]
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% in the following we build an array
+% note also how there are no type declarations
+      \begin{onlyenv}<6>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = 1:n
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> n = 100
+@PYaG[>> f = (1:100).^2]
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% On a side note, notice how the colon operator builds arrays filled with
+% all values from the first to the second operand in integer steps
+      \begin{onlyenv}<7>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = 1:n
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> n = 100
+>>f = @PYaG[(1:100)].^2
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% Also in the for loop, Matlab semantically creates an array of all
+% integer values from 1 to n. Thus a for loop is actually a for each
+% loop going over every element in an array
+      \begin{onlyenv}<8>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+
+  for i = @PYaG[1:n]
+    y(i) = f(i)
+  end
+  plot(1:n,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> n = 100
+>>f = @PYaG[(1:100)].^2
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% We could also just put an actually array there.
+% Here we actually define the iteration space in an array.
+% We fill y by starting it as an empty array and appending new elements
+% This illustrates another point: Every numerical variable in Matlab
+% is an array. Even scalar values are actually just 1x1 arrays
+      \begin{onlyenv}<9>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+  y = empty
+  @PYaG[for t = x]
+    y = [y; f(t)]
+  end
+  plot(x,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+@PYaG[>> x = (1:100)]
+>> f = (1:100).^2
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+
+% so instead of writing t
+      \begin{onlyenv}<10>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+  y = empty
+  for t = x
+    y = [y; f(@PYaG[t])]
+  end
+  plot(x,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> x = (1:100)
+>> f = (1:100).^2
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+
+% wou could also write
+% Note also how all numerical operations are actually on arrays,
+% either as matrix operations or elementwise operations
+      \begin{onlyenv}<11>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+  y = empty
+  for t = x
+    y = [y; f(@PYaG[t(1,1)])]
+  end
+  plot(x,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> x = (1:100)
+>> f = (1:100).^2 
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% like the element wise power operator here
+      \begin{onlyenv}<12>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+  y = empty
+  for t = x
+    y = [y; f(t)]
+  end
+  plot(x,y)
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> x = (1:100)
+>> f = (1:100)@PYaG[.^2] 
+>> plotThis
+        \end{Verbatim}
+      \end{onlyenv}
+% Notice that we used scripts before, but we
+% could as well use functions. They are defined with this funny header
+% here. Unlike scripts which 'live' in the environment of the caller,
+% functions have their own environment.
+% Thus with some work we can actually figure out statically what's a
+% variable and a function -- which we need to know to statically
+% weave. Jesse will get back to that later.
+      \begin{onlyenv}<13>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+@PYaG[function y=plotThis(f,x)]
+  y = empty
+  for t = x
+    y = [y; f(t)]
+  end
+  plot(x,y)
+@PYaG[end]
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> plotThis@PYaG[(at log,1:100)]
+        \end{Verbatim}
+      \end{onlyenv}
+
+
+% matlab has a few even more dynamic features, like evaluation of
+% strings, and powerful methods for introspection
+      \begin{onlyenv}<14>
+        \begin{block}{plotThis.m}
+          \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = empty
+  for t = x
+    y = [y; f(t)]
+  end
+  plot(x,y)
+end
+          \end{Verbatim}
+        \end{block}
+          \begin{Verbatim}[commandchars=@\[\]]
+>> plotThis@PYaG[(at log,1:100)]
+        \end{Verbatim}
+      \end{onlyenv}
+
     \end{column}
 
 
     % descriptions on the right
+%          \item dynamically typed
+%          \item everything is an array (even loops iterate over arrays)
+%          \item functions vs variables confusion
+%          \item functions vs scripts (functions allow you to figure
+%            what is a variable)
+
     \begin{column}{5cm}
-      \begin{onlyenv}<1>
-        \begin{itemize}
-          \item Matlab! (mad scientist!)
-        \end{itemize}
-      \end{onlyenv}
-      \begin{onlyenv}<2>
-        \begin{itemize}
-          \item dynamically typed
-          \item everything is an array (even loops iterate over arrays)
-          \item functions vs variables confusion
-          \item functions vs scripts
-        \end{itemize}
-      \end{onlyenv}
+      \begin{itemize}
+
+        \begin{onlyenv}<1-14>
+        \item simple syntax
+          \begin{onlyenv}<2-4>
+            \begin{itemize}
+            \item but function calls and indexing look the same
+            \end{itemize}         
+          \end{onlyenv}
+        \end{onlyenv}
+        
+        
+        \begin{onlyenv}<5-14>
+        \item dynamically typed
+          \begin{onlyenv}<6>
+            \begin{itemize}
+            \item no type declarations
+            \end{itemize}         
+          \end{onlyenv}
+        \end{onlyenv}
+
+        \begin{onlyenv}<8-14>
+        \item everything is an array
+          \begin{onlyenv}<8-12>
+            \begin{itemize}
+            \item for loops are for each loops over arrays
+            \end{itemize}    
+          \end{onlyenv}
+          \begin{onlyenv}<10-12>
+            \begin{itemize}
+            \item even scalars are arrays
+            \end{itemize}    
+          \end{onlyenv}
+          \begin{onlyenv}<12>
+            \begin{itemize}
+            \item all operations are on arrays
+            \end{itemize}    
+          \end{onlyenv}
+        \end{onlyenv}
+
+        \begin{onlyenv}<13-14>
+        \item functions vs scripts
+          \begin{onlyenv}<13>
+            \begin{itemize}
+            \item functions provide more knolwedge
+            \end{itemize}         
+          \end{onlyenv}
+        \end{onlyenv}
+
+        \begin{onlyenv}<14>
+        \item more dynamic features
+          \begin{onlyenv}<14>
+            \begin{itemize}
+            \item string evaluation
+            \item powerful introspection
+            \end{itemize}         
+          \end{onlyenv}
+        \end{onlyenv}
+
+
+      \end{itemize}
     \end{column}
   \end{columns}
 
