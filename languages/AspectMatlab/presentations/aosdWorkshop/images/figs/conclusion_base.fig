@@ -202,7 +202,7 @@ Single
 	1 1 1.00 60.00 120.00
 -6
 2 5 0 1 0 -1 51 -1 -1 0.000 0 0 -1 0 0 5
-	0 /home/2005/jdoher1/mclab/Project/languages/AspectMatlab/presentations/aosdWorkshop/images/logo.jpg
+	0 ../logo.jpg
 	 3400 1129 3985 1129 3985 1706 3400 1706 3400 1129
 2 2 1 0 0 44 51 -1 -1 2.000 0 0 -1 0 0 5
 	 1260 180 5850 180 5850 2700 1260 2700 1260 180
