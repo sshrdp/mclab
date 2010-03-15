@@ -2,8 +2,8 @@
   \begin{onlyenv}<1>
     An aspect extension to Matlab seems odd:
     \begin{itemize}
-    \item matlab programs small, scientific computing doesn't rely on classes
-    \item cross cutting concerns is not an issue
+    \item matlab programs small % even with libraries
+    \item scientific computing doesn't rely on classes
     \end{itemize}
   \end{onlyenv}
   \begin{onlyenv}<2-3>
@@ -16,11 +16,8 @@
       \begin{itemize}
       \item numerical/scientific computing
       \end{itemize}
-    \end{itemize}
-  \end{onlyenv}
-  \begin{onlyenv}<3>
     % ...and what are the core issues to programmers
-    \begin{itemize}
+    \uncover<3>{
     \item issues:
       \begin{itemize}
       \item performance
@@ -34,10 +31,11 @@
         \item thousands of extensions
         \end{itemize}
       \end{itemize}
+    }
     \end{itemize}
   \end{onlyenv}
   \begin{onlyenv}<4>
-    aspect matlab has some domain
+    aspect matlab domain
     \begin{itemize}
     \item leverage these domains (performance, extensions)
       \begin{itemize}
