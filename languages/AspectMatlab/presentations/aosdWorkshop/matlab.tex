@@ -1,14 +1,12 @@
 
 \begin{frame}{Matlab}
 
-mad scientist
 
-Matlab!
 \begin{itemize}
-\item high level dynamic domain specific language
-\item focus on solving numerical/engineering problems quickly
+\pause \item high level dynamic domain specific language
+\pause \item focus on solving numerical/engineering problems quickly
 % both productivity and speed of execution
-\item over one million users
+\pause \item over one million users
 \end{itemize}
 
 \end{frame}
@@ -88,7 +86,7 @@ Matlab!
         \end{block}
           \begin{Verbatim}[commandchars=@\[\]]
 >> n = 100
-@PYaG[>> f = at log]
+@PYaG[>> f = @at[]log]
 >> plotThis
         \end{Verbatim}
       \end{onlyenv}
@@ -106,7 +104,7 @@ Matlab!
         \end{block}
           \begin{Verbatim}[commandchars=@\[\]]
 >> n = 100
-@PYaG[>> f = at log]
+@PYaG[>> f = @at[]log]
 >> plotThis
         \end{Verbatim}
       \end{onlyenv}
@@ -175,7 +173,7 @@ Matlab!
           \begin{Verbatim}[commandchars=@\[\]]
   y = empty
   @PYaG[for t = x]
-    y = [y; f(t)]
+    y = @ob[]y; f(t)@cb
   end
   plot(x,y)
           \end{Verbatim}
@@ -193,7 +191,7 @@ Matlab!
           \begin{Verbatim}[commandchars=@\[\]]
   y = empty
   for t = x
-    y = [y; f(@PYaG[t])]
+    y = @ob[]y; f(@PYaG[t])@cb
   end
   plot(x,y)
           \end{Verbatim}
@@ -213,7 +211,7 @@ Matlab!
           \begin{Verbatim}[commandchars=@\[\]]
   y = empty
   for t = x
-    y = [y; f(@PYaG[t(1,1)])]
+    y = @ob[]y; f(@PYaG[t(1,1)])@cb[]
   end
   plot(x,y)
           \end{Verbatim}
@@ -230,7 +228,7 @@ Matlab!
           \begin{Verbatim}[commandchars=@\[\]]
   y = empty
   for t = x
-    y = [y; f(t)]
+    y = @ob[]y; f(t)@cb
   end
   plot(x,y)
           \end{Verbatim}
@@ -252,7 +250,7 @@ Matlab!
 @PYaG[function y=plotThis(f,x)]
   y = empty
   for t = x
-    y = [y; f(t)]
+    y = @ob[]y; f(t)@cb
   end
   plot(x,y)
 @PYaG[end]
@@ -271,7 +269,7 @@ Matlab!
 function y=plotThis(@PYaG[f],x)
   y = empty
   for t = x
-    y = [y; @PYaG[f](t)]
+    y = @ob[]y; @PYaG[f](t)@cb
   end
   plot(x,y)
 end
@@ -291,7 +289,7 @@ end
 function y=plotThis(f,x)
   y = empty
   for t = x
-    y = [y; f(t)]
+    y = @ob[]y; f(t)@cb
   end
   plot(x,y)
 end
@@ -316,58 +314,58 @@ end
       \begin{itemize}
 
         \begin{onlyenv}<1-15>
-        \item simple syntax
+        \item Simple syntax
           \begin{onlyenv}<2-4>
             \begin{itemize}
-            \item but function calls and indexing look the same
+            \item But function calls and indexing look the same
             \end{itemize}         
           \end{onlyenv}
         \end{onlyenv}
         
         
         \begin{onlyenv}<5-15>
-        \item dynamically typed
+        \item Dynamically typed
           \begin{onlyenv}<6>
             \begin{itemize}
-            \item no type declarations
+            \item No type declarations
             \end{itemize}         
           \end{onlyenv}
         \end{onlyenv}
 
         \begin{onlyenv}<8-15>
-        \item everything is an array
+        \item Everything is an array
           \begin{onlyenv}<8-12>
             \begin{itemize}
-            \item for loops are for each loops over arrays
+            \item For loops are for each loops over arrays
             \end{itemize}    
           \end{onlyenv}
           \begin{onlyenv}<10-12>
             \begin{itemize}
-            \item even scalars are arrays
+            \item Even scalars are arrays
             \end{itemize}    
           \end{onlyenv}
           \begin{onlyenv}<12>
             \begin{itemize}
-            \item all operations are on arrays
+            \item All operations are on arrays
             \end{itemize}    
           \end{onlyenv}
         \end{onlyenv}
 
         \begin{onlyenv}<13-15>
-        \item functions vs scripts
+        \item Functions vs scripts
           \begin{onlyenv}<13-14>
             \begin{itemize}
-            \item functions provide more knolwedge
+            \item Functions provide more knolwedge
             \end{itemize}         
           \end{onlyenv}
         \end{onlyenv}
 
         \begin{onlyenv}<15>
-        \item more dynamic features
+        \item More dynamic features
           \begin{onlyenv}<15>
             \begin{itemize}
-            \item e.g. string evaluation
-            \item powerful introspection
+            \item E.g. string evaluation
+            \item Powerful introspection
             \end{itemize}         
           \end{onlyenv}
         \end{onlyenv}

@@ -1,50 +1,54 @@
 \begin{frame}{Why Aspect Matlab?}
-  \begin{onlyenv}<1>
+  \begin{onlyenv}<1-2>
     An aspect extension to Matlab seems odd:
     \begin{itemize}
-    \item matlab programs small % even with libraries
-    \item scientific computing doesn't rely on classes
+    \item Matlab programs are small % even with libraries
+    \item Scientific computing doesn't rely on classes
     \end{itemize}
+    \uncover<2>{
+      \vspace{4ex}
+      \begin{itemize}
+      \item What is the domain of Aspect Matlab?
+      \end{itemize}  
+    }
   \end{onlyenv}
-  \begin{onlyenv}<2-3>
+  \begin{onlyenv}<3-4>
     % i was basically given the existing language and compiler and told
-    % "hey, you've taking some numerical classes, figure out how this is useful."
-     
+    % hey, you've taking some numerical classes, figure out how this is useful.     
     % let's look at matlab's domain...
     \begin{itemize}
-    \item matlab has some domain
+    \item Matlab's domain:
       \begin{itemize}
-      \item numerical/scientific computing
+      \item Numerical/scientific computing
       \end{itemize}
     % ...and what are the core issues to programmers
-    \uncover<3>{
-    \item issues:
+    \uncover<4>{
+    \item Issues
       \begin{itemize}
-      \item performance
+      \item Performance/high productivity
         \begin{itemize}
-        \item matlab's libraries are fast, and the language is easy
-        \item but there are still many tricks to vastly improve
-          performance
+        \item Matlab's libraries are fast, the language is easy
+        \item Dynamic features may cause slow execution
         \end{itemize}
-      \item domain specific utilities
+      \item Domain specific extra functionality
         \begin{itemize}
-        \item thousands of extensions
+        \item Hundreds of toolboxes
         \end{itemize}
       \end{itemize}
     }
     \end{itemize}
   \end{onlyenv}
-  \begin{onlyenv}<4>
-    aspect matlab domain
+  \begin{onlyenv}<5>
+    Aspect matlab domain
     \begin{itemize}
-    \item leverage these domains (performance, extensions)
+    \item Leverage these domains (performance, extensions)
       \begin{itemize}
-      \item reusable aspects that help increase performance
+      \item Reusable aspects that help increase performance
         by domain specific profiling
       \end{itemize}
-    \item add domain specific utilities
+    \item Domain specific extensions
       \begin{itemize}
-      \item we can use aspects to extend functionality
+      \item We can use aspects to extend functionality
       \end{itemize}
     \end{itemize}
   \end{onlyenv}
@@ -64,20 +68,23 @@
 % we can write reusable aspects that profile very specific properties
 % of a program
 % examples:
-\begin{frame}{Profiling}
+\begin{frame}{Profiling Aspects}
+
+
+
   \begin{itemize}
-\item pointcuts get/set/call % allow very detailed view of whats going on
-\item a lot of context info  %all the context information provides even more info at the same time
-\item performance is important in this domain
+\item Pointcuts get/set/call % allow very detailed view of whats going on
+\item A lot of context info  %all the context information provides even more info at the same time
+\item Performance is important in this domain
 \begin{itemize}
-\item more knowledge improves performance 
+\item More knowledge improves performance
 \end{itemize}
 %\item --> it's a domain where you want to know exactly what's going on in your program
 \end{itemize}
 \end{frame}
 % flops 1
-\begin{frame}[fragile]{Profiling I - flops}
-  \begin{onlyenv}<1>
+\begin{frame}[fragile]{Profiling I - Flops}
+  \begin{onlyenv}<1-4>
     % let's say as a scientist/engineer i want to know where most
     % compuations happens
     % since my program is all matrizes, most of the program is spent doing
@@ -85,20 +92,21 @@
     % the basic unit of computational complexity is the floating point
     % operation -- tend to be the most numerous and expensive part of a
     % program -- numerical algorithms are counted and analyzed in flops
+    \vspace{4ex}
     \begin{itemize}
-     \item where does computation happen?
-    \item most of the program - matrix computations
-    \item basic unit of computational complexity - flop
+    \item where does computation happen?
+    \pause \item most of the program - matrix computations
+    \pause \item basic unit of that - flop
       \begin{itemize}
       \item most expensive and numerous
-      \item we count counted/analyze programs in flops
+      \item we count/analyze programs in flops
       \end{itemize}
-    \item goal: aspect that tells us the total flops
+    \pause \item goal: an aspect that tells us the total flops
     \end{itemize}
   \end{onlyenv}
     \begin{columns}
-      \begin{column}{5cm}
-        \begin{onlyenv}<2>
+      \begin{column}[T]{5cm}
+        \begin{onlyenv}<5>
           \begin{Verbatim}[commandchars=@\[\]]
 aspect flops
   ...
@@ -114,7 +122,39 @@ aspect flops
 end
         \end{Verbatim}
       \end{onlyenv}
-        \begin{onlyenv}<3>
+        \begin{onlyenv}<6>
+          \begin{Verbatim}[commandchars=@\[\]]
+aspect flops
+  ...
+  patterns
+    @PYaG[pplus : call(plus)]
+    @PYaG[pmul  : call(mtimes)]
+    ...
+  end
+
+  actions
+    ...
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+        \begin{onlyenv}<7>
+          \begin{Verbatim}[commandchars=@\[\]]
+actions
+  around pplus : 
+    @PYaG[this.flops = this.flops + ..]
+      @PYaG[numel(args{1})]
+  end
+        
+  before pmtimes : (args)
+    [m,n] = size(args{1})
+    [n,k] = size(args{2})
+    @PYaG[this.flops = this.flops+2*m*n*k]
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+        \begin{onlyenv}<8>
           \begin{Verbatim}[commandchars=@\[\]]
 actions
   around pplus : 
@@ -123,24 +163,22 @@ actions
   end
         
   before pmtimes : (args)
-    [m,n] = size(args{1})
-    [n,k] = size(args{2})
+    @ob[]m,n@cb = size(args{1})
+    @ob[]n,k@cb = size(args{2})
     this.flops = this.flops+2*m*n*k
   end
 end
         \end{Verbatim}
       \end{onlyenv}
       \end{column}
-      \begin{column}{5cm}
+      \begin{column}[T]{5cm}
         \begin{itemize}
-          \begin{onlyenv}<2-3>
-          \item we catch all operations
-          \item in a before we add estimated flops
-          \item we display result at the end
+          \pause \item We catch all operations
+          \pause \pause \item In befores we add up estimated flops
+          \pause \item We display result at the end
             % this can be done in core matlab - but involves some
             % hackery. also aspects allows this to be in one file,
             % much shorter and easier
-          \end{onlyenv}
         \end{itemize}
       \end{column}
     \end{columns}
@@ -156,17 +194,46 @@ end
 \end{frame}
 
 % flops 2
-\begin{frame}{Profiling II - flops extended}
-  \begin{itemize}
-  \item supposse now we want to know where the flops occur, with
-    enclosing info like in a profiler
-  \item example
-  \item now we don't only intercept functions, but also function calls
-  \item we keep track of the flops in a stack
-  \item we need context information
-  \item in plain matlab, this is not possible without extensively
-  modifying the original code
-  \end{itemize}
+\begin{frame}[fragile]{Profiling II - Flops Extended}
+  \begin{onlyenv}<1>
+    \begin{itemize}
+    \item Suppose now we want to know where these flops occur
+    \item For every function, we want to know
+      \begin{itemize}
+      \item All flops that occur inside it
+      \item How often it gets called
+      \end{itemize}
+    \end{itemize}
+  \end{onlyenv}
+  \begin{onlyenv}<2>
+\begin{Verbatim}
+   'call site'                'number of calls' 'total flops'
+   'bar_3_mtimes                 [        40] [       4000]
+   'bar_5_plus                   [        20] [        200]
+   'foo_3_mtimes'                [         5] [        800]
+   'foo_4_bar'                   [         5] [       5000]
+   'Script_1_foo'                [         1] [       5000]
+\end{Verbatim}
+  \end{onlyenv}
+  \begin{onlyenv}<3->
+    \begin{itemize}
+    \pause
+    \pause \item Now we don't only intercept Operators, but also function calls
+    \pause \item We keep track of the flops in a stack
+    \pause \item Before any function call we push 0
+    \pause \item Around any operation (*,+,..) we
+      \begin{itemize}
+      \item Add estimated flops to top of stack
+      \end{itemize}
+    \pause \item After call we pop the value and
+      \begin{itemize}
+      \item Record the number of flops
+      \item Add that number to the new top
+      \end{itemize}    
+      % in plain matlab, this is not possible without extensively
+      % modifying the original code
+    \end{itemize}
+  \end{onlyenv}
 \end{frame}
 
 % flops 3
@@ -186,74 +253,103 @@ end
 
 \subsection*{Extending Functionality}
 \begin{frame}{Extending Functionality}
-  extending functionality
+  Extending Functionality
   \begin{itemize}
-  \item we have an extensible toolkit (McLab)
-  \item we can use aspects for rapid prototyping of new functionality
-  \item we can use aspects for writing libraries
+  \item We have an extensible toolkit (McLab)
+  \item We can use aspects for rapid prototyping of domain specific extensions
+  \item We can use aspects to add new functionality % special libraries
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Extending Functionality I}
-  \begin{columns}
+\begin{frame}[fragile,t]{Extending Functionality I}
+  \begin{columns}[T]
     \begin{column}{5cm}
-          \begin{onlyenv}<1>
+      \begin{onlyenv}<2>
         \begin{Verbatim}[commandchars=@\[\]]
 function y=plotThis(f,x)
   y = empty
   for t = x
-    y = [y; f(t)]
+    y = @ob[]y; f(t)@cb[]
   end
   plot(x,y)
 end
         \end{Verbatim}
-          \end{onlyenv}
-          \begin{onlyenv}<2>
+      \end{onlyenv}
+      \begin{onlyenv}<3>
         \begin{Verbatim}[commandchars=@\[\]]
 function y=plotThis(f,x)
-  y = x;
-  for [t,i] = x
-    y(i) = f(t);
-  end
-  plot(x,y)
-end
-        \end{Verbatim}
-          \end{onlyenv}
-          \begin{onlyenv}<3>
-        \begin{Verbatim}[commandchars=@\[\]]
-function y=plotThis(f,x)
-  y = x;
+  y = @PYaG[x]
   for t = x
-    y(iteration) = f(t);
+    @PYaG[y(i) = f(t)]
   end
   plot(x,y)
 end
         \end{Verbatim}
           \end{onlyenv}
-
+          \begin{onlyenv}<4>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = x
+  for t = x
+    y(@PYaG[i]) = f(t)
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
+          \begin{onlyenv}<5>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = x
+  for @PYaG[@ob[]t,i@cb] = x
+    y(@PYaG[i]) = f(t)
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
+          \begin{onlyenv}<6-10>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = x
+  for t = x
+    y(@PYaG[iteration()]) = f(t)
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
+          \begin{onlyenv}<11>
+        \begin{Verbatim}[commandchars=@\[\]]
+function y=plotThis(f,x)
+  y = x
+  for t = x
+    y(@PYaG[iteration]) = f(t)
+  end
+  plot(x,y)
+end
+        \end{Verbatim}
+          \end{onlyenv}
       \end{column}
+
       \begin{column}{5cm}
-      \begin{itemize}
-        \begin{onlyenv}<1-2>
-        \item consider our original example
-        \item we don't want to grow the array
-        \end{onlyenv}
-        \begin{onlyenv}<2>
-        \item now we need to now i
-        \item we propose a language extension 
+        \begin{onlyenv}<1-5>
           \begin{itemize}
-          \item simply add iteration counter as second variable
+          \item<1-5> Consider our original example
+          \item<2-5> We don't want to grow the array
+          \item<4-5> Now we need to now i
+          \item<5> We propose a language extension 
           \end{itemize}
         \end{onlyenv}
-        \begin{onlyenv}<3>
-        \item implement via aspect
-        \item capture all loops
-        \item also capture calls to 'iteration'
-        \item store context info in loop advice
-        \item return that in around 'iteration'
-        \item 'iteration' will give us the count
+        \begin{onlyenv}<6-11>
+          \begin{itemize}
+          \item<6-11> Via an aspect we simply add an iteration() function
+          \item<7-11> Capture all loops
+          \item<8-11> Store context info in loop advice 
+           \item<10-11> Return that in an around for a call to 'iteration'
+          \item<11> 'iteration' returns the count
+          \end{itemize}
         \end{onlyenv}
-      \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
@@ -261,55 +357,226 @@ end
 
 
 
-\begin{frame}[fragile]{Extending Functionality II}
-\begin{itemize}
-\item unit benchmark
-\item consider new addition of units
-\end{itemize}
-\begin{lstlisting}[language=Matlab]
-bmi = 180*lb/(5*feet + 8*inches)^2
-t = AU/c
-\end{lstlisting}
-\begin{itemize}
- \item we have some functions, but they affect all the data types.
- \item we have to (override) annotate all data
- \item we need to override loops as well
-\end{itemize}
-\begin{lstlisting}
-aspect unit
-properties
-units = struct(...
-  'm',  [1, 0, 0, 0, 0, 0, 0],...
-  'Kg', [0, 1, 0, 0, 0, 0, 0],...
-  's',  [0, 0, 1, 0, 0, 0, 0],...
-...
-  'J',  [2, 1,-2, 0, 0, 0, 0],...
-  'N',  [1, 1,-2, 0, 0, 0, 0]);
-end
-
-patterns
-allCalls : call(*());
-...
-end
-
-acalls : around allCalls : (name)
-if (isfield(this.units,name))
-...
-end
-\end{lstlisting}
-
-\end{frame}
-
-\begin{frame}{Domain Specific Outlook}
-\begin{itemize}
-  \item several of our aspects override variables
+\begin{frame}[fragile,t]{Extending Functionality II - Units}
+  \begin{itemize}
+  \item Consider new addition of units
+  \end{itemize}
+  \begin{onlyenv}<2->
+    \begin{Verbatim}
+      bmi = 180*lb/(5*feet + 8*inches)^2
+      v = 374*km / ((16*h+07*min)-(13*h+16*min))
+      t = AU/c
+    \end{Verbatim}
+  \end{onlyenv}
+  \begin{itemize}
+    \pause
+    \pause \item We have to
     \begin{itemize}
-    \item attach extra information to them
+      \pause \item Annotate (override) all data
+      \pause \item Override all operations
+      \pause \item Override loops to restore the semantics
+      \pause \item Capture all calls to units
     \end{itemize}
-  \item idea: incorporate this theme into a new class of aspects
-  \item one could have an aspect that annotates existing variables
-  \item operations should be specified on the annoations
-  \item a sort of abstract interpretation of annotations at runtime
-\end{itemize}
+  \end{itemize}
 \end{frame}
+
+
+\begin{frame}[fragile,t]{Extending Functionality II - Units}
+\begin{columns}[T]
+  \begin{column}{10cm}
+    \begin{itemize}
+      \only{ \item We don't define a pattern for every unit.}<1->
+      \only{ \item We simply keep a list of units...}<2->
+      \only{ \item ..and constants.}<3->
+      \only{ \item We match all calls with 0 arguments.}<4->
+      \only{ \item We override them only if they are in the lists.}<5->
+      \only{ \item We can still use unit names as variables.}<6->
+    \end{itemize}
+    \begin{onlyenv}<2>
+      \begin{Verbatim}[commandchars=@\[\]]
+  units = struct(...
+    'm',  @ob1, 0, 0, 0, 0, 0, 0@cb[],...
+    'Kg', @ob0, 1, 0, 0, 0, 0, 0@cb[],...
+    ...
+    'J',  @ob2, 1,-2, 0, 0, 0, 0@cb[],...
+    'N',  @ob1, 1,-2, 0, 0, 0, 0@cb[]),
+    ...
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<3>
+      \begin{Verbatim}[commandchars=@\[\]]
+  constants = struct(...
+    'km',      {@ob1, 0, 0, 0, 0, 0, 0@cb[],1000},...
+    'year',    {@ob0, 0, 1, 0, 0, 0, 0@cb[],31556926},...
+    'AU',      {@ob1, 0, 0, 0, 0, 0, 0@cb[],149598000*1000},...
+    'c',       {@ob1, 0,-1, 0, 0, 0, 0@cb[],299792458},...
+    ...
+        \end{Verbatim}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+
+
+
+% more ideas for functionality
+% - sparsity
+% - dependency analyzer
+% - tracking memory (emulate Matlab's reference counting)
+
+
+
+
+
+\begin{comment}
+\begin{frame}[fragile,t]{Extending Functionality II - Units}
+\begin{columns}[T]
+  \begin{column}{5cm}
+    \begin{onlyenv}<1>
+      \begin{Verbatim}[commandchars=@\[\]]
+aspect unit
+  properties
+    ...
+  end
+
+  patterns
+    ...
+  end
+
+  actions
+    ...
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<2>
+      \begin{Verbatim}[commandchars=@\[\]]
+aspect unit
+  @PYaG[properties]
+  @PYaG[  ...]
+  @PYaG[end]
+
+  patterns
+    ...
+  end
+
+  actions
+    ...
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<3>
+      \begin{Verbatim}[commandchars=@\[\]]
+properties
+  units = struct(...
+    'm',  [1, 0, 0, 0, 0, 0, 0],...
+    'Kg', [0, 1, 0, 0, 0, 0, 0],...
+    's',  [0, 0, 1, 0, 0, 0, 0],...
+    ...
+    'J',  [2, 1,-2, 0, 0, 0, 0],...
+    'N',  [1, 1,-2, 0, 0, 0, 0]);
+  end
+  ...
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<4>
+      \begin{Verbatim}[commandchars=@\[\]]
+properties
+  ...
+  constants = struct(...
+    'km',      {[1, 0, 0, 0, 0, 0, 0],1000},...
+    'year',    {[0, 0, 1, 0, 0, 0, 0],31556926},...
+    'lb',      {[0, 1, 0, 0, 0, 0, 0],0.45359237},...
+    'inches',  {[1, 0, 0, 0, 0, 0, 0],0.0254},...
+    'G',       {[3,-1,-2, 0, 0, 0, 0], 6.6730e-11},...
+    'dozen',   {[0, 0, 0, 0, 0, 0, 0],12},...
+    'AU',      {[1, 0, 0, 0, 0, 0, 0],149598000*1000},...
+    'c',       {[1, 0,-1, 0, 0, 0, 0],299792458},...
+    'KJ',      {[2, 1,-2, 0, 0, 0, 0],1000},...
+  ...
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<5>
+      \begin{Verbatim}[commandchars=@\[\]]
+aspect unit
+  properties
+    ...
+  end
+
+@PYaG[  patterns]
+@PYaG[    ...]
+@PYaG[  end]
+
+  actions
+    ...
+  end
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<6>
+      \begin{Verbatim}[commandchars=@\[\]]
+patterns
+@PYaG[  allCalls : call(*());]
+
+  plus : call(plus(*,*));
+  mtimes : call(mtimes(*,*));
+  ...
+
+  loopheader : loophead(*);
+  disp : call(disp);
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<7>
+      \begin{Verbatim}[commandchars=@\[\]]
+patterns
+  allCalls : call(*());
+
+@PYaG[  plus : call(plus(*,*));]
+@PYaG[  mtimes : call(mtimes(*,*));]
+@PYaG[  ...]
+
+  loopheader : loophead(*);
+  disp : call(disp);
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \begin{onlyenv}<8>
+      \begin{Verbatim}[commandchars=@\[\]]
+patterns
+  allCalls : call(*());
+
+  plus : call(plus(*,*));
+  mtimes : call(mtimes(*,*));
+  ...
+
+@PYaG[  loopheader : loophead(*);]
+@PYaG[  disp : call(disp);]
+end
+        \end{Verbatim}
+      \end{onlyenv}
+    \end{column}
+  \end{columns}
+\end{frame}
+\end{comment}
+
+
+%\end{frame}
+%\begin{frame}{Domain Specific Outlook5}
+%\begin{itemize}
+%  \item several of our aspects override variables
+%    \begin{itemize}
+%    \item attach extra information to them
+%    \end{itemize}
+%  \item idea: incorporate this theme into a new class of aspects
+%  \item one could have an aspect that annotates existing variables
+%  \item operations should be specified on the annoations
+%  \item a sort of abstract interpretation of annotations at runtime
+%\end{itemize}
+%\end{frame}
 
