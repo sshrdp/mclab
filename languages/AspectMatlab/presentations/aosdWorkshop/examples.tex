@@ -1,6 +1,6 @@
 \begin{frame}{Why Aspect Matlab?}
   \begin{onlyenv}<1-2>
-    An aspect extension to Matlab seems odd:
+    An aspect extension to Matlab seems odd
     \begin{itemize}
     \item Matlab programs are small % even with libraries
     \item Scientific computing doesn't rely on classes
@@ -42,13 +42,10 @@
     Aspect matlab domain
     \begin{itemize}
     \item Leverage these domains (performance, extensions)
+    \item We can rewrite reusable aspects that
       \begin{itemize}
-      \item Reusable aspects that help increase performance
-        by domain specific profiling
-      \end{itemize}
-    \item Domain specific extensions
-      \begin{itemize}
-      \item We can use aspects to extend functionality
+      \item Help increase performance by domain specific profiling
+      \item Add domain specific functionality
       \end{itemize}
     \end{itemize}
   \end{onlyenv}
@@ -141,7 +138,7 @@ end
         \begin{onlyenv}<7>
           \begin{Verbatim}[commandchars=@\[\]]
 actions
-  around pplus : 
+  before pplus : 
     @PYaG[this.flops = this.flops + ..]
       @PYaG[numel(args{1})]
   end
@@ -221,7 +218,7 @@ end
     \pause \item Now we don't only intercept Operators, but also function calls
     \pause \item We keep track of the flops in a stack
     \pause \item Before any function call we push 0
-    \pause \item Around any operation (*,+,..) we
+    \pause \item Around any operation (*,+,\^,..) we
       \begin{itemize}
       \item Add estimated flops to top of stack
       \end{itemize}
@@ -335,7 +332,7 @@ end
       \begin{column}{5cm}
         \begin{onlyenv}<1-5>
           \begin{itemize}
-          \item<1-5> Consider our original example
+          \item<1-5> Let's consider our original example
           \item<2-5> We don't want to grow the array
           \item<4-5> Now we need to now i
           \item<5> We propose a language extension 
@@ -343,11 +340,11 @@ end
         \end{onlyenv}
         \begin{onlyenv}<6-11>
           \begin{itemize}
-          \item<6-11> Via an aspect we simply add an iteration() function
-          \item<7-11> Capture all loops
-          \item<8-11> Store context info in loop advice 
-           \item<10-11> Return that in an around for a call to 'iteration'
-          \item<11> 'iteration' returns the count
+          \item<6-> Via an aspect we simply add an iteration() function
+          \item<7-> Capture all loops
+          \item<8-> Store context info in loop advice 
+           \item<9-> Return that in an around for a call to 'iteration'
+          \item<10> 'iteration' returns the count
           \end{itemize}
         \end{onlyenv}
     \end{column}
@@ -359,7 +356,7 @@ end
 
 \begin{frame}[fragile,t]{Extending Functionality II - Units}
   \begin{itemize}
-  \item Consider new addition of units
+  \item Let's say we want to have units
   \end{itemize}
   \begin{onlyenv}<2->
     \begin{Verbatim}
@@ -370,7 +367,7 @@ end
   \end{onlyenv}
   \begin{itemize}
     \pause
-    \pause \item We have to
+    \pause \item Then we have to
     \begin{itemize}
       \pause \item Annotate (override) all data
       \pause \item Override all operations
