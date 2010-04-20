@@ -206,6 +206,7 @@
             	<include name="natlab/toolkits/analysis/varorfun/*.class" />
             	<include name="natlab/CommentBuffer.class" />
             	<include name="natlab/Main.class" />
+            	<include name="natlab/CompilationProblem.class" />
             	<include name="natlab/NatlabScanner.class" />
             	<include name="natlab/server/HeartBeatTask.class" />
             	<include name="natlab/DecIntNumericLiteralValue.class" />

@@ -71,6 +71,11 @@ aspect ShadowMatch {
  		return !(getOperand().ShadowMatch(target, pattern, args, jp));
  	}
  	
+ 	eq NameExpr.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
+ 		return (AspectsEngine.patternsListNew.containsKey(getName().getID())
+ 				&& AspectsEngine.patternsListNew.get(getName().getID()).ShadowMatch(target, pattern, args, jp));
+ 	}
+ 	
  	private boolean PatternDesignator.checkWithin(ASTNode node, String type, String name) {
 		if(type.compareTo("*") == 0 && name.compareTo("*") == 0)
 			return true;

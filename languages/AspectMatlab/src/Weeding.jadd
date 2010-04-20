@@ -23,7 +23,9 @@ aspect Weeding {
        	}
        	
        	match = "";
-       	String selectors = "args,newVal,obj,name,line,counter,loc,file,aobj,ainput,aoutput,";
+       	
+       	// a list of valid selectors followed by a comma
+       	String selectors = "args,newVal,obj,name,line,counter,loc,file,aobj,ainput,aoutput,pat,";
        	
        	for(Actions acts : getActions()) {
            for(AspectAction act : acts.getAspectActions()) {

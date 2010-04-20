@@ -21,10 +21,10 @@ public class AspectsEngine {
 	/*
 	 * Structures used to keep aspect info
 	 */
-	static LinkedList<ActionInfo> actionsList = new LinkedList<ActionInfo>();
+	static public LinkedList<ActionInfo> actionsList = new LinkedList<ActionInfo>();
 	//static LinkedList<pattern> patternsList = new LinkedList<pattern>();
-	static Map<String, Expr> patternsListNew = new HashMap<String, Expr>();
-	static ArrayList<String> aspectList = new ArrayList<String>();
+	static public Map<String, Expr> patternsListNew = new HashMap<String, Expr>();
+	static public ArrayList<String> aspectList = new ArrayList<String>();
 
 	/*
 	 * Action Types
@@ -61,7 +61,7 @@ public class AspectsEngine {
 	static final public String COUNTER = "counter";
 	static final public String LOC = "loc";
 	static final public String FILE = "file";
-
+	static final public String PAT = "pat";
 	//Added for copy analysis
 	static final public String AOBJ = "aobj";
 	static final public String AINPUT = "ainput";
@@ -257,9 +257,13 @@ public class AspectsEngine {
 
 					if(node != null) {
 						String var = generateCorrespondingVariableName();
-						Expr lhs = new NameExpr(new Name(var));
+						NameExpr lhs = new NameExpr(new Name(var));
 						lhs.setWeavability(false);
 						pe.setCFStmtDone(true);
+
+						//saving the original object name
+						if(pe instanceof NameExpr)
+							lhs.setInputParamName(target);
 
 						AssignStmt stmt = new AssignStmt((Expr) lhs.copy(), (Expr) pe.copy());
 						stmt.setOutputSuppressed(true);
@@ -344,6 +348,7 @@ public class AspectsEngine {
 			input.add(new Name(NAME));
 			input.add(new Name(NEWVAL));
 			input.add(new Name(OBJ));
+			input.add(new Name(PAT));
 
 			input.add(new Name(AOBJ));
 			input.add(new Name(AINPUT));
@@ -464,6 +469,7 @@ public class AspectsEngine {
 			input.add(new NameExpr(new Name(NAME)));
 			input.add(new NameExpr(new Name(NEWVAL)));
 			input.add(new NameExpr(new Name(OBJ)));
+			input.add(new NameExpr(new Name(PAT)));
 
 			input.add(new NameExpr(new Name(AOBJ)));
 			input.add(new NameExpr(new Name(AINPUT)));
@@ -542,12 +548,14 @@ public class AspectsEngine {
 					as_out.setLineNum(fs.getLineNum());
 
 					AssignStmt as_for = new AssignStmt();
-					as_for.setRHS(new RangeExpr(new IntLiteralExpr(new DecIntNumericLiteralValue("1")), new Opt<Expr>(), new ParameterizedExpr(new NameExpr(new Name("numel")), new ast.List<Expr>().add(as_out.getLHS()))));
+					//as_for.setRHS(new RangeExpr(new IntLiteralExpr(new DecIntNumericLiteralValue("1")), new Opt<Expr>(), new ParameterizedExpr(new NameExpr(new Name("numel")), new ast.List<Expr>().add(as_out.getLHS()))));
+					as_for.setRHS(new RangeExpr(new IntLiteralExpr(new DecIntNumericLiteralValue("1")), new Opt<Expr>(), new ParameterizedExpr(new NameExpr(new Name("length")), new ast.List<Expr>().add(new ParameterizedExpr(as_out.getLHS(), new ast.List<Expr>().add(new ColonExpr()).add(new ColonExpr()))))));
 					as_for.setLHS(new NameExpr(new Name(tmpFS)));
 					as_for.setWeavability(false, true);
 
 					AssignStmt as_in = new AssignStmt();
-					as_in.setRHS(new ParameterizedExpr(new NameExpr(new Name(tmpAS)), new ast.List<Expr>().add(new NameExpr(new Name(tmpFS)))));
+					//as_in.setRHS(new ParameterizedExpr(new NameExpr(new Name(tmpAS)), new ast.List<Expr>().add(new NameExpr(new Name(tmpFS)))));
+					as_in.setRHS(new ParameterizedExpr(new NameExpr(new Name(tmpAS)), new ast.List<Expr>().add(new ColonExpr()).add(new NameExpr(new Name(tmpFS)))));
 					as_in.setLHS(as_old.getLHS());
 					as_in.setOutputSuppressed(true);
 					as_in.getRHS().setWeavability(false);
@@ -796,7 +804,7 @@ public class AspectsEngine {
 
 		StringTokenizer st = new StringTokenizer(varName, ",");
 		int tokens = st.countTokens();
-		
+
 		while (st.hasMoreTokens()) {
 			String target = st.nextToken();
 
@@ -812,7 +820,7 @@ public class AspectsEngine {
 						System.out.println("Skipped Action "+act.getName()+": Around actions on setting the matrix expression are not allowed!");
 						continue;
 					}
-					
+
 					if(act.getType().compareTo(AROUND) == 0 && aroundExist) {
 						IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 						prevCase = addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, SET, aroundExist, prevCase, act.getClassName());
@@ -880,6 +888,8 @@ public class AspectsEngine {
 							lstExpr.add(new StringLiteralExpr(getLocation(context)));
 						} else if(param.getID().compareTo(FILE) == 0) {
 							lstExpr.add(new StringLiteralExpr(getFileName(context)));
+						} else if(param.getID().compareTo(PAT) == 0) {
+							lstExpr.add(new StringLiteralExpr(SET));
 						} else if(param.getID().compareTo(AOBJ) == 0) {
 							String aobj = "";
 							if(rhs.getWeavability() && rhs instanceof NameExpr)
@@ -943,7 +953,7 @@ public class AspectsEngine {
 				}
 			}
 		} 
-		
+
 		return acount + bcount + tcount;
 	}
 
@@ -960,6 +970,7 @@ public class AspectsEngine {
 		Expr prevCase = null;
 		boolean isExistCheck = false;
 		Expr existObj = null;
+		String pattern = "";
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -970,11 +981,13 @@ public class AspectsEngine {
 			if(patternsListNew.containsKey(act.getPattern())) {
 				Expr pat = patternsListNew.get(act.getPattern());
 
-				if(varOrFun.isVariable()) //only match if target is variable
+				if(varOrFun.isVariable()) { //only match if target is variable
 					isGet = pat.ShadowMatch(target, GET, args, context);
-				else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript))
+					pattern = GET;
+				} else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript)) {
 					isCall = pat.ShadowMatch(target, CALL, args, context);
-				else if(varOrFun.isBottom() && isScript) {
+					pattern = CALL;
+				} else if(varOrFun.isBottom() && isScript) {
 					isGet = pat.ShadowMatch(target, GET, args, context);
 					isCall = pat.ShadowMatch(target, CALL, args, context);
 
@@ -1052,6 +1065,28 @@ public class AspectsEngine {
 							lstExpr.add(new StringLiteralExpr(getLocation(context)));
 						} else if(param.getID().compareTo(FILE) == 0) {
 							lstExpr.add(new StringLiteralExpr(getFileName(context)));
+						} else if(param.getID().compareTo(PAT) == 0) {
+							lstExpr.add(new StringLiteralExpr(pattern));
+						} else if(param.getID().compareTo(AINPUT) == 0) {
+							CellArrayExpr lstargs = new CellArrayExpr();
+							Row row = new Row();
+
+							if(rhs instanceof ParameterizedExpr){
+								ParameterizedExpr trhs = (ParameterizedExpr)rhs;
+								for(Expr arg : trhs.getArgs()) {
+									if(arg instanceof NameExpr){
+										NameExpr tne = (NameExpr)arg;
+										if(tne.getWeavability())
+											row.addElement(new StringLiteralExpr(tne.getName().getID()));
+										else
+											row.addElement(new StringLiteralExpr(tne.getInputParamName()));
+									} else
+										row.addElement(new StringLiteralExpr(""));
+								}
+							}
+
+							lstargs.addRow(row);
+							lstExpr.add(lstargs);
 						} else
 							lstExpr.add(new CellArrayExpr());
 					}
@@ -1136,6 +1171,7 @@ public class AspectsEngine {
 		Expr prevCase = null;
 		boolean isExistCheck = false;
 		Expr existObj = null;
+		String pattern = "";
 
 		for(int j=0; j<actionsList.size(); j++)
 		{
@@ -1146,11 +1182,13 @@ public class AspectsEngine {
 			if(patternsListNew.containsKey(act.getPattern())) {
 				Expr pat = patternsListNew.get(act.getPattern());
 
-				if(varOrFun.isVariable()) //only match if target is variable
+				if(varOrFun.isVariable()) { //only match if target is variable
 					isGet = pat.ShadowMatch(target, GET, args, context);
-				else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript))
+					pattern = GET;
+				} else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript)) {
 					isCall = pat.ShadowMatch(target, CALL, args, context);
-				else if(varOrFun.isBottom() && isScript) {
+					pattern = CALL;
+				} else if(varOrFun.isBottom() && isScript) {
 					isGet = pat.ShadowMatch(target, GET, args, context);
 					isCall = pat.ShadowMatch(target, CALL, args, context);
 
@@ -1230,6 +1268,28 @@ public class AspectsEngine {
 							lstExpr.add(new StringLiteralExpr(getLocation(context)));
 						} else if(param.getID().compareTo(FILE) == 0) {
 							lstExpr.add(new StringLiteralExpr(getFileName(context)));
+						} else if(param.getID().compareTo(PAT) == 0) {
+							lstExpr.add(new StringLiteralExpr(pattern));
+						} else if(param.getID().compareTo(AINPUT) == 0) {
+							CellArrayExpr lstargs = new CellArrayExpr();
+							Row row = new Row();
+
+							if(rhs instanceof ParameterizedExpr){
+								ParameterizedExpr trhs = (ParameterizedExpr)rhs;
+								for(Expr arg : trhs.getArgs()) {
+									if(arg instanceof NameExpr){
+										NameExpr tne = (NameExpr)arg;
+										if(tne.getWeavability())
+											row.addElement(new StringLiteralExpr(tne.getName().getID()));
+										else
+											row.addElement(new StringLiteralExpr(tne.getInputParamName()));
+									} else
+										row.addElement(new StringLiteralExpr(""));
+								}
+							}
+
+							lstargs.addRow(row);
+							lstExpr.add(lstargs);
 						} else
 							lstExpr.add(new CellArrayExpr());
 					}
@@ -1396,6 +1456,11 @@ public class AspectsEngine {
 								lstExpr.add(new NameExpr(new Name("AM_tmpFS_" + loopVar.replace(",", ""))));
 							else
 								lstExpr.add(new CellArrayExpr());
+						} else if(param.getID().compareTo(OBJ) == 0) {
+							if(loop instanceof ForStmt && isBody)
+								lstExpr.add(new NameExpr(new Name(loopVar.replace(",", ""))));
+							else
+								lstExpr.add(new CellArrayExpr());
 						} else if(param.getID().compareTo(THIS) == 0) {
 							//do nothing
 						} else if(param.getID().compareTo(LINE) == 0) {
@@ -1404,6 +1469,8 @@ public class AspectsEngine {
 							lstExpr.add(new StringLiteralExpr(getLocation(loop)));
 						} else if(param.getID().compareTo(FILE) == 0) {
 							lstExpr.add(new StringLiteralExpr(getFileName(loop)));
+						} else if(param.getID().compareTo(PAT) == 0) {
+							lstExpr.add(new StringLiteralExpr(isLoop ? LOOP:(isBody ? LOOPBODY:LOOPHEAD)));
 						} else
 							lstExpr.add(new CellArrayExpr());
 					}
@@ -1595,6 +1662,8 @@ public class AspectsEngine {
 						lstExpr.add(new StringLiteralExpr(func.getName()));
 					} else if(param.getID().compareTo(FILE) == 0) {
 						lstExpr.add(new StringLiteralExpr(getFileName(func)));
+					} else if(param.getID().compareTo(PAT) == 0) {
+						lstExpr.add(new StringLiteralExpr(EXECUTION));
 					} else if(param.getID().compareTo(AINPUT) == 0) {
 						CellArrayExpr args = new CellArrayExpr();
 						Row row = new Row();
@@ -1695,6 +1764,8 @@ public class AspectsEngine {
 						lstExpr.add(new StringLiteralExpr(name));
 					} else if(param.getID().compareTo(FILE) == 0) {
 						lstExpr.add(new StringLiteralExpr(getFileName(script)));
+					} else if(param.getID().compareTo(PAT) == 0) {
+						lstExpr.add(new StringLiteralExpr(EXECUTION));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}
@@ -1759,6 +1830,8 @@ public class AspectsEngine {
 						lstExpr.add(new StringLiteralExpr(name));
 					} else if(param.getID().compareTo(FILE) == 0) {
 						lstExpr.add(new StringLiteralExpr(p.getFileName()));
+					} else if(param.getID().compareTo(PAT) == 0) {
+						lstExpr.add(new StringLiteralExpr(MAINEXECUTION));
 					} else
 						lstExpr.add(new CellArrayExpr());
 				}

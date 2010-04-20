@@ -75,6 +75,7 @@ Expr pattern_designator =
   |  LOOPBODY LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loopbody", new List().add(p)); :}
   |  LOOPHEAD LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loophead", new List().add(p)); :}
   |  WITHIN LPAREN construct_type.n COMMA pattern_select.p RPAREN {: return new PatternDesignator("within", new List().add(n).add(p)); :}
+  |  IDENTIFIER.name {: return new NameExpr(new Name(name)); :}
   ;
 
 Name pattern_select = 

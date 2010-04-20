@@ -13,4 +13,8 @@ aspect ContextInfo {
     private ast.List<Name> Function.InputParamNames = new ast.List<Name>();
     public ast.List<Name> Function.getInputParamNames() { return InputParamNames; }
     public void Function.setInputParamNames(ast.List<Name> InputParamNames) { this.InputParamNames = InputParamNames; }
+    
+    private String NameExpr.InputParamName = "";
+    public String NameExpr.getInputParamName() { return InputParamName; }
+    public void NameExpr.setInputParamName(String InputParamName) { this.InputParamName = InputParamName; }
 }
