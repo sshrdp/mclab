@@ -13,7 +13,7 @@ aspect ShadowMatch {
 		String variable = "";
 		if(getArgs().getNumChild() > 0) {
 			variable = getArgs().getChild(getArgs().getNumChild()-1).getID();
-			variable = variable.substring(variable.lastIndexOf('.')+1);
+			//variable = variable.substring(variable.lastIndexOf('.')+1);
 		}
 
 		String tar = variable;
@@ -29,7 +29,7 @@ aspect ShadowMatch {
 				dim = dim.substring(0, dim.lastIndexOf('+'));
 			}
 		}
-		
+				
 		if(type.compareTo("within") == 0)
 			return checkWithin(jp, (getArgs().getNumChild() < 2) ? "*":getArgs().getChild(0).getID(), tar);
 			
@@ -38,9 +38,8 @@ aspect ShadowMatch {
 		
 		if(
 			//Joinpoint name matching
-			((tar.compareTo("*") == 0)
-				|| (tar.compareTo(target) == 0)
-				|| (type.contains("loop") && target.contains(tar+","))
+			((java.util.regex.Pattern.matches(tar, target))
+				|| (type.contains("loop") && (java.util.regex.Pattern.matches(tar+",", AspectsEngine.fetchLoopVariables((Stmt)jp))))
 				|| (pattern.compareTo("getorcallsimple") == 0) //for expression simplification
 				)
 			
@@ -77,30 +76,21 @@ aspect ShadowMatch {
  	}
  	
  	private boolean PatternDesignator.checkWithin(ASTNode node, String type, String name) {
-		if(type.compareTo("*") == 0 && name.compareTo("*") == 0)
+		if(type.compareTo("*") == 0 && name.compareTo(".*") == 0)
 			return true;
-		
-		//while(node != null && !(
-		//		((type.compareTo("function") == 0) && node instanceof Function)
-		//		|| ((type.compareTo("script") == 0) && node instanceof Script)
-		//		|| ((type.compareTo("class") == 0) && node instanceof ClassDef)
-		//		|| ((type.compareTo("aspect") == 0) && node instanceof Aspect)
-		//		|| ((type.compareTo("loop") == 0) && (node instanceof ForStmt || node instanceof WhileStmt))
-		//	))
-		//	node = node.getParent();
 		
 		while(node != null){
 			if(node instanceof Function && (type.compareTo("*") == 0 || type.compareTo("function") == 0))
-				return (name.compareTo("*") == 0) || ((Function)node).getName().compareTo(name) == 0;
+				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name, ((Function)node).getName()));
 			else if(node instanceof ClassDef && (type.compareTo("*") == 0 || type.compareTo("class") == 0))
-				return (name.compareTo("*") == 0) || ((ClassDef)node).getName().compareTo(name) == 0;
+				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name, ((ClassDef)node).getName()));
 			else if(node instanceof Aspect && (type.compareTo("*") == 0 || type.compareTo("aspect") == 0))
-				return (name.compareTo("*") == 0) || ((Aspect)node).getName().compareTo(name) == 0;
+				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name, ((Aspect)node).getName()));
 			else if(node instanceof Script && (type.compareTo("*") == 0 || type.compareTo("script") == 0)){
 				String file = ((Script)node).getFileName();
-				return (name.compareTo("*") == 0) || file.substring(0, file.lastIndexOf(".")).compareTo(name) == 0;
+				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name, file.substring(0, file.lastIndexOf("."))));
 			} else if((node instanceof ForStmt || node instanceof WhileStmt) && (type.compareTo("*") == 0 || type.compareTo("loop") == 0))
-				return (name.compareTo("*") == 0) || AspectsEngine.fetchLoopVariables((Stmt)node).contains(name+",");
+				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name+",", AspectsEngine.fetchLoopVariables((Stmt)node)));
 			
 			node = node.getParent();
 		}

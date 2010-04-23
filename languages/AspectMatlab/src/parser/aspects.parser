@@ -85,10 +85,25 @@ Name pattern_select =
   ;
 
 Name pattern_target =
-     STAR {: return new Name("*"); :}
+	 pattern_target_unit.u {: return u; :}
+  |  pattern_target.t pattern_target_unit.u {: return new Name(t.getID() + u.getID()); :}
+  ;
+
+Name pattern_target_unit =
+	 STAR {: return new Name(".*"); :}
   |  IDENTIFIER.name {: return new Name(name); :}
   ;
   
+/*
+Name pattern_target =
+	 STAR {: return new Name(".*"); :}
+  |  IDENTIFIER.name {: return new Name(name); :}
+  |  IDENTIFIER.name STAR {: return new Name(name + ".*"); :}
+  |  STAR IDENTIFIER.name {: return new Name(".*" + name); :}
+  |  IDENTIFIER.name1 STAR IDENTIFIER.name2 {: return new Name(name1 + ".*" + name2); :}
+  ;
+*/
+
 List list_dotdot =
 	 {: return new List<Name>(); :}
   |  list_star.l {: return l; :}
