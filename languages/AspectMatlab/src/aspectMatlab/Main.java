@@ -1,3 +1,9 @@
+
+/*
+Main entry point
+Toheed Aslam - May 01, 2010
+*/
+
 package aspectMatlab;
 
 import ast.*;

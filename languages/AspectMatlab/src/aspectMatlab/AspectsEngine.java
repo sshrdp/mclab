@@ -1,3 +1,9 @@
+
+/*
+Aspect engine class
+Toheed Aslam - May 01, 2010
+*/
+
 package aspectMatlab;
 
 import natlab.DecIntNumericLiteralValue;
