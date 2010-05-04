@@ -1,4 +1,9 @@
 
+/*
+Author: Toheed Aslam
+Date: May 01, 2010
+*/
+
 aspect AspectsPrettyPrint {
       
     eq Aspect.getPrettyPrintedLessComments() {

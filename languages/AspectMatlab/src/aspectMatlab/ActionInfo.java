@@ -1,7 +1,8 @@
 
 /*
 Action info class
-Toheed Aslam - May 01, 2010
+Author: Toheed Aslam
+Date: May 01, 2010
 */
 
 package aspectMatlab;

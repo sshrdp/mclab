@@ -1,5 +1,10 @@
 
 /*
+Author: Toheed Aslam
+Date: May 01, 2010
+*/
+
+/*
 //	Loop Transformation
 //	keeps info about loop header and loop variables
 */
