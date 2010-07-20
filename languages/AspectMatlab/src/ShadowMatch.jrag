@@ -10,8 +10,10 @@ Date: May 01, 2010
 
 aspect ShadowMatch {
 	
+	
 	syn boolean Expr.ShadowMatch(String target, String pattern, int args, ASTNode jp) = false;
  	
+ 
  	eq PatternDesignator.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
 		String type = getName();
 
@@ -34,10 +36,15 @@ aspect ShadowMatch {
 				dim = dim.substring(0, dim.lastIndexOf('+'));
 			}
 		}
-				
+		//System.err.println("Type \t| Target \t| Pattern \t| Variable");
+	   // System.err.println(type + "\t:" + target + "\t:" + pattern + "\t:" + tar + "\t:" + jp.getClass());
+	    
+	    
 		if(type.compareTo("within") == 0)
 			return checkWithin(jp, (getArgs().getNumChild() < 2) ? "*":getArgs().getChild(0).getID(), tar);
-			
+	
+		    
+		    	
 		int dims = Integer.valueOf(dim);
 		boolean match = false;
 		
@@ -53,7 +60,7 @@ aspect ShadowMatch {
 			
 			//Joinpoint type matching
 			&& ((type.compareTo(pattern) == 0) 
-				|| (pattern.compareTo("getorcall") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0))
+				|| (pattern.compareTo("getorcall") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0 || type.compareTo("op")==0))
 				|| (pattern.compareTo("getorcallsimple") == 0 && (type.compareTo("get") == 0 || type.compareTo("call") == 0)) //for expression simplification
 				//|| (pattern.compareTo("loop") && type.contains("loop"))
 				)
@@ -80,6 +87,26 @@ aspect ShadowMatch {
  				&& AspectsEngine.patternsListNew.get(getName().getID()).ShadowMatch(target, pattern, args, jp));
  	}
  	
+ 	eq BinaryExpr.ShadowMatch(String target, String pattern, int args, ASTNode jp){
+ 		
+ 		String unparsedClass = getClass().toString();
+ 		String parsedClass = unparsedClass.replaceAll("class ast.","");
+ 		//System.err.println("in binexpr Shadowmatch with class "+parsedClass);
+ 		if(AspectsEngine.patternsListNew.containsKey(pattern)){
+ 			PatternDesignator thisIsNew = (PatternDesignator)AspectsEngine.patternsListNew.get(pattern);
+ 			if("op".contentEquals(thisIsNew.getName())){
+ 			     for(Name foo:thisIsNew.getArgList()){
+ 			         if(foo.getPrettyPrinted().contentEquals(parsedClass)){
+ 			         	return true;
+ 			         }
+ 			     }
+ 			}
+ 		}
+ 		return false;
+ 	}
+	
+ 	
+ 	
  	private boolean PatternDesignator.checkWithin(ASTNode node, String type, String name) {
 		if(type.compareTo("*") == 0 && name.compareTo(".*") == 0)
 			return true;
@@ -94,8 +121,31 @@ aspect ShadowMatch {
 			else if(node instanceof Script && (type.compareTo("*") == 0 || type.compareTo("script") == 0)){
 				String file = ((Script)node).getFileName();
 				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name, file.substring(0, file.lastIndexOf("."))));
-			} else if((node instanceof ForStmt || node instanceof WhileStmt) && (type.compareTo("*") == 0 || type.compareTo("loop") == 0))
+			} else if((node instanceof ForStmt || node instanceof WhileStmt) && (type.compareTo("*") == 0 || type.compareTo("loop") == 0)){
 				return (name.compareTo(".*") == 0) || (java.util.regex.Pattern.matches(name+",", AspectsEngine.fetchLoopVariables((Stmt)node)));
+			} else if((node instanceof BinaryExpr) && (type.compareTo("*") == 0 || type.equals("op"))){
+				if(name.equals("PlusExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof PlusExpr));
+				}else if(name.equals("MinusExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof MinusExpr));
+				}else if(name.equals("MTimesExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof MTimesExpr));
+				}else if(name.equals("MLDivExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof MLDivExpr));
+				}else if(name.equals("ELDivExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof ELDivExpr));
+				}else if(name.equals("MDivExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof MDivExpr));
+				}else if(name.equals("EPowExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof EPowExpr));
+				}else if(name.equals("MPowExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof MPowExpr));
+				}else if(name.equals("MTransposeExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof MTransposeExpr));
+				}else if(name.equals("ArrayTransposeExpr")){
+					return (name.compareTo(".*") == 0 || (node instanceof ArrayTransposeExpr));
+				}
+			}
 			
 			node = node.getParent();
 		}

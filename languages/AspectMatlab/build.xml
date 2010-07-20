@@ -156,6 +156,7 @@
 				<include name="OutputSuppression.jadd" />
 				<include name="PrettyPrint.jrag" />
 				<include name="ASTAnalyze.jadd" />
+				<include name="SSA.jrag" />
 				<include name="LValue.jrag" />
 				<!-- <include name="**/*.jadd" /> -->
 				<!-- <include name="**/*.jrag" /> -->
@@ -204,6 +205,10 @@
             <zipfileset dir="${natlab.bin.dir}">
             	<include name="natlab/toolkits/analysis/*.class" />
             	<include name="natlab/toolkits/analysis/varorfun/*.class" />
+		<!-- added for Resolution Rewrites -->
+		<include name="natlab/toolkits/rewrite/*.class"/>
+		<include name="natlab/toolkits/rewrite/clearresolution/*.class"/>
+		<include name="natlab/toolkits/rewrite/endresolution/*.class"/>
             	<include name="natlab/CommentBuffer.class" />
             	<include name="natlab/Main.class" />
             	<include name="natlab/CompilationProblem.class" />

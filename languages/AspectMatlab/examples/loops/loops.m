@@ -1,5 +1,12 @@
-aspect loops
 
+aspect loops
+% Description: modified version of loops aspect(T. Aslam), count the number of
+% iteration in a loops(i) and it's subloop (j) using a stack.
+% Status:Non-working, error EException in thread "main" java.lang.ClassCastException: ast.Function
+%	at ast.PatternDesignator.ShadowMatch_compute(Unknown Source)
+%in files loops.m, caused by patern loop(i) and loop(j) (Can't seems to
+ %pattern on specific iterative var.
+% Compile with: java -jar amc.jar loops/loops.m -m -main loops/test.m
 properties
     stack = {};
     top = 1;
@@ -68,10 +75,14 @@ patterns
     ubound : call(uBound) & within(loops,*);
     increment : call(increment) & within(loops,*);
     iteration : call(iteration) & within(loops,*);
+    ploopbodyI : loopbody(i); %NonWorking
+    ploopbodyJ : loopbody(j); %NonWorking
 end
 
 
 actions
+
+
 aLoopHead : after ploophead : (newVal)
     this.push(newVal);
 end
@@ -94,14 +105,15 @@ aUBound : around ubound
     varargout{1} = this.getUBound();
 end
 
-aIncrement : around increment
+aIncrement : before ploopbody
     % captures all loop invocations for increment
     varargout{1} = this.getIncrement();
 end
-
-aIteration : around iteration
-    % captures all loop invocations for iteration
-    varargout{1} = this.getIteration();
+aIterationJ : before ploobodyJ
+        disp({'Iteration J: ', this.getIteration()});
+        end
+aIterationI : before ploopbodyI
+        disp({'Iteration I: ',this.getIteration()});
 end
 
 end

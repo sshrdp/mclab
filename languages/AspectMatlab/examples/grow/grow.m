@@ -14,13 +14,13 @@ changeShape = {};       % how often the dimensions of the array changed (has to 
 decreaseSize = {};  % how often the size decreased (i.e. a previously nonzero element was set)
 increaseSize = {};  % how often the size increased
 
-arraySize = {};     % size of the array
+arraySize = {};     % size of the arrayexec : execution(program);
 maxSize = {};       % maximum size of the array
 lineNum = {};       % at line number
 arraySet  = {};     % the number of 'set' operations
 
 nextId = 1;         % next available index
-end
+end%properties
 
 
 methods
@@ -32,8 +32,8 @@ elseif (size(a) == size(b))
   b = true;
 else
   b = false;
-end
-end
+end%if
+end%sameShape
 
 function id = getVarId(this,var,line) 
 % get id of variable by string-name, update 'variables' if necessary
@@ -53,20 +53,20 @@ function id = getVarId(this,var,line)
     this.lineNum{id} = line;
   else
     id = getfield(this.variables,var); 
-  end
-end
+  end%if
+end%getVarID
 
-end
+end%methods
 
 patterns
 arraySet : set(*);
 exec : execution(program);
-end
+end%patterns
 
 actions
 message : before exec
  disp('tracking the operations that grow arrays in the following program...');
-end
+ end%actions
 
 
 displayResults : after exec
@@ -82,9 +82,9 @@ displayResults : after exec
      result{i+1,5} = this.increaseSize{i};
      result{i+1,6} = this.maxSize{i};
      result{i+1,7} = this.lineNum{i};
-  end
+  end%for
   disp(result);
-end
+  end%displayResults
 
 
 set : before arraySet : (newVal,obj,name,line,args)
@@ -121,6 +121,6 @@ set : before arraySet : (newVal,obj,name,line,args)
     this.lineNum{id} = line;
     this.maxSize{id} = newSize;
   end
-  end
-end
-end
+  end%set
+  end%actions
+  end%grow

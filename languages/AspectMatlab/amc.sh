@@ -1,2 +1,2 @@
 #!/bin/bash
-			java -jar /home/2008/taslam/Desktop/mclab/Project/languages/AspectMatlab/amc.jar $*
+			java -jar /home/2008/osavary/workspace/Matlab Source/languages/AspectMatlab/amc.jar $*

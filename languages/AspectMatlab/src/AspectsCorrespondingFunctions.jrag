@@ -251,13 +251,32 @@ aspect AspectsCorrespondingFunctions {
     }
 	
 	eq BinaryExpr.aspectsCorrespondingFunctions() {
-		//getLHS().aspectsCorrespondingFunctions();
- 		//getRHS().aspectsCorrespondingFunctions();
  		if(!getLHS().aspectsCorrespondingFunctions())
            		return false;
         if(!getRHS().aspectsCorrespondingFunctions())
            		return false;
            		
+      ASTNode<ASTNode> parentStmt = getParent();
+			while(!(parentStmt instanceof AssignStmt)){
+				parentStmt = parentStmt.getParent();
+			}
+       AssignStmt parentaStmt = (AssignStmt)parentStmt;
+       ast.List<Stmt> stmtList = (ast.List) parentaStmt.getParent();
+       
+       if(getParent() instanceof AssignStmt){
+       	if(!("AM_tempBE".regionMatches(0,((NameExpr)((AssignStmt)getParent()).getLHS()).getName().getVarName(),0,3))){
+       		 //Simplifying the highest level (AssignStmt lhs this)
+      		 AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parentaStmt));
+       	}else{
+       	 //the BExpr was already simplified
+       	return true;
+       	}
+       }else{
+       	  // the BExpr is  indented
+          AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parentaStmt));
+       }   		
+      
+          		
  		return true;
     }
 	

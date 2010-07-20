@@ -69,6 +69,7 @@ Expr pattern_designator =
   |  CALL LPAREN pattern_select.p RPAREN {: return new PatternDesignator("call", new List().add(p)); :}
   |  EXECUTION LPAREN pattern_select.p RPAREN {: return new PatternDesignator("execution", new List().add(p)); :}
   |  MAINEXECUTION LPAREN RPAREN {: return new PatternDesignator("mainexecution", new List()); :}
+  |  OPERATORS LPAREN operator_select.p RPAREN {: return new PatternDesignator("op", new List().add(p)); :}
   |  SET LPAREN pattern_select.p RPAREN {: return new PatternDesignator("set", new List().add(p)); :}
   |  GET LPAREN pattern_select.p RPAREN {: return new PatternDesignator("get", new List().add(p)); :}
   |  LOOP LPAREN pattern_select.p RPAREN {: return new PatternDesignator("loop", new List().add(p)); :}
@@ -78,6 +79,19 @@ Expr pattern_designator =
   |  IDENTIFIER.name {: return new NameExpr(new Name(name)); :}
   ;
 
+Name operator_select = 
+     PLUS {: return new Name("PlusExpr"); :} 
+     |MINUS {: return new Name("MinusExpr"); :}
+     |STAR {: return new Name("MTimesExpr"); :}
+     |ETIMES{: return new Name("ETimesExpr"); :}
+     |MLDIV {: return new Name("MLDivExpr"); :}
+     |ELDIV {: return new Name("ELDivExpr"); :}
+     |MDIV {: return new Name("MDivExpr"); :}
+     |EDIV {: return new Name("EDivExpr"); :}
+     |MPOW {: return new Name("MPowExpr"); :}
+     |EPOW {: return new Name("EPowExpr"); :}
+     |IDENTIFIER.name {: return new NameExpr(new Name("op"+name)); :}
+     ;
 Name pattern_select = 
 	pattern_target.s {: return s; :}
   |	pattern_target.s LPAREN list_dotdot.ls RPAREN 
@@ -153,7 +167,7 @@ AspectAction actions_body =
 	        if(body != null) {
 	            for(Object obj : body) {
 	            	Symbol stmtOrFcn = (Symbol) obj;
-	                if(stmtOrFcn instanceof Stmt) {
+             if(stmtOrFcn instanceof Stmt) {
 	                    stmts.add((Stmt) stmtOrFcn);
 	                } else if(stmtOrFcn instanceof Function) {
 	                    nestedFunctions.add((Function) stmtOrFcn);

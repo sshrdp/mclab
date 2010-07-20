@@ -12,6 +12,9 @@ import natlab.CommentBuffer;
 import beaver.Parser;
 import java.io.*;
 import java.util.*;
+import natlab.toolkits.*;
+import natlab.toolkits.rewrite.clearresolution.*;
+import natlab.toolkits.rewrite.endresolution.*;
 
 public class Main
 {
@@ -159,13 +162,66 @@ public class Main
 			for( Program p : cu.getPrograms() ){
 				p.aspectsWeave();
 			}
+			
+			
+			ast.List<Program> allPrograms = cu.getPrograms();
 
+			for(int i = 0;i<allPrograms.getNumChild();i++){
+				Program p = allPrograms.getChild(i);
+				if(p instanceof Aspect)continue;
+				
+				//Clear rewrite analysis to protect aspect structures
+				for(int j = 0;j<p.getNumChild();j++){
+					//System.err.println();
+					//System.err.println("Program"+i+"node"+j);
+					ASTNode oldNode = p.getChild(j);
+					
+						//System.err.println(oldNode.toString());
+						ClearResolutionRewrite rewriteClear = new ClearResolutionRewrite(oldNode);
+	
+						ASTNode newNode = new ASTNode();
+						boolean rewriten = true;			
+						
+						newNode = rewriteClear.transform();
+						
+						if(rewriten){
+							p.setChild(newNode,j);
+						}
+					
+				}
+				
+				//Replace End with call to builtin End, before 3adressrewrite.
+				for(int j = 0;j<p.getNumChild();j++){
+					//System.err.println();
+					//System.err.println("Program"+i+"node"+j);
+					ASTNode oldNode = p.getChild(j);
+					
+						//System.err.println(oldNode.toString());
+						EndResolutionRewrite rewriteEnd = new EndResolutionRewrite(oldNode);
+	
+						ASTNode newNode = new ASTNode();
+						boolean rewriten = true;	
+					
+						newNode = rewriteEnd.transform();
+				
+						if(rewriten){
+							p.setChild(newNode,j);
+						}
+					
+				}
+				
+			}
+ 
 			//Post-processing: adding aspect global structure
 			AspectsEngine.weaveGlobalStructure(cu);
 			for( Program a : aspects ){
 				cu.addProgram( a );
 			}
 
+			
+		
+			
+			
 			//System.err.println("Pretty Printing...");
 			//System.out.println(cu.getPrettyPrinted());
 
