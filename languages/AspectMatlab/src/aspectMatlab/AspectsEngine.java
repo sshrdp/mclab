@@ -612,22 +612,26 @@ public class AspectsEngine {
 	
 		AssignStmt parentaStmt;
 	
+		//Determine the nature of the parent of the current BinaryExpr, and take the appropriate measure to simplify the later.
 		if(parentNode instanceof AssignStmt){
+			System.err.println("A"+current.getPrettyPrinted());
 			parentaStmt = (AssignStmt)parentNode;
 
 			parentaStmt.setRHS(tmpBEnExpr);
 
 			stmtList.setChild(parentaStmt, stmtPos);
 
-		
+		}else if(parentNode instanceof ast.List){
+			System.err.println("B"+current.getPrettyPrinted());
+			ast.List<ASTNode> parentaList = (ast.List<ASTNode>)parentNode;
+			parentaList.setChild(tmpBEnExpr,parentaList.getIndexOfChild(current) );
 		}else{
-		
-		
+			System.err.println("C"+current.getPrettyPrinted());
 			if(parentNode instanceof BinaryExpr){
 				parentNode.setChild(tmpBEnExpr,parentNode.getIndexOfChild(current));
 			}
 		
-		}//else
+		}//if-else
 	
 		AssignStmt tmpBEaStmt = new AssignStmt();
 	
@@ -721,6 +725,7 @@ public class AspectsEngine {
 	 */
 	public static void transformBinaryExpr(BinaryExpr current,ast.List<Stmt> stmtList,int stmtPos){
 		//only if matched.
+	System.err.println("in TransformBinaryExpr");
 	for(int j=0; j<actionsList.size(); j++){
 		ActionInfo act = actionsList.get(j);
 		/*
@@ -747,8 +752,9 @@ public class AspectsEngine {
 						if(current.getRHS() instanceof BinaryExpr && !act.getType().equals(AFTER))
 							simplifyBinaryExpr((BinaryExpr)current.getRHS(),stmtList,stmtPos++);
 							
-
+						System.err.println("beforesimplifyExpr"+current.getPrettyPrinted());
 						simplifyBinaryExpr(current,stmtList,stmtPos++);
+						System.err.println("aftersimplifyExpr"+current.getPrettyPrinted());
 						weaveBinaryExpr(current,act,stmtList,stmtPos);
 						
 						}

@@ -251,29 +251,43 @@ aspect AspectsCorrespondingFunctions {
     }
 	
 	eq BinaryExpr.aspectsCorrespondingFunctions() {
+       	ast.List<Stmt> stmtList = null;
+       	ExprStmt parenteStmt = null;
+       	AssignStmt parentaStmt = null;
+       	
  		if(!getLHS().aspectsCorrespondingFunctions())
            		return false;
         if(!getRHS().aspectsCorrespondingFunctions())
            		return false;
            		
       ASTNode<ASTNode> parentStmt = getParent();
-			while(!(parentStmt instanceof AssignStmt)){
+      
+		   while(!(parentStmt instanceof Stmt)){
 				parentStmt = parentStmt.getParent();
+				
 			}
-       AssignStmt parentaStmt = (AssignStmt)parentStmt;
-       ast.List<Stmt> stmtList = (ast.List) parentaStmt.getParent();
+	   if(parentStmt instanceof AssignStmt){
+       		parentaStmt = (AssignStmt)parentStmt;
+            stmtList = (ast.List) parentaStmt.getParent();
+       }else{
+       		parenteStmt = (ExprStmt)parentStmt;
+            stmtList = (ast.List) parenteStmt.getParent();
+      }
        
        if(getParent() instanceof AssignStmt){
-       	if(!("AM_tempBE".regionMatches(0,((NameExpr)((AssignStmt)getParent()).getLHS()).getName().getVarName(),0,3))){
-       		 //Simplifying the highest level (AssignStmt lhs this)
-      		 AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parentaStmt));
-       	}else{
-       	 //the BExpr was already simplified
-       	return true;
-       	}
+       		if(!("AM_tempBE".regionMatches(0,((NameExpr)((AssignStmt)getParent()).getLHS()).getName().getVarName(),0,3))){
+       		 	//Simplifying the highest level (AssignStmt lhs this)
+      			 AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parentaStmt));
+       		}else{
+       		 //the BExpr was already simplified
+       		return true;
+       		}
+       }else if(getParent() instanceof ExprStmt || getParent() instanceof List){
+       		AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parenteStmt));
+   
        }else{
        	  // the BExpr is  indented
-          AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parentaStmt));
+          AspectsEngine.transformBinaryExpr(this,stmtList,stmtList.getIndexOfChild(parentaStmt==null?parenteStmt:parentaStmt));
        }   		
       
           		
