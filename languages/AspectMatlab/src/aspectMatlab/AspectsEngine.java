@@ -717,6 +717,8 @@ public class AspectsEngine {
 			aroundExist = true;
 		}
 	}
+	
+	
 	/*
 	 * Verify the match of a BinaryExpr subclass with an Operator Pattern
 	 */
@@ -744,6 +746,8 @@ public class AspectsEngine {
 			return false;
 		}
 	}
+	
+	
 	/*
 	 * Match,simplify and weave binary expression.
 	 * 
@@ -756,7 +760,6 @@ public class AspectsEngine {
 		
 		 if(patternsListNew.containsKey(act.getPattern())){
 			PatternDesignator thisIsNew = (PatternDesignator)patternsListNew.get(act.getPattern());
-			System.err.println(thisIsNew.getName());
 			if("op".contentEquals(thisIsNew.getName())){
 
 				String unparsedClass = current.getClass().toString();
