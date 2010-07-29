@@ -61,7 +61,7 @@ Expr pattern_designators_and =
 
 Expr pattern_designators_unary = 
      pattern_designator.pd {: return pd; :}
-  |  SHELL_COMMAND pattern_designator.pd {: return new NotExpr(pd); :}
+  |  MDIV pattern_designator.pd {: return new NotExpr(pd); :}
   ;
 
 Expr pattern_designator =

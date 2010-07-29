@@ -757,29 +757,83 @@ public class AspectsEngine {
 	for(int j=0; j<actionsList.size(); j++){
 		ActionInfo act = actionsList.get(j);
 	
-		
 		 if(patternsListNew.containsKey(act.getPattern())){
-			PatternDesignator thisIsNew = (PatternDesignator)patternsListNew.get(act.getPattern());
-			if("op".contentEquals(thisIsNew.getName())){
-
-				String unparsedClass = current.getClass().toString();
-		 		String parsedClass = unparsedClass.replaceAll("class ast.","");
-				for(Name foo:thisIsNew.getArgList()){
-
-					if(isOpMatchedByPattern(parsedClass,foo.getPrettyPrinted()) ){
-					    //simplify the LHS and RHS if the aspect isn't of the type "after"
-						if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-							simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
-						if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-							simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
-						//simplify the current expr
-						simplifyExpr(current,stmtList,stmtPos++);
-						//weave the aspect function
-						weaveBinaryExpr(current,act,stmtList,stmtPos);
+			 
+			String unparsedClass = current.getClass().toString();
+		 	String parsedClass = unparsedClass.replaceAll("class ast.",""); 
+		 	
+			if(patternsListNew.get(act.getPattern()) instanceof PatternDesignator){
+				PatternDesignator patternDes = (PatternDesignator)patternsListNew.get(act.getPattern());
+				 if("op".contentEquals(patternDes.getName())){
+					 
+						Name argName = patternDes.getArg(0);
 						
+						if(isOpMatchedByPattern(parsedClass,argName.getPrettyPrinted()) ){
+							  //simplify the LHS and RHS if the aspect isn't of the type "after"
+							if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+								simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
+							if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+								simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
+							//simplify the current expr
+							simplifyExpr(current,stmtList,stmtPos++);
+							//weave the aspect function
+							weaveBinaryExpr(current,act,stmtList,stmtPos);
+								
+							
 						}
 					}
+			}else if((patternsListNew.get(act.getPattern()) instanceof AndExpr)){
+				
+				AndExpr patternDes = (AndExpr)patternsListNew.get(act.getPattern());
+				PatternDesignator lhsPd = (PatternDesignator)patternDes.getChild(0);
+				PatternDesignator rhsPd = (PatternDesignator)patternDes.getChild(1);
+				
+				Name lhsargName = lhsPd.getArg(0);
+				Name rhsargName = rhsPd.getArg(0);
+				
+				if(isOpMatchedByPattern(parsedClass,lhsargName.getPrettyPrinted())  && isOpMatchedByPattern(parsedClass,rhsargName.getPrettyPrinted()) ){
+					  //simplify the LHS and RHS if the aspect isn't of the type "after"
+					if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+						simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
+					if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+						simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
+					//simplify the current expr
+					simplifyExpr(current,stmtList,stmtPos++);
+					//weave the aspect function
+					weaveBinaryExpr(current,act,stmtList,stmtPos);
+						
+					
 				}
+				
+				
+			}else if((patternsListNew.get(act.getPattern()) instanceof OrExpr)){
+				OrExpr patternDes = (OrExpr)patternsListNew.get(act.getPattern());
+				PatternDesignator lhsPd = (PatternDesignator)patternDes.getChild(0);
+				PatternDesignator rhsPd = (PatternDesignator)patternDes.getChild(1);
+				
+				Name lhsargName = lhsPd.getArg(0);
+				Name rhsargName = rhsPd.getArg(0);
+				
+				if(isOpMatchedByPattern(parsedClass,lhsargName.getPrettyPrinted())  || isOpMatchedByPattern(parsedClass,rhsargName.getPrettyPrinted()) ){
+					  //simplify the LHS and RHS if the aspect isn't of the type "after"
+					if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+						simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
+					if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+						simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
+					//simplify the current expr
+					simplifyExpr(current,stmtList,stmtPos++);
+					//weave the aspect function
+					weaveBinaryExpr(current,act,stmtList,stmtPos);
+						
+					
+				}
+				
+				
+			}else if((patternsListNew.get(act.getPattern()) instanceof NotExpr)){
+				NotExpr patternDes = (NotExpr)patternsListNew.get(act.getPattern());
+			}else return;
+			
+			
 
 				
 			}
