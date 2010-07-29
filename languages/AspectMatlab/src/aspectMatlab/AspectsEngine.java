@@ -43,6 +43,7 @@ public class AspectsEngine {
 	/*
 	 * Patterns
 	 */
+	//static final public String NOT = "!";
 	static final public String SET = "set";
 	static final public String GET = "get";
 	static final public String CALL = "call";
@@ -597,7 +598,7 @@ public class AspectsEngine {
 			}
 		}
 	}
-	public static void simplifyBinaryExpr(BinaryExpr current,ast.List<Stmt> stmtList,int stmtPos){
+	public static void simplifyExpr(Expr current,ast.List<Stmt> stmtList,int stmtPos){
 		//make the temp expression
 		String tmpBE = "AM_" + "tmpBE_";
 		tmpBE+= current.getId();
@@ -612,7 +613,7 @@ public class AspectsEngine {
 	
 		AssignStmt parentaStmt;
 	
-		//Determine the nature of the parent of the current BinaryExpr, and take the appropriate measure to simplify the later.
+		//Determine the nature of the parent of the current Expr, and take the appropriate measure to simplify the later.
 		if(parentNode instanceof AssignStmt){
 			parentaStmt = (AssignStmt)parentNode;
 
@@ -717,6 +718,33 @@ public class AspectsEngine {
 		}
 	}
 	/*
+	 * Verify the match of a BinaryExpr subclass with an Operator Pattern
+	 */
+	private static Boolean isOpMatchedByPattern(String subclass,String pattern){
+		if(pattern.contentEquals(subclass) || pattern.contentEquals("all")){
+			return true;
+		}else if(pattern.contentEquals("matrix")){
+			//matrix match +,-,*,/,\ and ^
+			if(subclass.equals("PlusExpr")||subclass.equals("MinusExpr")
+		      ||subclass.equals("MTimesExpr")||subclass.equals("MLDivExpr")
+		      ||subclass.equals("MDivExpr")||subclass.equals("MPowExpr")){
+				return true;
+			}else{
+				return false;
+			}
+		}else if(pattern.contentEquals("arraywise")){
+			//arraywise match .*,./,.\,.^
+			if(subclass.equals("ETimesExpr")||subclass.equals("ELDivExpr")
+				      ||subclass.equals("EDivExpr")||subclass.equals("EPowExpr")){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+	/*
 	 * Match,simplify and weave binary expression.
 	 * 
 	 */
@@ -724,30 +752,26 @@ public class AspectsEngine {
 		//only if matched.
 	for(int j=0; j<actionsList.size(); j++){
 		ActionInfo act = actionsList.get(j);
-		/*
-		System.err.println("Name: "+act.getName());
-		System.err.println("Pattern: "+act.getPattern());
-		System.err.println("Type"+act.getType());
-		System.err.println("Class"+act.getClass());
-		System.err.println("Classname"+act.getClassName());
-		*/
+	
 		
 		 if(patternsListNew.containsKey(act.getPattern())){
 			PatternDesignator thisIsNew = (PatternDesignator)patternsListNew.get(act.getPattern());
-			
+			System.err.println(thisIsNew.getName());
 			if("op".contentEquals(thisIsNew.getName())){
 
 				String unparsedClass = current.getClass().toString();
 		 		String parsedClass = unparsedClass.replaceAll("class ast.","");
 				for(Name foo:thisIsNew.getArgList()){
 
-					if(foo.getPrettyPrinted().contentEquals(parsedClass) || foo.getPrettyPrinted().contentEquals("opall") ){
-						
-						if(current.getLHS() instanceof BinaryExpr && !act.getType().equals(AFTER))
-							simplifyBinaryExpr((BinaryExpr)current.getLHS(),stmtList,stmtPos++);
-						if(current.getRHS() instanceof BinaryExpr && !act.getType().equals(AFTER))
-							simplifyBinaryExpr((BinaryExpr)current.getRHS(),stmtList,stmtPos++);			
-						simplifyBinaryExpr(current,stmtList,stmtPos++);
+					if(isOpMatchedByPattern(parsedClass,foo.getPrettyPrinted()) ){
+					    //simplify the LHS and RHS if the aspect isn't of the type "after"
+						if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+							simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
+						if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+							simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
+						//simplify the current expr
+						simplifyExpr(current,stmtList,stmtPos++);
+						//weave the aspect function
 						weaveBinaryExpr(current,act,stmtList,stmtPos);
 						
 						}
@@ -994,6 +1018,7 @@ public class AspectsEngine {
 			for(int j=0; j<actionsList.size(); j++)
 			{
 				ActionInfo act = actionsList.get(j);
+
 				 if(patternsListNew.containsKey(act.getPattern()) 
 						&& patternsListNew.get(act.getPattern()).ShadowMatch(target, SET, args, context)
 				){

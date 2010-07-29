@@ -61,7 +61,7 @@ Expr pattern_designators_and =
 
 Expr pattern_designators_unary = 
      pattern_designator.pd {: return pd; :}
-  |  NOT pattern_designator.pd {: return new NotExpr(pd); :}
+  |  SHELL_COMMAND pattern_designator.pd {: return new NotExpr(pd); :}
   ;
 
 Expr pattern_designator =
@@ -90,7 +90,7 @@ Name operator_select =
      |EDIV {: return new Name("EDivExpr"); :}
      |MPOW {: return new Name("MPowExpr"); :}
      |EPOW {: return new Name("EPowExpr"); :}
-     |IDENTIFIER.name {: return new NameExpr(new Name("op"+name)); :}
+     |IDENTIFIER.name {: return new Name(name); :}
      ;
 Name pattern_select = 
 	pattern_target.s {: return s; :}
