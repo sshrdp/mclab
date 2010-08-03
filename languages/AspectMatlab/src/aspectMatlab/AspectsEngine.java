@@ -598,12 +598,13 @@ public class AspectsEngine {
 			}
 		}
 	}
-	public static void simplifyExpr(Expr current,ast.List<Stmt> stmtList,int stmtPos){
+	public static int simplifyExpr(Expr current,ast.List<Stmt> stmtList,int stmtPos){
+		
 		//make the temp expression
 		String tmpBE = "AM_" + "tmpBE_";
 		tmpBE+= current.getId();
 	
-	
+		
 	
 		NameExpr tmpBEnExpr = new NameExpr(new Name(tmpBE));
 
@@ -616,7 +617,12 @@ public class AspectsEngine {
 		//Determine the nature of the parent of the current Expr, and take the appropriate measure to simplify the later.
 		if(parentNode instanceof AssignStmt){
 			parentaStmt = (AssignStmt)parentNode;
-
+			
+			//verify if it had already been simplified
+			String lhs = parentaStmt.getLHS().getPrettyPrinted();
+			if(lhs.equals(tmpBE))return 0;
+			
+			
 			parentaStmt.setRHS(tmpBEnExpr);
 
 			stmtList.setChild(parentaStmt, stmtPos);
@@ -636,7 +642,7 @@ public class AspectsEngine {
 		tmpBEaStmt.setLHS(tmpBEnExpr);
 		tmpBEaStmt.setRHS(current);
 		stmtList.insertChild(tmpBEaStmt,stmtPos);
-		return;
+		return 1;
 	}
 	
 	
@@ -719,34 +725,6 @@ public class AspectsEngine {
 	}
 	
 	
-	/*
-	 * Verify the match of a BinaryExpr subclass with an Operator Pattern
-	 */
-	private static Boolean isOpMatchedByPattern(String subclass,String pattern){
-		if(pattern.contentEquals(subclass) || pattern.contentEquals("all")){
-			return true;
-		}else if(pattern.contentEquals("matrix")){
-			//matrix match +,-,*,/,\ and ^
-			if(subclass.equals("PlusExpr")||subclass.equals("MinusExpr")
-		      ||subclass.equals("MTimesExpr")||subclass.equals("MLDivExpr")
-		      ||subclass.equals("MDivExpr")||subclass.equals("MPowExpr")){
-				return true;
-			}else{
-				return false;
-			}
-		}else if(pattern.contentEquals("arraywise")){
-			//arraywise match .*,./,.\,.^
-			if(subclass.equals("ETimesExpr")||subclass.equals("ELDivExpr")
-				      ||subclass.equals("EDivExpr")||subclass.equals("EPowExpr")){
-				return true;
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}
-	}
-	
 	
 	/*
 	 * Match,simplify and weave binary expression.
@@ -762,6 +740,23 @@ public class AspectsEngine {
 			String unparsedClass = current.getClass().toString();
 		 	String parsedClass = unparsedClass.replaceAll("class ast.",""); 
 		 	
+		 	
+		 	if(patternsListNew.get(act.getPattern()).ShadowMatch(parsedClass,OPERATORS, 2 , current)){
+		 		//simplify the LHS and RHS if the aspect isn't of the type "after"
+				if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+					simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
+				if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
+					simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
+				//simplify the current expr, return 0 if it was already simplified
+				int posInc = simplifyExpr(current,stmtList,stmtPos);
+				
+				//offset to fix the position of aspect of type AFTER
+				if(posInc == 1 || act.getType().equals(AFTER)) stmtPos++;
+				
+				//weave the aspect function
+				weaveBinaryExpr(current,act,stmtList,stmtPos);
+		 	}
+		 	/*
 			if(patternsListNew.get(act.getPattern()) instanceof PatternDesignator){
 				PatternDesignator patternDes = (PatternDesignator)patternsListNew.get(act.getPattern());
 				 if("op".contentEquals(patternDes.getName())){
@@ -792,7 +787,7 @@ public class AspectsEngine {
 				Name rhsargName = rhsPd.getArg(0);
 				
 				if(isOpMatchedByPattern(parsedClass,lhsargName.getPrettyPrinted())  && isOpMatchedByPattern(parsedClass,rhsargName.getPrettyPrinted()) ){
-					  //simplify the LHS and RHS if the aspect isn't of the type "after"
+					 //simplify the LHS and RHS if the aspect isn't of the type "after"
 					if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
 						simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
 					if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
@@ -833,7 +828,7 @@ public class AspectsEngine {
 				NotExpr patternDes = (NotExpr)patternsListNew.get(act.getPattern());
 			}else return;
 			
-			
+			*/
 
 				
 			}
@@ -857,7 +852,8 @@ public class AspectsEngine {
 		{
 			if(stmts.getChild(s) instanceof WhileStmt) {
 				WhileStmt ws = (WhileStmt) stmts.getChild(s);
-				if( !ws.isAspectTransformed() ) {
+				if( !ws.isAspectTransformed() ) {//simplify the LHS and RHS if the aspect isn't of the type "after"
+					
 					String var = generateCorrespondingVariableName();
 
 					Expr rhs = ws.getExpr();

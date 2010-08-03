@@ -15,6 +15,36 @@ aspect ShadowMatch {
  	
  
  	eq PatternDesignator.ShadowMatch(String target, String pattern, int args, ASTNode jp) {
+ 	
+		if(getName().equals("op")){
+			String pat = getArg(0).getPrettyPrinted();
+			if(pat.equals(target) || (pat.equals("all")&&(jp instanceof BinaryExpr))){
+				return true;
+			}else if(pat.equals("matrix")){
+				//matrix match +,-,*,/,\ and ^
+				if(target.equals("PlusExpr")||target.equals("MinusExpr")
+		    	  ||target.equals("MTimesExpr")||target.equals("MLDivExpr")
+		    	  ||target.equals("MDivExpr")||target.equals("MPowExpr")){
+					return true;
+				}else{
+					return false;
+				}
+			}else if(pat.equals("arraywise")){
+				//arraywise match .*,./,.\,.^
+				if(target.equals("ETimesExpr")||target.equals("ELDivExpr")
+					      ||target.equals("EDivExpr")||target.equals("EPowExpr")){
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
+		
+		
+		
+		
 		String type = getName();
 
 		String variable = "";
@@ -87,23 +117,6 @@ aspect ShadowMatch {
  				&& AspectsEngine.patternsListNew.get(getName().getID()).ShadowMatch(target, pattern, args, jp));
  	}
  	
- 	eq BinaryExpr.ShadowMatch(String target, String pattern, int args, ASTNode jp){
- 		
- 		String unparsedClass = getClass().toString();
- 		String parsedClass = unparsedClass.replaceAll("class ast.","");
- 		//System.err.println("in binexpr Shadowmatch with class "+parsedClass);
- 		if(AspectsEngine.patternsListNew.containsKey(pattern)){
- 			PatternDesignator thisIsNew = (PatternDesignator)AspectsEngine.patternsListNew.get(pattern);
- 			if("op".contentEquals(thisIsNew.getName())){
- 			     for(Name foo:thisIsNew.getArgList()){
- 			         if(foo.getPrettyPrinted().contentEquals(parsedClass)){
- 			         	return true;
- 			         }
- 			     }
- 			}
- 		}
- 		return false;
- 	}
 	
  	
  	
