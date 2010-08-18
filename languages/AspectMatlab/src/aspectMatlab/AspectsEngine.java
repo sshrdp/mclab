@@ -92,6 +92,7 @@ public class AspectsEngine {
 	static final public String LOCAL_CHECK = "AM_EntryPoint_";
 	static final public String AM_CF_SCRIPT = "AM_CF_Script_";
 	static final public String AM_CF_VAR = "AM_CVar_";
+	static final public String AM_BE_VAR = "AM_tmpBE_";
 
 	////////////////////////////////////////////////////////////////////////
 
@@ -99,10 +100,17 @@ public class AspectsEngine {
 	 * Temp Variables Generation
 	 */
 	static public int correspondingCount = 0;
+	static public int correspondingBECount = 0 ;
 	public static int getCorrespondingCount() { return correspondingCount; }
-
-	private static String generateCorrespondingVariableName(){
-		return AM_CF_VAR + correspondingCount++;
+	
+	
+	private static String generateCorrespondingVariableName(String tpStr){
+		if(tpStr.startsWith("CF")){
+			return AM_CF_VAR + correspondingCount++;
+		}else if(tpStr.startsWith("BE")){
+			return AM_BE_VAR + correspondingBECount++;
+		}
+		return "AM_Error_Var";
 	}
 
 	/*
@@ -266,7 +274,7 @@ public class AspectsEngine {
 
 
 					if(node != null) {
-						String var = generateCorrespondingVariableName();
+						String var = generateCorrespondingVariableName("CF");
 						NameExpr lhs = new NameExpr(new Name(var));
 						lhs.setWeavability(false);
 						pe.setCFStmtDone(true);
@@ -324,7 +332,7 @@ public class AspectsEngine {
 
 			for(Expr pat : patternsListNew.values()) {
 				if(pat.ShadowMatch(target, SET, -1, stmts)) {
-					String var = generateCorrespondingVariableName();
+					String var = generateCorrespondingVariableName("CF");
 					Expr rhs = new NameExpr(new Name(var));
 					rhs.setWeavability(false);
 
@@ -598,13 +606,13 @@ public class AspectsEngine {
 			}
 		}
 	}
+	/*
+	 * Receive an Expr, and move it out(in front of) of its parent statement.
+	 */
 	public static int simplifyExpr(Expr current,ast.List<Stmt> stmtList,int stmtPos){
 		
 		//make the temp expression
-		String tmpBE = "AM_" + "tmpBE_";
-		tmpBE+= current.getId();
-	
-		
+		String tmpBE = generateCorrespondingVariableName("BE");
 	
 		NameExpr tmpBEnExpr = new NameExpr(new Name(tmpBE));
 
@@ -618,9 +626,9 @@ public class AspectsEngine {
 		if(parentNode instanceof AssignStmt){
 			parentaStmt = (AssignStmt)parentNode;
 			
-			//verify if it had already been simplified
+			//verify if it had already been simplified(in the case of multiple pattern matching the same statement).
 			String lhs = parentaStmt.getLHS().getPrettyPrinted();
-			if(lhs.equals(tmpBE))return 0;
+			if(lhs.startsWith("AM_tmpBE"))return 0;
 			
 			
 			parentaStmt.setRHS(tmpBEnExpr);
@@ -630,11 +638,8 @@ public class AspectsEngine {
 		}else if(parentNode instanceof ast.List){
 			ast.List<ASTNode> parentaList = (ast.List<ASTNode>)parentNode;
 			parentaList.setChild(tmpBEnExpr,parentaList.getIndexOfChild(current) );
-		}else{
-			if(parentNode instanceof BinaryExpr){
+		}else if(parentNode instanceof BinaryExpr){
 				parentNode.setChild(tmpBEnExpr,parentNode.getIndexOfChild(current));
-			}
-		
 		}//if-else
 	
 		AssignStmt tmpBEaStmt = new AssignStmt();
@@ -648,7 +653,9 @@ public class AspectsEngine {
 	
 	
 	
-	
+	/*
+	 * Weave the action "act" at the matched BinaryExpr "current"
+	 */
 	public static void weaveBinaryExpr(BinaryExpr current,ActionInfo act,ast.List<Stmt> stmtList,int stmtPos){
 		boolean aroundExist = false;
 		int acount = 0, bcount = 0, tcount= 0;
@@ -711,14 +718,22 @@ public class AspectsEngine {
 
 		if(act.getType().equals(BEFORE)) {
 			stmtList.insertChild(call, stmtPos-1);
-			stmtPos++;
+			
 			
 		} else if(act.getType().equals(AFTER)) {
+			//fix the offset created by multiple before action in front of the same BinaryExpr.
+			/*while(!stmtList.getChild(stmtPos-2).getPrettyPrintedLessComments().contains(current.getPrettyPrintedLessComments())){
+				System.err.println(stmtList.getChild(stmtPos).getPrettyPrinted());
+				stmtPos++;
+			}*/
 			stmtList.insertChild(call, stmtPos);
 		} else if(act.getType().equals(AROUND)) {
 			IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 			prevCase = addSwitchCaseToAroundCorrespondingFunction(null, rhs, fun.getNestedFunction(0), ile, OPERATORS, aroundExist, prevCase, act.getClassName());
 			fun.incCorrespondingCount();
+			
+			//fix the offset created by multiple before action in front of the same BinaryExpr.
+			//while(stmtList.getChild(stmtPos-1).getPrettyPrintedLessComments().startsWith("AM_GLOBAL"))stmtPos++;
 			stmtList.setChild(call, stmtPos-1);
 			aroundExist = true;
 		}
@@ -732,107 +747,36 @@ public class AspectsEngine {
 	 */
 	public static void transformBinaryExpr(BinaryExpr current,ast.List<Stmt> stmtList,int stmtPos){
 		//only if matched.
-	for(int j=0; j<actionsList.size(); j++){
-		ActionInfo act = actionsList.get(j);
-	
-		 if(patternsListNew.containsKey(act.getPattern())){
-			 
-			String unparsedClass = current.getClass().toString();
-		 	String parsedClass = unparsedClass.replaceAll("class ast.",""); 
-		 	
-		 	
-		 	if(patternsListNew.get(act.getPattern()).ShadowMatch(parsedClass,OPERATORS, 2 , current)){
-		 		//simplify the LHS and RHS if the aspect isn't of the type "after"
-				if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-					simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
-				if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-					simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
-				//simplify the current expr, return 0 if it was already simplified
-				int posInc = simplifyExpr(current,stmtList,stmtPos);
-				
-				//offset to fix the position of aspect of type AFTER
-				if(posInc == 1 || act.getType().equals(AFTER)) stmtPos++;
-				
-				//weave the aspect function
-				weaveBinaryExpr(current,act,stmtList,stmtPos);
-		 	}
-		 	/*
-			if(patternsListNew.get(act.getPattern()) instanceof PatternDesignator){
-				PatternDesignator patternDes = (PatternDesignator)patternsListNew.get(act.getPattern());
-				 if("op".contentEquals(patternDes.getName())){
-					 
-						Name argName = patternDes.getArg(0);
-						
-						if(isOpMatchedByPattern(parsedClass,argName.getPrettyPrinted()) ){
-							  //simplify the LHS and RHS if the aspect isn't of the type "after"
-							if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-								simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
-							if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-								simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
-							//simplify the current expr
-							simplifyExpr(current,stmtList,stmtPos++);
-							//weave the aspect function
-							weaveBinaryExpr(current,act,stmtList,stmtPos);
-								
-							
-						}
-					}
-			}else if((patternsListNew.get(act.getPattern()) instanceof AndExpr)){
-				
-				AndExpr patternDes = (AndExpr)patternsListNew.get(act.getPattern());
-				PatternDesignator lhsPd = (PatternDesignator)patternDes.getChild(0);
-				PatternDesignator rhsPd = (PatternDesignator)patternDes.getChild(1);
-				
-				Name lhsargName = lhsPd.getArg(0);
-				Name rhsargName = rhsPd.getArg(0);
-				
-				if(isOpMatchedByPattern(parsedClass,lhsargName.getPrettyPrinted())  && isOpMatchedByPattern(parsedClass,rhsargName.getPrettyPrinted()) ){
-					 //simplify the LHS and RHS if the aspect isn't of the type "after"
+		for(int j=0; j<actionsList.size(); j++){
+			ActionInfo act = actionsList.get(j);
+		
+			 if(patternsListNew.containsKey(act.getPattern())){
+				 
+				String unparsedClass = current.getClass().toString();
+			 	String parsedClass = unparsedClass.replaceAll("class ast.",""); 
+			 	
+			 	
+			 	if(patternsListNew.get(act.getPattern()).ShadowMatch(parsedClass,OPERATORS, 2 , current)){
+			 		//simplify the LHS and RHS if the aspect isn't of the type "after"
 					if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
 						simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
 					if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
 						simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
-					//simplify the current expr
-					simplifyExpr(current,stmtList,stmtPos++);
+					//simplify the current expr, return 0 if it was already simplified
+					int posInc = simplifyExpr(current,stmtList,stmtPos);
+					
+					//offset to fix the position of aspect of type AFTER
+					if(posInc == 1 || act.getType().equals(AFTER)) stmtPos++;
+					
 					//weave the aspect function
 					weaveBinaryExpr(current,act,stmtList,stmtPos);
-						
 					
-				}
-				
-				
-			}else if((patternsListNew.get(act.getPattern()) instanceof OrExpr)){
-				OrExpr patternDes = (OrExpr)patternsListNew.get(act.getPattern());
-				PatternDesignator lhsPd = (PatternDesignator)patternDes.getChild(0);
-				PatternDesignator rhsPd = (PatternDesignator)patternDes.getChild(1);
-				
-				Name lhsargName = lhsPd.getArg(0);
-				Name rhsargName = rhsPd.getArg(0);
-				
-				if(isOpMatchedByPattern(parsedClass,lhsargName.getPrettyPrinted())  || isOpMatchedByPattern(parsedClass,rhsargName.getPrettyPrinted()) ){
-					  //simplify the LHS and RHS if the aspect isn't of the type "after"
-					if(!(current.getLHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-						simplifyExpr((Expr)current.getLHS(),stmtList,stmtPos++);
-					if(!(current.getRHS() instanceof NameExpr) && !act.getType().equals(AFTER))
-						simplifyExpr((Expr)current.getRHS(),stmtList,stmtPos++);
-					//simplify the current expr
-					simplifyExpr(current,stmtList,stmtPos++);
-					//weave the aspect function
-					weaveBinaryExpr(current,act,stmtList,stmtPos);
-						
+					//offset to fix the position of the stmt after weaving the aspect
+					if(act.getType().equals(BEFORE)) stmtPos++;
+			 	}
 					
-				}
-				
-				
-			}else if((patternsListNew.get(act.getPattern()) instanceof NotExpr)){
-				NotExpr patternDes = (NotExpr)patternsListNew.get(act.getPattern());
-			}else return;
-			
-			*/
-
-				
 			}
-			
+				
 		}
 	
 	}
@@ -854,7 +798,7 @@ public class AspectsEngine {
 				WhileStmt ws = (WhileStmt) stmts.getChild(s);
 				if( !ws.isAspectTransformed() ) {//simplify the LHS and RHS if the aspect isn't of the type "after"
 					
-					String var = generateCorrespondingVariableName();
+					String var = generateCorrespondingVariableName("CF");
 
 					Expr rhs = ws.getExpr();
 					Expr lhs = new NameExpr(new Name(var));
@@ -884,7 +828,8 @@ public class AspectsEngine {
 					stmtCount++;
 				}
 			}
-		}
+		}	
+		
 	}
 
 	/*
@@ -1100,7 +1045,7 @@ public class AspectsEngine {
 									nv = rhs;
 									//} else if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
 								} else if(rhs.getWeavability()) {
-									String var = generateCorrespondingVariableName();
+									String var = generateCorrespondingVariableName("CF");
 									Expr tmp = new NameExpr(new Name(var));
 
 									AssignStmt stmt = new AssignStmt((Expr) tmp.copy(), (Expr) rhs.copy());
@@ -1258,7 +1203,7 @@ public class AspectsEngine {
 						ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
 						BinaryExpr cond = new EQExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
 
-						String var = generateCorrespondingVariableName();
+						String var = generateCorrespondingVariableName("CF");
 						existObj = new NameExpr(new Name(var));
 
 						AssignStmt ias = new AssignStmt(existObj, new NameExpr(new Name(target)));
@@ -1475,7 +1420,7 @@ public class AspectsEngine {
 						ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
 						BinaryExpr cond = new EQExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
 
-						String var = generateCorrespondingVariableName();
+						String var = generateCorrespondingVariableName("CF");
 						existObj = new NameExpr(new Name(var));
 
 						AssignStmt ias = new AssignStmt(existObj, new NameExpr(new Name(target)));
@@ -1688,7 +1633,7 @@ public class AspectsEngine {
 									Expr rhs = head.getRHS();
 
 									if(rhs.getWeavability() && !rhs.getCFStmtDone()) {
-										String var = generateCorrespondingVariableName();
+										String var = generateCorrespondingVariableName("CF");
 										Expr tmp = new NameExpr(new Name(var));
 										tmp.setWeavability(false);
 										rhs.setCFStmtDone(true);
@@ -2178,7 +2123,7 @@ public class AspectsEngine {
 					elst.add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(count))));
 					ParameterizedExpr builtin = new ParameterizedExpr(new NameExpr(new Name("builtin")), elst);
 					args.add(new RangeExpr(ile, new Opt<Expr>(), builtin));
-				} else //TODO: resolve end expression
+				} else 
 					args.add(arg);
 			}
 
