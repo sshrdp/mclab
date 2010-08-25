@@ -721,19 +721,14 @@ public class AspectsEngine {
 			
 			
 		} else if(act.getType().equals(AFTER)) {
-			//fix the offset created by multiple before action in front of the same BinaryExpr.
-			/*while(!stmtList.getChild(stmtPos-2).getPrettyPrintedLessComments().contains(current.getPrettyPrintedLessComments())){
-				System.err.println(stmtList.getChild(stmtPos).getPrettyPrinted());
-				stmtPos++;
-			}*/
+			
 			stmtList.insertChild(call, stmtPos);
 		} else if(act.getType().equals(AROUND)) {
 			IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
 			prevCase = addSwitchCaseToAroundCorrespondingFunction(null, rhs, fun.getNestedFunction(0), ile, OPERATORS, aroundExist, prevCase, act.getClassName());
 			fun.incCorrespondingCount();
 			
-			//fix the offset created by multiple before action in front of the same BinaryExpr.
-			//while(stmtList.getChild(stmtPos-1).getPrettyPrintedLessComments().startsWith("AM_GLOBAL"))stmtPos++;
+			
 			stmtList.setChild(call, stmtPos-1);
 			aroundExist = true;
 		}
