@@ -117,7 +117,8 @@ classdef unit < handle
     end
   end
   methods 
-    function  [varargout] = unit_loop(this, newVal, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_loop(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
 % captures all loop invocations for i = range, and overwrites the
 % expression to be a struct-array instead of a structure with an array inside
       range = this.annotate(newVal);
@@ -134,7 +135,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_acalls(this, name, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_acalls(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
       if isfield(this.units, name)
 % captures all calls and checks whether they are a nuit - if so, return the unit
 % this advice is first so that it gets matched last
@@ -203,7 +205,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_adisp(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_adisp(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
       if (length(args) ~= 1)
 % overrdes printing so that we add units
         error('Error using disp -- need exactly one argument)');
@@ -233,7 +236,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_aplus(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_aplus(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
 % +
       [a, b, c] = this.prepareOp(args);
       c.val = (a.val + b.val);
@@ -257,7 +261,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_aminus(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_aminus(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
 % -
       [a, b, c] = this.prepareOp(args);
       c.val = (a.val - b.val);
@@ -277,7 +282,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_amtimes(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_amtimes(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
 % *
       [a, b, c] = this.prepareOp(args);
       c.val = (a.val * b.val);
@@ -336,7 +342,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_amrdivide(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_amrdivide(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
 % /
       [a, b, c] = this.prepareOp(args);
       c.val = (a.val / b.val);
@@ -371,7 +378,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_power(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_power(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
 % .^
       [a, b, c] = this.prepareOp(args);
       c.val = (a.val .^ b.val);
@@ -399,7 +407,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_round(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_round(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
       if (length(args) ~= 1)
 % round
         proceed(AM_caseNum, AM_obj, AM_args);
@@ -414,7 +423,8 @@ classdef unit < handle
         end
       end
     end
-    function  [varargout] = unit_colon(this, args, AM_caseNum, AM_obj, AM_args)
+    function  [varargout] = unit_colon(this, AM_caseNum, AM_obj, AM_args, args, counter, file, line, loc, name, newVal, obj)
+      global AM_GLOBAL;
       if ((length(args) ~= 2) && (length(args) ~= 3))
 % : :
         proceed(AM_caseNum, AM_obj, AM_args);
