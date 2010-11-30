@@ -178,6 +178,19 @@
 			</fileset>
 		</jastadd>
 	</target>
+	<!--=====================================================================-->
+	<!-- Natlab Targets                                                      -->
+	<!--=====================================================================-->
+
+	<target name="natlab.build" description="call build for Natlab">
+		<echo message="BLAH: ${natlab.dir}" />
+		<ant dir="${natlab.dir}" target="build" inheritall="false" />
+	</target>
+	<target name="natlab.eclipse.build" depends="set.annotations.bin.dir" description="call eclipse.build for Natlab">
+		<ant dir="${natlab.dir}" target="eclipse.build" inheritall="false" />
+	</target>
+
+	
 
 	<!--=====================================================================-->
 	<!-- Public Targets                                                      -->
@@ -187,7 +200,7 @@
 	<import file="../shared/eclipse.xml" />
 
 	<!-- public versions of cli.xml targets -->
-	<target name="build" depends="CommandLineInterface.build" description="generate and build all files" />
+	<target name="build" depends="natlab.build, CommandLineInterface.build" description="generate and build all files" />
 	<target name="clean" depends="CommandLineInterface.clean" description="deletes all files produced by build" />
 	<target name="test" depends="CommandLineInterface.test" description="runs all JUnit tests" />
 
@@ -242,7 +255,7 @@
 	</target>
 
 	<!-- public versions of eclipse.xml targets -->
-	<target name="eclipse.build" depends="Eclipse.eclipse.build" description="generate all files, let Eclipse build" />
+	<target name="eclipse.build" depends="natlab.build, Eclipse.eclipse.build" description="generate all files, let Eclipse build" />
 	<target name="eclipse.clean" depends="Eclipse.eclipse.clean" description="deletes all files produced by build.eclipse" />
 	<target name="eclipse.test" depends="Eclipse.eclipse.test" description="runs all JUnit tests, as built by Eclipse" />
 </project>
