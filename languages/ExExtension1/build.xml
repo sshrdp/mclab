@@ -19,7 +19,16 @@
 
         <import file="${natlab.dir}/build.xml" />
 
+ 	<!--=====================================================================-->
+	<!-- Analysis related things                                             -->
+	<!--=====================================================================-->
         
+        <fileset id="exextension1.analysis.jastadd.fileset" dir="${ExExtension1.basedir}">
+          <exclude name="*" />
+        </fileset>
+        
+
+      
 	<!--=====================================================================-->
 	<!-- Private Targets                                                     -->
 	<!--=====================================================================-->
@@ -79,15 +88,17 @@
 
 
         <target name="set.bin.dir" depends="set.natlab.bin.dir, set.annotations.bin.dir, BinDir.set.bin.dir">
-          <path id="compile.classpath" >
+          <path id="exextension1.compile.classpath" >
 	    <path refid="beaver.rt.jar.path" />
 	    <path id="annotation.bin.path" location="${basedir}/${annotations.bin.dir}" />
 	    <path id="natlab.bin.path" location="${basedir}/${natlab.bin.dir}" />
-          </path>
-          <path id="test.classpath" >
+          </path>        
+          <path id="compile.classpath" refid="exextension1.compile.classpath" />
+          <path id="exextension1.test.classpath" >
             <path id="local.bin.path" location="${basedir}/${bin.dir}" />
-            <path refid="compile.classpath" />
+            <path refid="exextension1.compile.classpath" />
           </path>
+          <path id="test.classpath" refid="exextension1.test.classpath" />
         </target>
 
 	<!--=====================================================================-->
