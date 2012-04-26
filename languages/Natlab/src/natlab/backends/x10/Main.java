@@ -18,7 +18,7 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
-		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/unittest/ut3" +
+		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/tests/unittest/hello" +
 				".m";
 		TamerTool tool = new TamerTool();
 		IntraproceduralValueAnalysis<AggrValue<SimpleMatrixValue>>  analysis = tool.tameMatlabToSingleFunctionFromClassReferences(
