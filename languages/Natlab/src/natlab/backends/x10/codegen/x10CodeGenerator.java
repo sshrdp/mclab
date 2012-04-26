@@ -47,26 +47,15 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	@Override
 	public void caseASTNode(ASTNode node) {
-		// TODO Auto-generated method stub
-		
+				
 	}
 	public void caseTIRFunction(TIRFunction node){
 		String indent = node.getIndent();
 		boolean first = true;
 		ArrayList<String> inArgs = new ArrayList<String>();
 		buf.append(indent + "public static def " );
-		/* TODO - CHANGE IT TO DETERMINE RETURN TYPE
-		//buf.append(" [");
-		//boolean first = true;
-		//for(Name param : node.getOutputParams()) {
-			if(!first) {
-				buf.append(", ");
-			}
-			buf.append(param.getPrettyPrinted());
-			
-			first = false;
-		}
-		*/
+		// TODO - CHANGE IT TO DETERMINE RETURN TYPE
+		
 				
 		buf.append(node.getName());
 					

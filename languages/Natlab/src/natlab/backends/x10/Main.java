@@ -18,24 +18,21 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
-		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/test/hello.m";
+		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/unittest/ut3" +
+				".m";
 		TamerTool tool = new TamerTool();
-//		IntraproceduralValueAnalysis<AggrValue<SimpleMatrixValue>>  analysis = tool.tameMatlabToSingleFunctionFromClassReferences(
-//				new java.io.File(file),
-//				Collections.singletonList(PrimitiveClassReference.DOUBLE));
-		
 		IntraproceduralValueAnalysis<AggrValue<SimpleMatrixValue>>  analysis = tool.tameMatlabToSingleFunctionFromClassReferences(
-				new java.io.File(file),Collections.singletonList(PrimitiveClassReference.DOUBLE));
+				new java.io.File(file),
+				Collections.singletonList(PrimitiveClassReference.DOUBLE));
+		
+	//	IntraproceduralValueAnalysis<AggrValue<SimpleMatrixValue>>  analysis = tool.tameMatlabToSingleFunctionFromClassReferences(
+	//			new java.io.File(file),Collections.singletonList(PrimitiveClassReference.DOUBLE));
 		
 		TIRFunction function = analysis.getTree();
 		
-		System.out.println(function.getPrettyPrinted()); //print IR-ast
+	//	System.out.println(function.getPrettyPrinted()); //print IR-ast
 		
 		System.out.println("\n------------------------------------\n");
-		
-		System.out.println(function.getStmtList().getChild(1).getPrettyPrinted()); //prnt 6th stmt of function
-		System.out.println(analysis.getOutFlowSets().get(function.getStmtList().getChild(2))); //get associated flow set, print	
-		
 		
 		/*	
 		System.out.println(function.getStmtList().getChild(5).getPrettyPrinted()); //prnt 6th stmt of function
