@@ -8,6 +8,7 @@ public class x10Mapping {
 	private static HashMap<String, String> x10BinOperatorMap = new HashMap();
 	private static HashMap<String, String> x10UnOperatorMap = new HashMap();
 	private static HashMap<String, String> x10BuiltinMap = new HashMap();
+	private static HashMap<String, String> x10BuiltinConstMap = new HashMap();
 	private static HashMap<String, String> x10MethodMap = new HashMap();
 	
 	public x10Mapping(){
@@ -15,6 +16,7 @@ public class x10Mapping {
 		makex10BinOperatorMap();
 		makex10UnOperatorMap();
 		makex10BuiltinMap();
+		makex10BuiltinConstMap();
 		makex10MethodMap();
 	}
 	
@@ -59,7 +61,14 @@ public class x10Mapping {
 	private void makex10BuiltinMap(){
 	//TODO create a categorical map here 
 	  x10BuiltinMap.put("disp", "Console.OUT.println");	
+	 
 	}
+	
+	private void makex10BuiltinConstMap(){
+		//TODO create a categorical map here 
+		 
+		  x10BuiltinConstMap.put("pi", "Math.PI");	
+		}
 	
 	private void makex10MethodMap(){
 		//TODO
@@ -101,7 +110,22 @@ public class x10Mapping {
 	}
 	
 	public String getX10BuiltinMapping (String BuiltinName){
-		return x10BuiltinMap.get(BuiltinName);
+		
+		 return x10BuiltinMap.get(BuiltinName);
+		
+	}
+	
+	public static Boolean isBuiltinConst(String expType){
+		if (true == x10BuiltinConstMap.containsKey(expType))
+			return true;
+		else
+			return false;
+	}
+	
+	public String getX10BuiltinConstMapping (String BuiltinName){
+		
+		 return x10BuiltinConstMap.get(BuiltinName);
+		
 	}
 	
 	public static Boolean isMethod(String expType){

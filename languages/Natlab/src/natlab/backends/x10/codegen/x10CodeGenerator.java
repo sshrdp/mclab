@@ -108,9 +108,8 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	public void handleTIRAbstractAssignToListStmt(TIRAbstractAssignStmt node){
 		
 		
-		String LHS, RHS;
-		int RHStype;
-		String Operand1, Operand2, prefix="";
+		String LHS;
+		
 		ArrayList<String> vars = new ArrayList<String>();
 		for(ast.Name name : ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
 		 vars.add(name.getID());
@@ -130,34 +129,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 				buf.append("val "+LHS.toString()+": "+x10Map.getX10TypeMapping(getLHSType(analysis,node,LHS ))+" = ");
 				//use varname to get the name of the method/operator/Var
 			}
-			
-				RHStype = getRHSType(node);
-				RHS = getRHSExp(node);
-				Operand1 = getOperand1(node);
-				Operand2 = getOperand2(node);
-				if (Operand2 != "" && Operand2 != null)
-					prefix = ", ";
-				
-				switch(RHStype)
-				{
-				case 1:
-					buf.append(Operand1+" "+RHS+" "+Operand2+" ;");
-					break;
-				case 2:
-					buf.append(RHS+" "+Operand1+" ;"); //TODO test this
-					break;
-				case 3:
-					
-					buf.append(RHS+"("+Operand1+prefix+Operand2+");");
-					break;
-				case 4:
-					buf.append(RHS+"("+Operand1+prefix+Operand2+");");
-					break;
-				default:
-					buf.append("//is it an error?");	
-					break;
-				}
-				
+			    makeExpression(node);
 				symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node,LHS));
 			
 			
@@ -165,38 +137,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		}
 		else if(0==vars.size()){
 			//TODO
-			RHStype = getRHSType(node);
-			RHS = getRHSExp(node);
-			//TODO
-			/*
-			 * This is an extremely ugly hack !!!!
-			 * huh....What was I thinking ????
-			 * make an array of operands - that will handle 0,1 or 2 operands .
-			 * Also it will make it easier to print in code without extra "," .
-			 * 
-			 */
-			Operand1 = getOperand1(node);
-			Operand2 = getOperand2(node);
-			if (Operand2 != "" && Operand2 != null)
-				prefix = ", ";
-			switch(RHStype)
-			{
-			case 1:
-				buf.append(Operand1+" "+RHS+" "+Operand2+" ;");
-				break;
-			case 2:
-				buf.append(RHS+" "+Operand1+" ;"); //TODO test this
-				break;
-			case 3:
-				buf.append(RHS+"("+Operand1+prefix+Operand2+");");
-				break;
-			case 4:
-				buf.append(RHS+"("+Operand1+prefix+Operand2+");");
-				break;
-			default:
-				buf.append("//is it an error?");	
-				break;
-			}
+			  makeExpression(node);
 		}
 		
 		
@@ -204,15 +145,58 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	
 	
+	public void makeExpression(TIRAbstractAssignStmt node)
+	{
+		int RHStype;
+		String RHS;
+		String Operand1, Operand2, prefix="";
+		RHStype = getRHSType(node);
+		RHS = getRHSExp(node);
+		//TODO
+		/*
+		 * This is an extremely ugly hack !!!!
+		 * huh....What was I thinking ????
+		 * make an array of operands - that will handle 0,1 or 2 operands .
+		 * Also it will make it easier to print in code without extra "," .
+		 * 
+		 */
+		Operand1 = getOperand1(node);
+		Operand2 = getOperand2(node);
+		if (Operand2 != "" && Operand2 != null)
+			prefix = ", ";
+		switch(RHStype)
+		{
+		case 1:
+			buf.append(Operand1+" "+RHS+" "+Operand2+" ;");
+			break;
+		case 2:
+			buf.append(RHS+" "+Operand1+" ;"); //TODO test this
+			break;
+		case 3:
+			buf.append(RHS+"("+Operand1+prefix+Operand2+");");
+			break;
+		case 4:
+			buf.append(RHS+"("+Operand1+prefix+Operand2+");");
+			break;
+		case 5:
+			buf.append(RHS+";");
+			break;
+		default:
+			buf.append("//is it an error?");	
+			break;
+		}
+	}
+	
+	
 	public String getOperand1(TIRAbstractAssignStmt node){
-		if(node.getRHS().getChild(1).getChild(0) != null)
+		if(node.getRHS().getChild(1).getNumChild() >= 1)
 			return node.getRHS().getChild(1).getChild(0).getNodeString();
 		else
-			return " ";
+			return "";
 	}
 	
 	public String getOperand2(TIRAbstractAssignStmt node){
-		if(node.getRHS().getChild(1).getNumChild() == 2)
+		if(node.getRHS().getChild(1).getNumChild() >= 2)
 			return node.getRHS().getChild(1).getChild(1).getNodeString();
 		else
 			return "";
@@ -238,6 +222,10 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		{
 			return 4; // "method";
 		}
+		else if (true==x10Map.isBuiltinConst(RHSName))
+		{
+			return 5; // "builtin";
+		}
 		else
 		{
 			return 0; // "default";
@@ -260,6 +248,10 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		else if (true==x10Map.isBuiltin(RHSName))
 		{
 			RHS= x10Map.getX10BuiltinMapping(RHSName);
+		}
+		else if (true==x10Map.isBuiltinConst(RHSName))
+		{
+			RHS= x10Map.getX10BuiltinConstMapping(RHSName);
 		}
 		else if (true == x10Map.isMethod(RHSName))
 		{

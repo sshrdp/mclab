@@ -1,6 +1,7 @@
 package natlab.backends.x10;
 
 import java.util.Collections;
+import java.io.*;
 
 import org.w3c.dom.Document;
 
@@ -18,11 +19,13 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
-		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/tests/unittest/hello" +
-				".m";
+		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/tests/unittest/ut4" ;
+	    String fileIn = file+".m";
+	    String fileOut =  file+".x10";
+	    String x10Code;
 		TamerTool tool = new TamerTool();
 		IntraproceduralValueAnalysis<AggrValue<SimpleMatrixValue>>  analysis = tool.tameMatlabToSingleFunctionFromClassReferences(
-				new java.io.File(file),
+				new java.io.File(fileIn),
 				Collections.singletonList(PrimitiveClassReference.DOUBLE));
 		
 	//	IntraproceduralValueAnalysis<AggrValue<SimpleMatrixValue>>  analysis = tool.tameMatlabToSingleFunctionFromClassReferences(
@@ -44,6 +47,18 @@ public class Main {
 		
 		System.out.println("\n~~~~~~~~~~~~~~~~X10 code~~~~~~~~~~~~~~~~~~~~~~~\n");
 		System.out.println(x10CodeGenerator.x10CodePrinter(analysis, "testclass"));
+		x10Code = x10CodeGenerator.x10CodePrinter(analysis, "testclass");
+		
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileOut));
+			out.write(x10Code);
+			out.close();
+			}
+			catch (IOException e)
+			{
+			System.out.println("Exception ");
+
+			}
 		
 		/*
 		ValueFlowMap<AggrValue<SimpleMatrixValue>> flowMap = analysis.getOutFlowSets().get(function.getStmtList().getChild(12));
