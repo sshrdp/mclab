@@ -61,6 +61,9 @@ public class x10Mapping {
 	private void makex10BuiltinMap(){
 	//TODO create a categorical map here 
 	  x10BuiltinMap.put("disp", "Console.OUT.println");	
+	  x10BuiltinMap.put("sqrt", "sqrt");	
+	  x10BuiltinMap.put("sin", "sin");	
+	  x10BuiltinMap.put("cos", "cos");	
 	 
 	}
 	
