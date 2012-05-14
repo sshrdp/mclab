@@ -19,7 +19,7 @@ public class Main {
 	
 	
 	public static void main(String[] args) {
-		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/tests/unittest/ut4" ;
+		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/testing/unitTests/ut8" ;
 	    String fileIn = file+".m";
 	    String fileOut =  file+".x10";
 	    String x10Code;

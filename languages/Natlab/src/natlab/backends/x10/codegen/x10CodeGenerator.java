@@ -65,7 +65,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 			if(!first) {
 				buf.append(", ");
 			}
-			buf.append(param.getPrettyPrinted()+": "+getArgumentType(analysis, node, param.getID()) );
+			buf.append(param.getPrettyPrinted()+": "+x10Map.getX10TypeMapping(getArgumentType(analysis, node, param.getID())) );
 			symbolMap.put(param.getID().toString(), getAnalysisValue(analysis, node, param.getID()));
 			first = false;
 		}
@@ -147,21 +147,24 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	public void makeExpression(TIRAbstractAssignStmt node)
 	{
+		/* Change for built-ins with n args
+		 * Currently it handles general case built-ins with one or two args only
+		 */
+		
 		int RHStype;
 		String RHS;
 		String Operand1, Operand2, prefix="";
+		String ArgsListasString;
 		RHStype = getRHSType(node);
 		RHS = getRHSExp(node);
 		//TODO
-		/*
-		 * This is an extremely ugly hack !!!!
-		 * huh....What was I thinking ????
-		 * make an array of operands - that will handle 0,1 or 2 operands .
-		 * Also it will make it easier to print in code without extra "," .
-		 * 
-		 */
+		
 		Operand1 = getOperand1(node);
 		Operand2 = getOperand2(node);
+		
+		ArrayList<String> Args = new ArrayList<String>();
+		
+		
 		if (Operand2 != "" && Operand2 != null)
 			prefix = ", ";
 		switch(RHStype)
@@ -170,13 +173,17 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 			buf.append(Operand1+" "+RHS+" "+Operand2+" ;");
 			break;
 		case 2:
-			buf.append(RHS+" "+Operand1+" ;"); //TODO test this
+			buf.append(RHS+""+Operand1+" ;"); //TODO test this
 			break;
 		case 3:
-			buf.append(RHS+"("+Operand1+prefix+Operand2+");");
+			Args = GetArgs(node);
+			ArgsListasString = GetArgsListasString(Args);
+			buf.append(RHS+"("+ArgsListasString+");");
 			break;
 		case 4:
-			buf.append(RHS+"("+Operand1+prefix+Operand2+");");
+			Args = GetArgs(node);
+			ArgsListasString = GetArgsListasString(Args);
+			buf.append(RHS+"("+ArgsListasString+");");
 			break;
 		case 5:
 			buf.append(RHS+";");
@@ -214,7 +221,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		   return 2; //"unop";
 		}
 		
-		else if (true==x10Map.isBuiltin(RHSName))
+		else if (true==x10Map.isX10DirectBuiltin(RHSName))
 		{
 			return 3; // "builtin";
 		}
@@ -245,9 +252,9 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		   RHS= x10Map.getX10UnOpMapping(RHSName);
 		}
 		
-		else if (true==x10Map.isBuiltin(RHSName))
+		else if (true==x10Map.isX10DirectBuiltin(RHSName))
 		{
-			RHS= x10Map.getX10BuiltinMapping(RHSName);
+			RHS= x10Map.getX10DirectBuiltinMapping(RHSName);
 		}
 		else if (true==x10Map.isBuiltinConst(RHSName))
 		{
@@ -269,7 +276,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		//vars.add(((TIRAbstractAssignToVarStmt)node).getTargetName().getID());
 		//if already present in symbolMap=>has been analyzed else define
 		String LHS;
-		ArrayList<String> vars = new ArrayList<String>();
+		//ArrayList<String> vars = new ArrayList<String>();
 		symbolMapKey = ((TIRAbstractAssignToVarStmt)node).getTargetName().getID();
 		LHS = symbolMapKey;
 		if(true == symbolMap.containsKey(symbolMapKey)) //variable already defined and analyzed
@@ -279,7 +286,14 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		else 
 		{   
 			
-			buf.append("val "+node.getLHS().getNodeString()+": "+x10Map.getX10TypeMapping(getLHSType(analysis,node,LHS ))+" = ");
+			String type = x10Map.getX10TypeMapping(getLHSType(analysis,node,LHS ));
+			buf.append("val "+node.getLHS().getNodeString()+": "+type+" = ");
+			if (type == "String")
+			{
+				//type = makeX10StringLiteral(type);
+				buf.append(makeX10StringLiteral(node.getRHS().getNodeString()) + ";");
+			}
+			else
 			buf.append(node.getRHS().getNodeString() + ";");
 			//TODO check for expression on RHS
 			//TODO check for built-ins
@@ -292,11 +306,31 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		
 	}
 		
+	ArrayList<String> GetArgs(TIRAbstractAssignStmt node)
+	{
+		ArrayList<String> Args = new ArrayList<String>();
+		int numArgs = node.getRHS().getChild(1).getNumChild();
+		for (int i=0;i<numArgs;i++)
+		{
+			Args.add(node.getRHS().getChild(1).getChild(i).getNodeString());
+		}
 		
-		
-		
-		
-		
+		return Args;
+	}
+	
+	
+	String GetArgsListasString(ArrayList<String> Args)
+	{
+	   String prefix ="";
+	   String ArgListasString="";
+	   for (String arg : Args)
+	   {
+		   ArgListasString = ArgListasString+prefix+arg;
+		   prefix=", ";
+	   }
+	   return ArgListasString;
+	}
+	
 	
 	/**********************HELPER METHODS***********************************/
 	private String getLHSType(IntraproceduralValueAnalysis<?> analysis,
@@ -328,6 +362,20 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 
 		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
+
+	private String makeX10StringLiteral(String StrLit)
+	{
+		
+		if(StrLit.charAt(0)=='\'' && StrLit.charAt(StrLit.length()-1)=='\'')
+		{
+			
+			return "\""+(String) StrLit.subSequence(1, StrLit.length()-1)+"\"";
+			
+		}
+		else
+		return StrLit;
+	}
+	
 	
 	private void printStatements(ast.List<ast.Stmt> stmts){
 		for(ast.Stmt stmt : stmts) {
@@ -338,3 +386,5 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	}
 	
 }
+
+
