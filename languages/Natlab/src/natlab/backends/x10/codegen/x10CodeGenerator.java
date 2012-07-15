@@ -17,30 +17,33 @@ import natlab.tame.tir.TIRDotSetStmt;
 import natlab.tame.tir.TIRFunction;
 import natlab.tame.tir.TIRNode;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
-import natlab.tame.valueanalysis.IntraproceduralValueAnalysis;
+import natlab.tame.valueanalysis.ValueAnalysis;
+import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.ValueAnalysisPrinter;
+import natlab.tame.valueanalysis.advancedMatrix.AdvancedMatrixValue;
+import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 import natlab.backends.x10.codegen.x10Mapping;
 
 public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
-	IntraproceduralValueAnalysis<?> analysis;
+	ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis;
 	private StringBuffer buf;
 	private x10Mapping x10Map;
 	private  HashMap<String, Collection<ClassReference>> symbolMap = new HashMap<String, Collection<ClassReference>>(); 
 	private String symbolMapKey;	
 	
 	
-	private x10CodeGenerator(IntraproceduralValueAnalysis<?> analysis, String classname) {
+	private x10CodeGenerator(ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, String classname) {
 		this.buf = new StringBuffer();
 		this.x10Map = new x10Mapping();
-		this.analysis = analysis;
+		this.analysis = analysis2;
 		buf.append("public class "+classname+" {\n");
-		((TIRNode)analysis.getTree()).tirAnalyze(this);
+		((TIRNode)analysis2.getNodeList().get(0).getAnalysis().getTree()).tirAnalyze(this);
 	}
 	
 	
 	public static String x10CodePrinter(
-			IntraproceduralValueAnalysis<?> analysis, String classname){
-		return new x10CodeGenerator(analysis, classname).buf.toString();
+			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, String classname){
+		return new x10CodeGenerator(analysis2, classname).buf.toString();
 	
 	}
 	
@@ -333,32 +336,32 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	
 	/**********************HELPER METHODS***********************************/
-	private String getLHSType(IntraproceduralValueAnalysis<?> analysis,
+	private String getLHSType(ValueAnalysis<?> analysis,
 			TIRAbstractAssignStmt node, String SymbolMapKey) {
 		//node.getTargetName().getID()
-		return analysis.getOutFlowSets().get(node).get(SymbolMapKey).getMatlabClasses().toArray()[0].toString();
+		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(SymbolMapKey).getMatlabClasses().toArray()[0].toString();
 		
 	}
 
 
 	
-	private static String getArgumentType(IntraproceduralValueAnalysis<?> analysis, TIRFunction node, String paramID){
+	private static String getArgumentType(ValueAnalysis<?> analysis, TIRFunction node, String paramID){
 		//System.out.println(analysis.getOutFlowSets().get(node).get(paramID).toString());
 
-		return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
+		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
 	
 	//get analysis value for Function node
-	private static Collection<ClassReference> getAnalysisValue(IntraproceduralValueAnalysis<?> analysis, TIRFunction node, String ID){
-		return analysis.getOutFlowSets().get(node).get(ID).getMatlabClasses();
+	private static Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, TIRFunction node, String ID){
+		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
 
 		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
 	
 	
 	//get analysis value for abstract assignment node
-	private static Collection<ClassReference> getAnalysisValue(IntraproceduralValueAnalysis<?> analysis, TIRAbstractAssignStmt node, String ID){
-		return analysis.getOutFlowSets().get(node).get(ID).getMatlabClasses();
+	private static Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, TIRAbstractAssignStmt node, String ID){
+		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
 
 		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
