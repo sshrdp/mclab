@@ -1,0 +1,5 @@
+//WhiteSpace
+<YYINITIAL> {
+{WhiteSpace} {}
+}
+
