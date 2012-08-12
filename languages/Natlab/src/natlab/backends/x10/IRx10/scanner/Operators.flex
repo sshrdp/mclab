@@ -61,7 +61,8 @@
     DARROW ::= =>                                                               
     SUBTYPE ::= <:                                                              
     SUPERTYPE ::= :>                                                            
-    STARSTAR ::= **                                                             
+    STARSTAR ::= **          
+    TWIDDLE ::= ~                                                   
     NTWIDDLE ::= !~                                                             
     LARROW ::= '<-'                                                             
     FUNNEL ::= '-<'                                                             

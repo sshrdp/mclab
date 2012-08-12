@@ -18,8 +18,8 @@
   [+-]? {Digits} [dD]            { return sym(Terminals.DOUBLE_LITERAL, str().substring(0,len()-1)); }
 
 //Boolean Literals
-"true"                         { return sym(Terminals.BOOLEAN_LITERAL); }     
-"false"                        { return sym(Terminals.BOOLEAN_LITERAL); } 
+//"true"                         { return sym(Terminals.BOOLEAN_LITERAL); }     
+//"false"                        { return sym(Terminals.BOOLEAN_LITERAL); } 
 
 //null Literal
 "null"				{return sym(Terminals.NULL_LITERAL); }
