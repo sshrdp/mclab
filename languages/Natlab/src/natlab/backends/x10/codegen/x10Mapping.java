@@ -2,9 +2,12 @@ package natlab.backends.x10.codegen;
 
 import java.util.HashMap;
 
+import natlab.backends.x10.IRx10.ast.AccessVal;
+import natlab.backends.x10.IRx10.ast.Type;
+
 public class x10Mapping {
 	
-	private static HashMap<String, String> x10TypeMap = new HashMap();
+	private static HashMap<String, Type> x10TypeMap = new HashMap();
 	private static HashMap<String, String> x10BinOperatorMap = new HashMap();
 	private static HashMap<String, String> x10UnOperatorMap = new HashMap();
 	private static HashMap<String, String> x10DirectBuiltinMap = new HashMap();
@@ -22,20 +25,18 @@ public class x10Mapping {
 	
 	private void makex10TypeMap()
 	{
-		x10TypeMap.put("char", "String");
-		x10TypeMap.put("double", "Double");
-		x10TypeMap.put("single", "Float");
-		x10TypeMap.put("int8", "Byte");
-		x10TypeMap.put("int16", "Short");
-		x10TypeMap.put("int32", "Int");
-		x10TypeMap.put("int64", "Long");
-		x10TypeMap.put("uint8", "UByte");
-		x10TypeMap.put("uint16", "UShort");
-		x10TypeMap.put("uint32", "UInt");
-		x10TypeMap.put("uint64", "ULong");
-		x10TypeMap.put("logical", "Boolean");
-		
-
+		x10TypeMap.put("char", new Type("String"));
+		x10TypeMap.put("double",new Type("Double"));
+		x10TypeMap.put("single", new Type("Float"));
+		x10TypeMap.put("int8", new Type("Byte"));
+		x10TypeMap.put("int16", new Type("Short"));
+		x10TypeMap.put("int32", new Type("Int"));
+		x10TypeMap.put("int64", new Type("Long"));
+		x10TypeMap.put("uint8", new Type("UByte"));
+		x10TypeMap.put("uint16", new Type("UShort"));
+		x10TypeMap.put("uint32", new Type ("UInt"));
+		x10TypeMap.put("uint64", new Type("ULong"));
+		x10TypeMap.put("logical", new Type("Boolean"));
 	}
 	
 	private void makex10BinOperatorMap(){
@@ -88,7 +89,7 @@ public class x10Mapping {
 		//TODO
 	}
 	
-	public String getX10TypeMapping(String mclassasKey){
+	public Type getX10TypeMapping(String mclassasKey){
 		return x10TypeMap.get(mclassasKey);
 	}
 	

@@ -1,13 +1,16 @@
 package natlab.backends.x10.codegen;
 
 import ast.*;
+import ast.ASTNode;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.ListIterator;
 
 
 import natlab.tame.classes.reference.ClassReference;
+import natlab.tame.interproceduralAnalysis.InterproceduralAnalysisNode;
 import natlab.tame.tir.TIRAbstractAssignStmt;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.tir.TIRAbstractAssignToVarStmt;
@@ -17,12 +20,16 @@ import natlab.tame.tir.TIRDotSetStmt;
 import natlab.tame.tir.TIRFunction;
 import natlab.tame.tir.TIRNode;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
+import natlab.tame.valueanalysis.IntraproceduralValueAnalysis;
 import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.ValueAnalysis;
 import natlab.tame.valueanalysis.ValueAnalysisPrinter;
 import natlab.tame.valueanalysis.advancedMatrix.AdvancedMatrixValue;
 import natlab.tame.valueanalysis.aggrvalue.AggrValue;
+import natlab.tame.valueanalysis.value.Args;
+import natlab.tame.valueanalysis.value.Res;
 import natlab.backends.x10.codegen.x10Mapping;
+import natlab.backends.x10.IRx10.ast.*;
 
 public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis;
@@ -30,29 +37,45 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	private x10Mapping x10Map;
 	private  HashMap<String, Collection<ClassReference>> symbolMap = new HashMap<String, Collection<ClassReference>>(); 
 	private String symbolMapKey;	
+	private int graphSize;
+	private int index;
+	private String fileDir;
 	
 	
-	private x10CodeGenerator(ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, String classname) {
+	private x10CodeGenerator(ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, int size, int index, String fileDir, String classname) {
 		this.buf = new StringBuffer();
 		this.x10Map = new x10Mapping();
 		this.analysis = analysis2;
+		this.graphSize = graphSize;
+		this.index = index;
+		this.fileDir = fileDir;
 		buf.append("public class "+classname+" {\n");
-		((TIRNode)analysis2.getNodeList().get(0).getAnalysis().getTree()).tirAnalyze(this);
+		
+		((TIRNode)analysis2.getNodeList().get(index).getAnalysis().getTree()).tirAnalyze(this);
+		
 	}
 	
 	
 	public static String x10CodePrinter(
-			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, String classname){
-		return new x10CodeGenerator(analysis2, classname).buf.toString();
+			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, int graphSize, int index, String fileDir, String classname){
+		return new x10CodeGenerator(analysis2, graphSize, index, fileDir, classname).buf.toString();
 	
 	}
 	
 	
 	@Override
 	public void caseASTNode(ASTNode node) {
+		System.out.println("came in heeeere");
+		if(node instanceof  TIRAbstractAssignToVarStmt)
+			{
+			System.out.println("came in hereeee");
+			caseTIRAbstractAssignStmt((TIRAbstractAssignStmt)node);
+			}
 				
 	}
+	@Override
 	public void caseTIRFunction(TIRFunction node){
+		//if (index==0){
 		String indent = node.getIndent();
 		boolean first = true;
 		ArrayList<String> inArgs = new ArrayList<String>();
@@ -68,28 +91,29 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 			if(!first) {
 				buf.append(", ");
 			}
-			buf.append(param.getPrettyPrinted()+": "+x10Map.getX10TypeMapping(getArgumentType(analysis, node, param.getID())) );
-			symbolMap.put(param.getID().toString(), getAnalysisValue(analysis, node, param.getID()));
+			buf.append(param.getPrettyPrinted()+": " +x10Map.getX10TypeMapping(getArgumentType(analysis, this.index, node, param.getID())) );
+			symbolMap.put(param.getID().toString(), getAnalysisValue(analysis, this.index, node, param.getID()));
 			first = false;
 		}
 		buf.append(") {\n");
 		printStatements(node.getStmts());
 		//Write code for nested functions here
 		buf.append(indent + "}//end of function\n}//end of class\n");
+//		}
 	}
 	
 	@Override
 	public void caseTIRAbstractAssignStmt(TIRAbstractAssignStmt node) {
-	   
+		System.out.println("in caseTIRAbstractAssignStmt");
 		if (node instanceof TIRAbstractAssignToVarStmt){
 			handleTIRAbstractAssignToVarStmt(node);
 		}
-		else if (node instanceof TIRAbstractAssignToListStmt){
-		//	for(ast.Name name : ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
-		//		vars.add(name.getID());
-			handleTIRAbstractAssignToListStmt(node);		
-			
-			}
+//		else if (node instanceof TIRAbstractAssignToListStmt){
+//		//	for(ast.Name name : ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
+//		//		vars.add(name.getID());
+//			handleTIRAbstractAssignToListStmt(node);		
+//			
+//			}
 					
 		//TODO implement other cases here - refer to ValueAnalysisPrinter
 		/*
@@ -129,11 +153,11 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 			}
 			else
 			{
-				buf.append("val "+LHS.toString()+": "+x10Map.getX10TypeMapping(getLHSType(analysis,node,LHS ))+" = ");
+				buf.append("val "+LHS.toString()+": "+x10Map.getX10TypeMapping(getLHSType(analysis,this.index, node,LHS ))+" = ");
 				//use varname to get the name of the method/operator/Var
 			}
 			    makeExpression(node);
-				symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node,LHS));
+				symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, this.index, node,LHS));
 			
 			
 			
@@ -276,6 +300,9 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	
 	public void handleTIRAbstractAssignToVarStmt(TIRAbstractAssignStmt node){
+		
+		System.out.println("came in heeeere");
+		
 		//vars.add(((TIRAbstractAssignToVarStmt)node).getTargetName().getID());
 		//if already present in symbolMap=>has been analyzed else define
 		String LHS;
@@ -289,7 +316,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 		else 
 		{   
 			
-			String type = x10Map.getX10TypeMapping(getLHSType(analysis,node,LHS ));
+			String type = "type"; //x10Map.getX10TypeMapping(getLHSType(analysis,this.index, node,LHS ));
 			buf.append("val "+node.getLHS().getNodeString()+": "+type+" = ");
 			if (type == "String")
 			{
@@ -302,7 +329,7 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 			//TODO check for built-ins
 			//TODO check for operators
 			//add to symbol Map
-			symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis, node,LHS));
+			symbolMap.put(node.getLHS().getNodeString(), getAnalysisValue(analysis,this.index,  node,LHS));
 			
 			
 		}
@@ -336,32 +363,32 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 	
 	
 	/**********************HELPER METHODS***********************************/
-	private String getLHSType(ValueAnalysis<?> analysis,
+	private String getLHSType(ValueAnalysis<?> analysis, int graphIndex,
 			TIRAbstractAssignStmt node, String SymbolMapKey) {
 		//node.getTargetName().getID()
-		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(SymbolMapKey).getMatlabClasses().toArray()[0].toString();
+		return analysis.getNodeList().get(graphIndex).getAnalysis().getOutFlowSets().get(node).get(SymbolMapKey).getMatlabClasses().toArray()[0].toString();
 		
 	}
 
 
 	
-	private static String getArgumentType(ValueAnalysis<?> analysis, TIRFunction node, String paramID){
-		//System.out.println(analysis.getOutFlowSets().get(node).get(paramID).toString());
+	private static String getArgumentType(ValueAnalysis<?> analysis, int graphIndex, TIRFunction node, String paramID){
+		System.out.println(analysis.getNodeList().get(graphIndex).getAnalysis().getOutFlowSets().get(node).get(paramID).toString());//.getOutFlowSets().get(node).get(paramID).toString());
 
-		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
+		return analysis.getNodeList().get(graphIndex).getAnalysis().getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
 	
 	//get analysis value for Function node
-	private static Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, TIRFunction node, String ID){
-		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
+	private static Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, int graphIndex, TIRFunction node, String ID){
+		return analysis.getNodeList().get(graphIndex).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
 
 		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
 	
 	
 	//get analysis value for abstract assignment node
-	private static Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, TIRAbstractAssignStmt node, String ID){
-		return analysis.getNodeList().get(0).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
+	private static Collection<ClassReference> getAnalysisValue(ValueAnalysis<?> analysis, int graphIndex, TIRAbstractAssignStmt node, String ID){
+		return analysis.getNodeList().get(graphIndex).getAnalysis().getOutFlowSets().get(node).get(ID).getMatlabClasses();
 
 		//return analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
@@ -387,6 +414,8 @@ public class x10CodeGenerator extends TIRAbstractNodeCaseHandler{
 			if (buf.length() > length) buf.append('\n');
 		}
 	}
+
+
 	
 }
 
