@@ -6,15 +6,15 @@ import natlab.backends.x10.IRx10.ast.AccessVal;
 import natlab.backends.x10.IRx10.ast.Type;
 
 public class x10Mapping {
-	
+
 	private static HashMap<String, Type> x10TypeMap = new HashMap();
 	private static HashMap<String, String> x10BinOperatorMap = new HashMap();
 	private static HashMap<String, String> x10UnOperatorMap = new HashMap();
 	private static HashMap<String, String> x10DirectBuiltinMap = new HashMap();
 	private static HashMap<String, String> x10BuiltinConstMap = new HashMap();
 	private static HashMap<String, String> x10MethodMap = new HashMap();
-	
-	public x10Mapping(){
+
+	public x10Mapping() {
 		makex10TypeMap();
 		makex10BinOperatorMap();
 		makex10UnOperatorMap();
@@ -22,11 +22,10 @@ public class x10Mapping {
 		makex10BuiltinConstMap();
 		makex10MethodMap();
 	}
-	
-	private void makex10TypeMap()
-	{
+
+	private void makex10TypeMap() {
 		x10TypeMap.put("char", new Type("String"));
-		x10TypeMap.put("double",new Type("Double"));
+		x10TypeMap.put("double", new Type("Double"));
 		x10TypeMap.put("single", new Type("Float"));
 		x10TypeMap.put("int8", new Type("Byte"));
 		x10TypeMap.put("int16", new Type("Short"));
@@ -34,22 +33,22 @@ public class x10Mapping {
 		x10TypeMap.put("int64", new Type("Long"));
 		x10TypeMap.put("uint8", new Type("UByte"));
 		x10TypeMap.put("uint16", new Type("UShort"));
-		x10TypeMap.put("uint32", new Type ("UInt"));
+		x10TypeMap.put("uint32", new Type("UInt"));
 		x10TypeMap.put("uint64", new Type("ULong"));
 		x10TypeMap.put("logical", new Type("Boolean"));
 	}
-	
-	private void makex10BinOperatorMap(){
+
+	private void makex10BinOperatorMap() {
 		x10BinOperatorMap.put("plus", "+");
 		x10BinOperatorMap.put("minus", "-");
 		x10BinOperatorMap.put("mtimes", "*");
 		x10BinOperatorMap.put("mrdivide", "/");
-		x10BinOperatorMap.put("mldivide", "\\");//may be as a method 
+		x10BinOperatorMap.put("mldivide", "\\");// may be as a method
 		x10BinOperatorMap.put("mpower", "^");
-		x10BinOperatorMap.put("times", ".*");//may be as a method 
-		x10BinOperatorMap.put("rdivide", "./");//may be as a method 
-		x10BinOperatorMap.put("ldivide", ".\\");//may be as a method 
-		x10BinOperatorMap.put("power", ".^");//may be as a method 
+		x10BinOperatorMap.put("times", ".*");// may be as a method
+		x10BinOperatorMap.put("rdivide", "./");// may be as a method
+		x10BinOperatorMap.put("ldivide", ".\\");// may be as a method
+		x10BinOperatorMap.put("power", ".^");// may be as a method
 		x10BinOperatorMap.put("and", "&");
 		x10BinOperatorMap.put("or", "|");
 		x10BinOperatorMap.put("lt", "<");
@@ -58,101 +57,98 @@ public class x10Mapping {
 		x10BinOperatorMap.put("ge", ">=");
 		x10BinOperatorMap.put("eq", "==");
 		x10BinOperatorMap.put("ne", "!=");
-		x10BinOperatorMap.put("transpose", ".'");//may be as a method 
-		x10BinOperatorMap.put("ctranspose", "'");//may be as a method 
+		x10BinOperatorMap.put("transpose", ".'");// may be as a method
+		x10BinOperatorMap.put("ctranspose", "'");// may be as a method
 		x10BinOperatorMap.put("not", "~");
-		x10BinOperatorMap.put("colon", ":");//may be as a method 
-		
+		x10BinOperatorMap.put("colon", ":");// may be as a method
+
 	}
-	
-	private void makex10UnOperatorMap(){
+
+	private void makex10UnOperatorMap() {
 		x10UnOperatorMap.put("uminus", "-");
 		x10UnOperatorMap.put("uplus", "+");
 	}
-	
-	private void makex10DirectBuiltinMap(){
-	//TODO create a categorical map here 
-	  x10DirectBuiltinMap.put("disp", "Console.OUT.println");	
-	  x10DirectBuiltinMap.put("sqrt", "sqrt");	
-	  x10DirectBuiltinMap.put("sin", "sin");	
-	  x10DirectBuiltinMap.put("cos", "cos");	
-	 
+
+	private void makex10DirectBuiltinMap() {
+		// TODO create a categorical map here
+		x10DirectBuiltinMap.put("disp", "Console.OUT.println");
+		x10DirectBuiltinMap.put("sqrt", "sqrt");
+		x10DirectBuiltinMap.put("sin", "sin");
+		x10DirectBuiltinMap.put("cos", "cos");
+
 	}
-	
-	private void makex10BuiltinConstMap(){
-		//TODO create a categorical map here 
-		 
-		  x10BuiltinConstMap.put("pi", "Math.PI");	
-		}
-	
-	private void makex10MethodMap(){
-		//TODO
+
+	private void makex10BuiltinConstMap() {
+		// TODO create a categorical map here
+
+		x10BuiltinConstMap.put("pi", "Math.PI");
 	}
-	
-	public Type getX10TypeMapping(String mclassasKey){
+
+	private void makex10MethodMap() {
+		// TODO
+	}
+
+	public Type getX10TypeMapping(String mclassasKey) {
 		return x10TypeMap.get(mclassasKey);
 	}
-	
-	public Boolean isBinOperator(String expType){
+
+	public Boolean isBinOperator(String expType) {
 		if (true == x10BinOperatorMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
-	
-	public String getX10BinOpMapping(String Operator){
+
+	public String getX10BinOpMapping(String Operator) {
 		return x10BinOperatorMap.get(Operator);
 	}
-	
-	
-	
-	public Boolean isUnOperator(String expType){
+
+	public Boolean isUnOperator(String expType) {
 		if (true == x10UnOperatorMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
-	
-	public String getX10UnOpMapping(String Operator){
+
+	public String getX10UnOpMapping(String Operator) {
 		return x10UnOperatorMap.get(Operator);
 	}
-	
-	public Boolean isX10DirectBuiltin(String expType){
+
+	public Boolean isX10DirectBuiltin(String expType) {
 		if (true == x10DirectBuiltinMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
-	
-	public String getX10DirectBuiltinMapping (String BuiltinName){
-		
-		 return x10DirectBuiltinMap.get(BuiltinName);
-		
+
+	public String getX10DirectBuiltinMapping(String BuiltinName) {
+
+		return x10DirectBuiltinMap.get(BuiltinName);
+
 	}
-	
-	public Boolean isBuiltinConst(String expType){
+
+	public Boolean isBuiltinConst(String expType) {
 		if (true == x10BuiltinConstMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
-	
-	public String getX10BuiltinConstMapping (String BuiltinName){
-		
-		 return x10BuiltinConstMap.get(BuiltinName);
-		
+
+	public String getX10BuiltinConstMapping(String BuiltinName) {
+
+		return x10BuiltinConstMap.get(BuiltinName);
+
 	}
-	
-	public Boolean isMethod(String expType){
+
+	public Boolean isMethod(String expType) {
 		if (true == x10MethodMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
-	
-	public static String getX10MethodMapping(String MethodName){
+
+	public static String getX10MethodMapping(String MethodName) {
 		return x10MethodMap.get(MethodName);
 	}
-	
-	
+
 }
