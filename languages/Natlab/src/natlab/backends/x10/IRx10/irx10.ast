@@ -1,23 +1,37 @@
 Program ::= ClassBlock;
 ClassBlock ::= DeclStmt:Stmt* Method*;
 abstract Stmt;
-DeclStmt ::= Type:AccessVal <ID:String> Dims* [Value:Exp];
+DeclStmt:Stmt ::= [MultiDeclLHS] LHS:IDInfo [RHS:Exp];
 Method ::= MethodHeader MethodBlock;
 MethodHeader ::= ReturnType:AccessVal <Name:String> Args*;
 Args ::= Type <Name:String>;
 Type:AccessVal ::= <Name:String>;
-MethodBlock ::=Stmt*;
-AssignStmt:ExpStmt ::=  <ID:String> Value:Exp;
+MethodBlock:StmtBlock;
+AssignStmt:ExpStmt ::=  [MultiAssignLHS] LHS:IDInfo RHS:Exp;
 ExpStmt:Stmt ::= Exp;
 IDUse:Exp ::= <ID:String>;
 Dims ::= [Exp];
-
+IDInfo ::= Type <Name:String> <Shape:ArrayList> <isComplex:String> Value:Exp;
+MultiDeclLHS:Exp ::=  IDInfo* ;
+MultiAssignLHS:Exp ::=  IDInfo* ;
 abstract UnaryExp:Exp ::= Operand:Exp;
 PreIncExp:UnaryExp;
 PreDecExp:UnaryExp;
 MinusExp:UnaryExp;
 PlusExp:UnaryExp;
 NegExp:UnaryExp;
+
+abstract LiteralExp:Exp;
+Literal:LiteralExp ::= <Literal:String>;
+StringLiteral:Literal;
+FPLiteral:Literal;
+DoubleLiteral:Literal;
+IntLiteral:Literal;
+BoolLiteral:Literal;
+LongLiteral:Literal;
+CharLiteral:Literal;
+
+
 
 abstract BinaryExp:Exp ::= LeftOp:Exp RightOp:Exp;
 abstract ArithExp:BinaryExp;
@@ -40,16 +54,21 @@ abstract EqualityExp : RelationalExp;
 EQExp : EqualityExp ;                                                         
 NEExp : EqualityExp ;
 
+abstract LogicalExp:BinaryExp;
+AndExp:LogicalExp;
+OrExp:LogicalExp;
+
 Modifiers ::= Modifier*;                                                        
 Modifier ::= <ID:String>;     
   
 Identifier:AccessVal ::= <Name:String>;
 
 WhileStmt:Stmt ::= Condition:Exp LoopBody;
-LoopBody:Stmt ::= Stmt*;
-IfElseStmt:Stmt ::= Condition:Exp IfBody:Stmt [ElseBody:Stmt];
-IfBody:Stmt ::= Stmt*;
-ElseBody:Stmt ::= Stmt*;
+StmtBlock:Stmt ::= Stmt*;
+LoopBody:StmtBlock;
+IfElseStmt:Stmt ::= Condition:Exp IfBody [ElseBody];
+IfBody:StmtBlock;
+ElseBody:StmtBlock;
 abstract Exp;
 
 abstract AccessVal:Exp;
