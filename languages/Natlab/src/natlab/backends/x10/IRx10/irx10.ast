@@ -42,6 +42,9 @@ ModExp:MultiplicativeExp;
 abstract AdditiveExp:BinaryExp;
 AddExp:AdditiveExp;
 SubExp:AdditiveExp;
+IncExp:AdditiveExp; //foo+=bar
+DecExp:AdditiveExp;
+
 
 //Add more BinaryExp : Shift, Logical
 
