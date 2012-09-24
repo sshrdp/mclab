@@ -72,7 +72,7 @@ WhileStmt:Stmt ::= Condition:Exp LoopBody;
 StmtBlock:Stmt ::= Stmt*;
 LoopBody:StmtBlock;
 IfElseStmt:Stmt ::= IfElseIf* [ElseBody];
-IfElseIf ::= Condition:Exp* IfBody;
+IfElseIf ::= Condition:Exp IfBody;
 IfBody:StmtBlock;
 ElseBody:StmtBlock;
 abstract Exp;
