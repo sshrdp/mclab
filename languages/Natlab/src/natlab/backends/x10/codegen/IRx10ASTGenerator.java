@@ -12,8 +12,10 @@ import natlab.backends.x10.IRx10.ast.MethodBlock;
 import natlab.backends.x10.IRx10.ast.MethodHeader;
 import natlab.backends.x10.IRx10.ast.Program;
 import natlab.backends.x10.IRx10.ast.Args;
+import natlab.backends.x10.IRx10.ast.StmtBlock;
 import natlab.backends.x10.IRx10.ast.Type;
 import natlab.backends.x10.IRx10.ast.Stmt;
+import natlab.backends.x10.IRx10.ast.WhileStmt;
 import natlab.tame.classes.reference.ClassReference;
 import natlab.tame.tir.TIRAbstractAssignStmt;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
@@ -47,6 +49,7 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 	int index;
 	private String fileDir;
 	Method method;
+	ArrayList<StmtBlock> currentBlock = new ArrayList<StmtBlock>();
 
 	private IRx10ASTGenerator(
 			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2, int size,
@@ -57,8 +60,12 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 		this.index = index;
 		this.fileDir = fileDir;
 		this.method = new Method();
+		// this.method.setMethodBlock(new MethodBlock(new List<Stmt>()));
 		((TIRNode) analysis2.getNodeList().get(index).getAnalysis().getTree())
 				.tirAnalyze(this);
+		// this.currentBlock.add(this.method.getMethodBlock());
+
+		System.out.println(this.currentBlock.size());
 
 	}
 
@@ -93,12 +100,20 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 	public void caseTIRAbstractAssignStmt(TIRAbstractAssignStmt node) {
 
 		if (node instanceof TIRAbstractAssignToVarStmt) {
-			Assignments.handleTIRAbstractAssignToVarStmt(node, this);
-		} else if (node instanceof TIRAbstractAssignToListStmt) {
+			AssignsAndDecls.handleTIRAbstractAssignToVarStmt(node, this,
+					this.currentBlock.get(this.currentBlock.size() - 1));
+		}
+
+		else if (node instanceof TIRAbstractAssignToListStmt) {
 			// for(ast.Name name :
 			// ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
 			// vars.add(name.getID());
-			Assignments.handleTIRAbstractAssignToListStmt(node, this);
+			AssignsAndDecls.handleTIRAbstractAssignToListStmt(node, this,
+					this.currentBlock.get(this.currentBlock.size() - 1));
+
+		}
+
+		else if (node instanceof TIRAbstractAssignFromVarStmt) {
 
 		}
 		// TODO implement other cases here - refer to ValueAnalysisPrinter
@@ -112,5 +127,15 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 		 */
 		// printVars(analysis.getOutFlowSets().get(node), vars);
 	}
+
+	public void caseTIRWhileStmt(TIRWhileStmt node) {
+		WhileLoopStmt.handleTIRWhileStmt(node, this,
+				this.currentBlock.get(this.currentBlock.size() - 1));
+	}
+
+//	public void caseTIRForStmt(TIRForStmt node) {
+//		ForLoopStmt.handleTIRForStmt(node, this,
+//				this.currentBlock.get(this.currentBlock.size() - 1));
+//	}
 
 }

@@ -2,17 +2,16 @@ package natlab.backends.x10.codegen;
 
 import java.util.HashMap;
 
-import natlab.backends.x10.IRx10.ast.AccessVal;
 import natlab.backends.x10.IRx10.ast.Type;
 
 public class x10Mapping {
 
-	private static HashMap<String, Type> x10TypeMap = new HashMap();
-	private static HashMap<String, String> x10BinOperatorMap = new HashMap();
-	private static HashMap<String, String> x10UnOperatorMap = new HashMap();
-	private static HashMap<String, String> x10DirectBuiltinMap = new HashMap();
-	private static HashMap<String, String> x10BuiltinConstMap = new HashMap();
-	private static HashMap<String, String> x10MethodMap = new HashMap();
+	private static HashMap<String, Type> x10TypeMap = new HashMap<String, Type>();
+	private static HashMap<String, String> x10BinOperatorMap = new HashMap<String, String>();
+	private static HashMap<String, String> x10UnOperatorMap = new HashMap<String, String>();
+	private static HashMap<String, String> x10DirectBuiltinMap = new HashMap<String, String>();
+	private static HashMap<String, String> x10BuiltinConstMap = new HashMap<String, String>();
+	private static HashMap<String, String> x10MethodMap = new HashMap<String, String>();
 
 	public x10Mapping() {
 		makex10TypeMap();
@@ -88,7 +87,7 @@ public class x10Mapping {
 		// TODO
 	}
 
-	public Type getX10TypeMapping(String mclassasKey) {
+	public static Type getX10TypeMapping(String mclassasKey) {
 		return x10TypeMap.get(mclassasKey);
 	}
 

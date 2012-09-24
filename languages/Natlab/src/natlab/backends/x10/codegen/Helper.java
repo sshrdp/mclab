@@ -1,11 +1,18 @@
 package natlab.backends.x10.codegen;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
+import ast.Name;
+
+import natlab.backends.x10.IRx10.ast.IDInfo;
+import natlab.backends.x10.IRx10.ast.Type;
 import natlab.tame.classes.reference.ClassReference;
 import natlab.tame.tir.TIRAbstractAssignStmt;
 import natlab.tame.tir.TIRFunction;
 import natlab.tame.valueanalysis.ValueAnalysis;
+import natlab.tame.valueanalysis.advancedMatrix.AdvancedMatrixValue;
+import natlab.tame.valueanalysis.aggrvalue.AggrValue;
 
 public class Helper {
 	/********************** HELPER METHODS ***********************************/
@@ -48,5 +55,37 @@ public class Helper {
 		// return
 		// analysis.getOutFlowSets().get(node).get(paramID).getMatlabClasses().toArray()[0].toString();
 	}
+
+	static Type getReturnType(
+			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis,
+			int graphIndex, TIRFunction node, String ID) {
+
+		String retMClassName = ((AdvancedMatrixValue) (analysis.getNodeList()
+				.get(graphIndex).getAnalysis().getOutFlowSets().get(node)
+				.get(ID).getSingleton())).getMatlabClass().getName();
+
+		return x10Mapping.getX10TypeMapping(retMClassName);
+
+	}
+
+	static IDInfo generateIDInfo(
+			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis,
+			int graphIndex, TIRAbstractAssignStmt node, String ID) {
+
+		AdvancedMatrixValue temp = ((AdvancedMatrixValue) (analysis
+				.getNodeList().get(graphIndex).getAnalysis().getOutFlowSets()
+				.get(node).get(ID).getSingleton()));
+
+		IDInfo id_info = new IDInfo();
+		id_info.setType(x10Mapping.getX10TypeMapping(temp.getMatlabClass()
+				.getName()));
+		id_info.setShape((ArrayList<Integer>) temp.getShape().getDimensions());
+		id_info.setisComplex(temp.getisComplexInfo().toString());
+
+		return id_info;
+
+	}
+	
+	
 
 }
