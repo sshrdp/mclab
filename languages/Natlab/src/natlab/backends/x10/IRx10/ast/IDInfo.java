@@ -1,7 +1,5 @@
 package natlab.backends.x10.IRx10.ast;
 
-import java.util.ArrayList;
-
 
 /**
  * @ast node

@@ -60,17 +60,17 @@ public class IfElseStmt extends Stmt implements Cloneable {
   public IfElseStmt() {
     super();
 
-    setChild(new Opt(), 2);
+    setChild(new List(), 0);
+    setChild(new Opt(), 1);
 
   }
   /**
    * @ast method 
-   * @declaredat irx10.ast:8
+   * @declaredat irx10.ast:9
    */
-  public IfElseStmt(Exp p0, IfBody p1, Opt<ElseBody> p2) {
+  public IfElseStmt(List<IfElseIf> p0, Opt<ElseBody> p1) {
     setChild(p0, 0);
     setChild(p1, 1);
-    setChild(p2, 2);
   }
   /**
    * @apilevel low-level
@@ -78,59 +78,102 @@ public class IfElseStmt extends Stmt implements Cloneable {
    * @declaredat irx10.ast:16
    */
   protected int numChildren() {
-    return 3;
+    return 2;
   }
   /**
-   * Setter for Condition
+   * Setter for IfElseIfList
    * @apilevel high-level
    * @ast method 
    * @declaredat irx10.ast:5
    */
-  public void setCondition(Exp node) {
-    setChild(node, 0);
+  public void setIfElseIfList(List<IfElseIf> list) {
+    setChild(list, 0);
   }
   /**
-   * Getter for Condition
+   * @return number of children in IfElseIfList
    * @apilevel high-level
    * @ast method 
    * @declaredat irx10.ast:12
    */
-  public Exp getCondition() {
-    return (Exp)getChild(0);
+  public int getNumIfElseIf() {
+    return getIfElseIfList().getNumChild();
+  }
+  /**
+   * Getter for child in list IfElseIfList
+   * @apilevel high-level
+   * @ast method 
+   * @declaredat irx10.ast:19
+   */
+  @SuppressWarnings({"unchecked", "cast"})
+  public IfElseIf getIfElseIf(int i) {
+    return (IfElseIf)getIfElseIfList().getChild(i);
+  }
+  /**
+   * Add element to list IfElseIfList
+   * @apilevel high-level
+   * @ast method 
+   * @declaredat irx10.ast:27
+   */
+  public void addIfElseIf(IfElseIf node) {
+    List<IfElseIf> list = (parent == null || state == null) ? getIfElseIfListNoTransform() : getIfElseIfList();
+    list.addChild(node);
   }
   /**
    * @apilevel low-level
    * @ast method 
-   * @declaredat irx10.ast:18
+   * @declaredat irx10.ast:34
    */
-  public Exp getConditionNoTransform() {
-    return (Exp)getChildNoTransform(0);
+  public void addIfElseIfNoTransform(IfElseIf node) {
+    List<IfElseIf> list = getIfElseIfListNoTransform();
+    list.addChild(node);
   }
   /**
-   * Setter for IfBody
+   * Setter for child in list IfElseIfList
    * @apilevel high-level
    * @ast method 
-   * @declaredat irx10.ast:5
+   * @declaredat irx10.ast:42
    */
-  public void setIfBody(IfBody node) {
-    setChild(node, 1);
+  public void setIfElseIf(IfElseIf node, int i) {
+    List<IfElseIf> list = getIfElseIfList();
+    list.setChild(node, i);
   }
   /**
-   * Getter for IfBody
+   * Getter for IfElseIf list.
    * @apilevel high-level
    * @ast method 
-   * @declaredat irx10.ast:12
+   * @declaredat irx10.ast:50
    */
-  public IfBody getIfBody() {
-    return (IfBody)getChild(1);
+  public List<IfElseIf> getIfElseIfs() {
+    return getIfElseIfList();
   }
   /**
    * @apilevel low-level
    * @ast method 
-   * @declaredat irx10.ast:18
+   * @declaredat irx10.ast:56
    */
-  public IfBody getIfBodyNoTransform() {
-    return (IfBody)getChildNoTransform(1);
+  public List<IfElseIf> getIfElseIfsNoTransform() {
+    return getIfElseIfListNoTransform();
+  }
+  /**
+   * Getter for list IfElseIfList
+   * @apilevel high-level
+   * @ast method 
+   * @declaredat irx10.ast:63
+   */
+  @SuppressWarnings({"unchecked", "cast"})
+  public List<IfElseIf> getIfElseIfList() {
+    List<IfElseIf> list = (List<IfElseIf>)getChild(0);
+    list.getNumChild();
+    return list;
+  }
+  /**
+   * @apilevel low-level
+   * @ast method 
+   * @declaredat irx10.ast:72
+   */
+  @SuppressWarnings({"unchecked", "cast"})
+  public List<IfElseIf> getIfElseIfListNoTransform() {
+    return (List<IfElseIf>)getChildNoTransform(0);
   }
   /**
    * Setter for ElseBodyOpt
@@ -139,7 +182,7 @@ public class IfElseStmt extends Stmt implements Cloneable {
    * @declaredat irx10.ast:5
    */
   public void setElseBodyOpt(Opt<ElseBody> opt) {
-    setChild(opt, 2);
+    setChild(opt, 1);
   }
   /**
    * Does this node have a ElseBody child?
@@ -176,7 +219,7 @@ public class IfElseStmt extends Stmt implements Cloneable {
    */
   @SuppressWarnings({"unchecked", "cast"})
   public Opt<ElseBody> getElseBodyOpt() {
-    return (Opt<ElseBody>)getChild(2);
+    return (Opt<ElseBody>)getChild(1);
   }
   /**
    * @apilevel low-level
@@ -185,6 +228,6 @@ public class IfElseStmt extends Stmt implements Cloneable {
    */
   @SuppressWarnings({"unchecked", "cast"})
   public Opt<ElseBody> getElseBodyOptNoTransform() {
-    return (Opt<ElseBody>)getChildNoTransform(2);
+    return (Opt<ElseBody>)getChildNoTransform(1);
   }
 }
