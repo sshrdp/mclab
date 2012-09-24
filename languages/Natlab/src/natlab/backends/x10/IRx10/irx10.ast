@@ -63,6 +63,8 @@ Modifier ::= <ID:String>;
   
 Identifier:AccessVal ::= <Name:String>;
 
+ForStmt:Stmt ::= AssignStmt Condition:Exp Stepper:AdditiveExp LoopBody;
+
 WhileStmt:Stmt ::= Condition:Exp LoopBody;
 StmtBlock:Stmt ::= Stmt*;
 LoopBody:StmtBlock;
