@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:4
+ * @declaredat irx10.ast:5
  */
 public class DeclStmt extends Stmt implements Cloneable {
   /**

@@ -1,4 +1,5 @@
 Program ::= ClassBlock;
+PPHelper;
 ClassBlock ::= DeclStmt:Stmt* Method*;
 abstract Stmt;
 DeclStmt:Stmt ::= [MultiDeclLHS] LHS:IDInfo [RHS:Exp];

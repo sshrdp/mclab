@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:62
+ * @declaredat irx10.ast:63
  */
 public class OrExp extends LogicalExp implements Cloneable {
   /**

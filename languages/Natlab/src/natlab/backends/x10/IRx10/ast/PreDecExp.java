@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:19
+ * @declaredat irx10.ast:20
  */
 public class PreDecExp extends UnaryExp implements Cloneable {
   /**

@@ -4,7 +4,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:67
+ * @declaredat irx10.ast:68
  */
 public class Identifier extends AccessVal implements Cloneable {
   /**

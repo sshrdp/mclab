@@ -4,7 +4,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:51
+ * @declaredat irx10.ast:52
  */
 public abstract class RelationalExp extends BinaryExp implements Cloneable {
   /**

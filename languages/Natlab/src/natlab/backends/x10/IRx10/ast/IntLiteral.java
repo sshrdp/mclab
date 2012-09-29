@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:29
+ * @declaredat irx10.ast:30
  */
 public class IntLiteral extends Literal implements Cloneable {
   /**

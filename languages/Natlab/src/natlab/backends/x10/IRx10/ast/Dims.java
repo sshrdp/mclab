@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:13
+ * @declaredat irx10.ast:14
  */
 public class Dims extends ASTNode<ASTNode> implements Cloneable {
   /**

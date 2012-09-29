@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:12
+ * @declaredat irx10.ast:13
  */
 public class IDUse extends Exp implements Cloneable {
   /**

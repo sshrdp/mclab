@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:82
+ * @declaredat irx10.ast:83
  */
 public class BuiltinMethodCall extends MethodCall implements Cloneable {
   /**
@@ -200,4 +200,7 @@ public class BuiltinMethodCall extends MethodCall implements Cloneable {
   public List<Exp> getArgumentListNoTransform() {
     return (List<Exp>)getChildNoTransform(1);
   }
+  
+  
+  
 }

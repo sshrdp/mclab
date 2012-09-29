@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:9
+ * @declaredat irx10.ast:10
  */
 public class MethodBlock extends StmtBlock implements Cloneable {
   /**
@@ -173,4 +173,6 @@ public class MethodBlock extends StmtBlock implements Cloneable {
   public List<Stmt> getStmtListNoTransform() {
     return (List<Stmt>)getChildNoTransform(0);
   }
+  
+  
 }

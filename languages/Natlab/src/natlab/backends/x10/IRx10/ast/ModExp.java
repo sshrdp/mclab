@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:41
+ * @declaredat irx10.ast:42
  */
 public class ModExp extends MultiplicativeExp implements Cloneable {
   /**

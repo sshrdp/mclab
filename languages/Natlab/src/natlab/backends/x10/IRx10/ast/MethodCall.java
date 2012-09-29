@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:81
+ * @declaredat irx10.ast:82
  */
 public abstract class MethodCall extends Exp implements Cloneable {
   /**

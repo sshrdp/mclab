@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:22
+ * @declaredat irx10.ast:23
  */
 public class NegExp extends UnaryExp implements Cloneable {
   /**

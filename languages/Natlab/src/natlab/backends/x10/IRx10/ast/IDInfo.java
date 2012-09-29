@@ -1,9 +1,11 @@
 package natlab.backends.x10.IRx10.ast;
 
+import java.util.ArrayList;
+
 
 /**
  * @ast node
- * @declaredat irx10.ast:14
+ * @declaredat irx10.ast:15
  */
 public class IDInfo extends ASTNode<ASTNode> implements Cloneable {
   /**

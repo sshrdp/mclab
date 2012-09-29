@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:56
+ * @declaredat irx10.ast:57
  */
 public abstract class EqualityExp extends RelationalExp implements Cloneable {
   /**

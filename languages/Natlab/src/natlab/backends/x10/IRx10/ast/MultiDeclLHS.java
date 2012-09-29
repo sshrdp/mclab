@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:15
+ * @declaredat irx10.ast:16
  */
 public class MultiDeclLHS extends Exp implements Cloneable {
   /**

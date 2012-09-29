@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:10
+ * @declaredat irx10.ast:11
  */
 public class AssignStmt extends ExpStmt implements Cloneable {
   /**
@@ -214,4 +214,6 @@ public class AssignStmt extends ExpStmt implements Cloneable {
   public Exp getRHSNoTransform() {
     return (Exp)getChildNoTransform(3);
   }
+  
+ 
 }

@@ -4,7 +4,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:58
+ * @declaredat irx10.ast:59
  */
 public class NEExp extends EqualityExp implements Cloneable {
   /**

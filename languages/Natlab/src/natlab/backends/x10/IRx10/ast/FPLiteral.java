@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:27
+ * @declaredat irx10.ast:28
  */
 public class FPLiteral extends Literal implements Cloneable {
   /**

@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:11
+ * @declaredat irx10.ast:12
  */
 public class ExpStmt extends Stmt implements Cloneable {
   /**

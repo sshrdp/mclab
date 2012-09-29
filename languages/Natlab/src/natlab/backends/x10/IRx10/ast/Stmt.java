@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:3
+ * @declaredat irx10.ast:4
  */
 public abstract class Stmt extends ASTNode<ASTNode> implements Cloneable {
   /**

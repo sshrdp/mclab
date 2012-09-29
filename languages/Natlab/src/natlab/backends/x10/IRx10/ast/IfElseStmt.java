@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:74
+ * @declaredat irx10.ast:75
  */
 public class IfElseStmt extends Stmt implements Cloneable {
   /**
@@ -230,4 +230,6 @@ public class IfElseStmt extends Stmt implements Cloneable {
   public Opt<ElseBody> getElseBodyOptNoTransform() {
     return (Opt<ElseBody>)getChildNoTransform(1);
   }
+  
+  
 }

@@ -4,7 +4,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:65
+ * @declaredat irx10.ast:66
  */
 public class Modifier extends ASTNode<ASTNode> implements Cloneable {
   /**

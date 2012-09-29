@@ -4,7 +4,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:46
+ * @declaredat irx10.ast:47
  */
 public class DecExp extends AdditiveExp implements Cloneable {
   /**

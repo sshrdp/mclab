@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:37
+ * @declaredat irx10.ast:38
  */
 public abstract class ArithExp extends BinaryExp implements Cloneable {
   /**

@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:69
+ * @declaredat irx10.ast:70
  */
 public class ForStmt extends Stmt implements Cloneable {
   /**
@@ -184,4 +184,6 @@ public class ForStmt extends Stmt implements Cloneable {
   public LoopBody getLoopBodyNoTransform() {
     return (LoopBody)getChildNoTransform(3);
   }
+  
+  
 }

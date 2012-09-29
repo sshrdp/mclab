@@ -3,7 +3,7 @@ package natlab.backends.x10.IRx10.ast;
 
 /**
  * @ast node
- * @declaredat irx10.ast:6
+ * @declaredat irx10.ast:7
  */
 public class MethodHeader extends ASTNode<ASTNode> implements Cloneable {
   /**
@@ -224,4 +224,6 @@ public class MethodHeader extends ASTNode<ASTNode> implements Cloneable {
   public List<Args> getArgsListNoTransform() {
     return (List<Args>)getChildNoTransform(1);
   }
+  
+  
 }
