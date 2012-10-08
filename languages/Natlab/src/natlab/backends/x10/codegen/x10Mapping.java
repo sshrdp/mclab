@@ -35,6 +35,7 @@ public class x10Mapping {
 		x10TypeMap.put("uint32", new Type("UInt"));
 		x10TypeMap.put("uint64", new Type("ULong"));
 		x10TypeMap.put("logical", new Type("Boolean"));
+		x10TypeMap.put(null, new Type("Double")); /*This is the default type*/
 	}
 
 	private void makex10BinOperatorMap() {
@@ -58,7 +59,7 @@ public class x10Mapping {
 		x10BinOperatorMap.put("ne", "!=");
 		x10BinOperatorMap.put("transpose", ".'");// may be as a method
 		x10BinOperatorMap.put("ctranspose", "'");// may be as a method
-		x10BinOperatorMap.put("not", "~");
+		
 		x10BinOperatorMap.put("colon", ":");// may be as a method
 
 	}
@@ -66,6 +67,7 @@ public class x10Mapping {
 	private void makex10UnOperatorMap() {
 		x10UnOperatorMap.put("uminus", "-");
 		x10UnOperatorMap.put("uplus", "+");
+		x10BinOperatorMap.put("not", "!");
 	}
 
 	private void makex10DirectBuiltinMap() {
@@ -91,55 +93,55 @@ public class x10Mapping {
 		return x10TypeMap.get(mclassasKey);
 	}
 
-	public Boolean isBinOperator(String expType) {
+	public static Boolean isBinOperator(String expType) {
 		if (true == x10BinOperatorMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
 
-	public String getX10BinOpMapping(String Operator) {
+	public static String getX10BinOpMapping(String Operator) {
 		return x10BinOperatorMap.get(Operator);
 	}
 
-	public Boolean isUnOperator(String expType) {
+	public static Boolean isUnOperator(String expType) {
 		if (true == x10UnOperatorMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
 
-	public String getX10UnOpMapping(String Operator) {
+	public static String getX10UnOpMapping(String Operator) {
 		return x10UnOperatorMap.get(Operator);
 	}
 
-	public Boolean isX10DirectBuiltin(String expType) {
+	public static Boolean isX10DirectBuiltin(String expType) {
 		if (true == x10DirectBuiltinMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
 
-	public String getX10DirectBuiltinMapping(String BuiltinName) {
+	public static String getX10DirectBuiltinMapping(String BuiltinName) {
 
 		return x10DirectBuiltinMap.get(BuiltinName);
 
 	}
 
-	public Boolean isBuiltinConst(String expType) {
+	public static Boolean isBuiltinConst(String expType) {
 		if (true == x10BuiltinConstMap.containsKey(expType))
 			return true;
 		else
 			return false;
 	}
 
-	public String getX10BuiltinConstMapping(String BuiltinName) {
+	public static String getX10BuiltinConstMapping(String BuiltinName) {
 
 		return x10BuiltinConstMap.get(BuiltinName);
 
 	}
 
-	public Boolean isMethod(String expType) {
+	public static Boolean isMethod(String expType) {
 		if (true == x10MethodMap.containsKey(expType))
 			return true;
 		else

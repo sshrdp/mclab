@@ -10,6 +10,7 @@ import natlab.backends.x10.IRx10.ast.List;
 import natlab.backends.x10.IRx10.ast.LoopBody;
 import natlab.backends.x10.IRx10.ast.Stmt;
 import natlab.backends.x10.IRx10.ast.StmtBlock;
+import natlab.backends.x10.IRx10.ast.Type;
 import natlab.tame.tir.TIRAbstractAssignStmt;
 import natlab.tame.tir.TIRForStmt;
 import natlab.tame.tir.TIRNode;
@@ -22,20 +23,32 @@ public class ForLoopStmt {
 		ForStmt for_stmt = new ForStmt();
 		AssignStmt for_assign = new AssignStmt();
 
-		IDInfo LHSinfo = new IDInfo();
+		IDInfo LHSinfo = new IDInfo(new Type("Int"), node.getAssignStmt().getLHS().getVarName(), null, null, null);
+		/*
 		LHSinfo = Helper.generateIDInfo(target.analysis, target.index,
-				(TIRAbstractAssignStmt) node.getAssignStmt(), node
-						.getAssignStmt().getLHS().getVarName());
+				node, node.getVarName());
+		*/
+		//System.out.println(LHSinfo.getName()+LHSinfo.getisComplex());
+		
 		for_assign.setLHS(LHSinfo);
 		for_assign.getLHS().setName(node.getAssignStmt().getLHS().getVarName());
 		IDUse lower = new IDUse(((RangeExpr)(node.getAssignStmt().getRHS())).getLower().getVarName());
 		IDUse upper = new IDUse(((RangeExpr)(node.getAssignStmt().getRHS())).getUpper().getVarName());
-		IDUse increment = new IDUse(((RangeExpr)(node.getAssignStmt().getRHS())).getIncr().getVarName());
+		IDUse increment = new IDUse("1");
+		/**
+		 * uncomment below If after fixing the following
+		 * TODO
+		 * getIncr throws errors sometimes. Look into it and fix it ....till then using "1" temporarily		
+		 */
+		//if(null != ((RangeExpr)(node.getAssignStmt().getRHS())).getIncr())
+		//	increment= new IDUse(((RangeExpr)(node.getAssignStmt().getRHS())).getIncr().getVarName());//
+		
+			
 		for_assign.setRHS(lower);
 		for_stmt.setAssignStmt(for_assign);		
 
-		for_stmt.setCondition(new LTExp(lower, upper));
-		for_stmt.setStepper(new IncExp(lower,increment));
+		for_stmt.setCondition(new LTExp(new IDUse(for_assign.getLHS().getName()), upper));
+		for_stmt.setStepper(new IncExp(new IDUse(for_assign.getLHS().getName()),increment));
 		for_stmt.setLoopBody(new LoopBody(new List<Stmt>()));
 		LoopBody loop_body_block = for_stmt.getLoopBody();
 		target.currentBlock.add(loop_body_block);

@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import natlab.backends.x10.IRx10.ast.AssignStmt;
 import natlab.backends.x10.IRx10.ast.ClassBlock;
+import natlab.backends.x10.IRx10.ast.DeclStmt;
 import natlab.backends.x10.IRx10.ast.List;
 import natlab.backends.x10.IRx10.ast.Method;
 import natlab.backends.x10.IRx10.ast.MethodBlock;
@@ -72,15 +73,15 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 	public static ClassBlock x10ClassMaker(
 			ValueAnalysis<AggrValue<AdvancedMatrixValue>> analysis2,
 			int graphSize, String fileDir, String classname) {
-
+		List<Stmt> declStmtList = new List<Stmt>();
 		List<Method> methodList = new List<Method>();
 		IRx10ASTGenerator subAST;
 		for (int i = 0; i < graphSize; i++) {
-			subAST = new IRx10ASTGenerator(analysis2, graphSize, 0, fileDir,
+			subAST = new IRx10ASTGenerator(analysis2, graphSize, i, fileDir,
 					classname);
 			methodList.add(subAST.method);
 		}
-		ClassBlock class_block = new ClassBlock(null, methodList);
+		ClassBlock class_block = new ClassBlock(declStmtList, methodList);
 		return class_block;
 
 	}
@@ -105,9 +106,6 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 		}
 
 		else if (node instanceof TIRAbstractAssignToListStmt) {
-			// for(ast.Name name :
-			// ((TIRAbstractAssignToListStmt)node).getTargets().asNameList()){
-			// vars.add(name.getID());
 			AssignsAndDecls.handleTIRAbstractAssignToListStmt(node, this,
 					this.currentBlock.get(this.currentBlock.size() - 1));
 
@@ -133,9 +131,13 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 				this.currentBlock.get(this.currentBlock.size() - 1));
 	}
 
-//	public void caseTIRForStmt(TIRForStmt node) {
-//		ForLoopStmt.handleTIRForStmt(node, this,
-//				this.currentBlock.get(this.currentBlock.size() - 1));
-//	}
+	public void caseTIRForStmt(TIRForStmt node) {
+		ForLoopStmt.handleTIRForStmt(node, this,
+				this.currentBlock.get(this.currentBlock.size() - 1));
+	}
 
+	public void caseTIRIfStmt(TIRIfStmt node) {
+		IfElseStmt.handleTIRIfStmt(node, this,
+				this.currentBlock.get(this.currentBlock.size() - 1));
+	}
 }

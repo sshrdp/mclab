@@ -22,6 +22,7 @@ public class Function {
 		MethodHeader method_header = new MethodHeader();
 		method_header.setName(node.getName());
 		method_header.setReturnType(null);
+		System.out.println("###"+node.getInputParams().getNumChild());
 		
 		for (Name param : node.getInputParams()) {
 
