@@ -2,6 +2,7 @@ Program ::= ClassBlock;
 PPHelper;
 ClassBlock ::= DeclStmt:Stmt* Method*;
 abstract Stmt;
+CommentStmt:Stmt ::= <Comment:String>;
 DeclStmt:Stmt ::= [MultiDeclLHS] LHS:IDInfo [RHS:Exp];
 Method ::= MethodHeader MethodBlock;
 MethodHeader ::= ReturnType:AccessVal <Name:String> Args*;
