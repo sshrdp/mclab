@@ -32,10 +32,6 @@ String DeclStmt.pp(String indent){
 	{ /**
 	    *It is not a list assignment
 	    */
-		if(null != getLHS().getShape())
-		{
-			System.out.println("!!!!"+getLHS().getShape().get(0).toString());
-		}
 		
 		if ( (null == getLHS().getShape()) || (("1").equals(getLHS().getShape().get(0).toString()) &&
 			("1").equals(getLHS().getShape().get(1).toString())))
@@ -49,7 +45,6 @@ String DeclStmt.pp(String indent){
 		else //array
 		{
 			
-			System.out.println("!!!!"+getLHS().getShape().get(0).toString());
 			
 			x.append("val "+getLHS().getName()+" = "+
 			"new Array["+getLHS().getType().getName()+"]"+
@@ -66,6 +61,33 @@ String DeclStmt.pp(String indent){
 	}
 	return x.toString();
 }
+
+String ArraySetStmt.pp(String indent){
+		StringBuffer x = new StringBuffer();
+		
+						
+			x.append(getLHS().getValue().pp(indent));
+			x.append(" = ");
+			x.append(getRHS().pp("")+" ;\n");
+		return x.toString();
+	}
+  
+
+  String ArrayAccess.pp(String indent)
+  {
+  	  StringBuffer x = new StringBuffer();
+  	  x.append(indent);
+  	  x.append(getArrayID().getID()+"(");
+  	  x.append(getIndicesList().getChild(0).pp(""));
+  	  for(int i=1; i<getIndicesList().getNumChild() ; i++)
+  	  {
+  		  x.append(", "+getIndicesList().getChild(i).pp(""));
+  	  }
+  	  x.append(")");
+  	  return x.toString();
+  }
+
+
 
 static String PPHelper.makeRange(ArrayList Shape){
 	StringBuffer s = new StringBuffer();
@@ -126,10 +148,10 @@ String AssignStmt.pp(String indent){
 	{ /**
 	    *It is not a list assignment
 	    */
-		if(null != getLHS().getShape())
-		{
-			System.out.println("!!!!"+getLHS().getShape().get(0).toString());
-		}
+//		if(null != getLHS().getShape())
+//		{
+//			System.out.println("!!!!"+getLHS().getShape().get(0).toString());
+//		}
 		
 		if ( (null == getLHS().getShape()) || (("1").equals(getLHS().getShape().get(0).toString()) &&
 				("1").equals(getLHS().getShape().get(1).toString())))
@@ -153,9 +175,19 @@ String AssignStmt.pp(String indent){
 	}
 	else
 	{
+		
+		System.out.println("list assign:"+getRHS().pp(indent));
 	  /**TODO
 	   * Case when assigned to a list
 	   */
+		if(! hasMultiAssignLHS() || 0==getMultiAssignLHS().getIDInfoList().getNumChild()){ //|| getMultiAssignLHS().getNumChild() ==0
+			x.append(getRHS().pp(indent)+" ;\n");
+		}
+		else {
+			x.append("val "+"generate_a_name"+" = "+
+		"new Array[Any]"+"(0.."+(getMultiAssignLHS().getIDInfoList().getNumChild()-1)+", "+getRHS().pp("")+");\n");
+		}
+		
 	}
 	return x.toString();
 }
@@ -319,15 +351,16 @@ String UserDefMethodCall.pp(String indent)
 	  StringBuffer x = new StringBuffer();
 	  x.append(indent);
 	  x.append(getUserDefMethodName().getName()+"(");
+	  if(getArgumentList().getNumChild()>0){
 	  x.append(getArgumentList().getChild(0).pp(""));
 	  for(int i=1; i<getArgumentList().getNumChild() ; i++)
 	  {
 		  x.append(", "+getArgumentList().getChild(i).pp(""));
 	  }
+	  }
 	  x.append(")");
 	  return x.toString();
 }
-
 String CommentStmt.pp(String indent)
 {
 	StringBuffer x = new StringBuffer();

@@ -22,6 +22,10 @@ PreDecExp:UnaryExp;
 MinusExp:UnaryExp;
 PlusExp:UnaryExp;
 NegExp:UnaryExp;
+EmptyExp:Exp;
+
+ArrayAccess:AccessVal ::= ArrayID:IDUse Indices:Exp* ;
+ArraySetStmt:Stmt ::= LHS:IDInfo RHS:Exp;
 
 abstract LiteralExp:Exp;
 Literal:LiteralExp ::= <Literal:String>;
