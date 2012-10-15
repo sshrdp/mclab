@@ -56,7 +56,7 @@ public class ForLoopStmt {
 		target.currentBlock.remove(loop_body_block);
 		block.addStmt(for_stmt);
 
-		System.out.println(loop_body_block.getStmts().getNumChild());
+		//System.out.println(loop_body_block.getStmts().getNumChild());
 	}
 
 	private static void buildStmtsSubAST(ast.List<ast.Stmt> stmts,

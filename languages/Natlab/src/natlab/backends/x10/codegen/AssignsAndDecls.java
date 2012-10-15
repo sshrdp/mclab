@@ -7,7 +7,9 @@ import natlab.tame.tir.TIRAbstractAssignStmt;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.tir.TIRAbstractAssignToVarStmt;
 import natlab.tame.tir.TIRAbstractCreateFunctionHandleStmt;
+import natlab.tame.tir.TIRArraySetStmt;
 import natlab.tame.tir.TIRAssignLiteralStmt;
+import natlab.tame.tir.TIRCallStmt;
 import natlab.tame.tir.TIRCopyStmt;
 import ast.FPLiteralExpr;
 import ast.IntLiteralExpr;
@@ -51,10 +53,14 @@ public class AssignsAndDecls {
 			decl_stmt.getLHS().setName(((TIRAbstractAssignToVarStmt)node).getLHS().getVarName());
 			setRHSValue(isDecl, decl_stmt, node);
 
+//			target.symbolMap
+//					.put(((TIRAbstractAssignToVarStmt)node).getLHS().getVarName(), Helper
+//							.getAnalysisValue(target.analysis, target.index,
+//									node, LHS));
 			target.symbolMap
-					.put(((TIRAbstractAssignToVarStmt)node).getLHS().getVarName(), Helper
-							.getAnalysisValue(target.analysis, target.index,
-									node, LHS));
+			.put(target.symbolMapKey, Helper
+					.getAnalysisValue(target.analysis, target.index,
+							node, LHS));
 			block.addStmt(decl_stmt);
 
 		}
@@ -72,6 +78,10 @@ public class AssignsAndDecls {
 		}
 
 	}
+	
+	
+	
+	
 
 	public static void handleTIRAbstractAssignToListStmt(
 			TIRAbstractAssignStmt node, IRx10ASTGenerator target,
@@ -86,6 +96,13 @@ public class AssignsAndDecls {
 					.getTargetName().getID();
 			LHS = target.symbolMapKey;
 
+			
+//			if (node instanceof TIRCallStmt)
+//			{
+//				System.out.println("Call stmt:"+ ((TIRCallStmt)node).getFunctionName().getID());
+//			}
+			
+			
 			if (true == target.symbolMap.containsKey(target.symbolMapKey)) {
 				isDecl = false;
 				// IDInfo LHSinfo = new IDInfo();
@@ -108,7 +125,7 @@ public class AssignsAndDecls {
 				decl_stmt.getLHS().setName(((TIRAbstractAssignToListStmt)node).getTargets().getChild(0).getVarName());
 				setRHSValue(isDecl, decl_stmt, node);
 
-				target.symbolMap.put(node.getLHS().getNodeString(), Helper
+				target.symbolMap.put(target.symbolMapKey, Helper
 						.getAnalysisValue(target.analysis, target.index, node,
 								LHS));
 				block.addStmt(decl_stmt);
@@ -119,11 +136,32 @@ public class AssignsAndDecls {
 
 		else {
 			AssignStmt list_assign_stmt = new AssignStmt();
+			MultiAssignLHS LHSinfo = new MultiAssignLHS();
+			list_assign_stmt.setMultiAssignLHS(LHSinfo);
 			for (ast.Name name : ((TIRAbstractAssignToListStmt) node)
 					.getTargets().asNameList()) {
+				/*
 				handleTIRAbstractAssignToListVarStmt(node, name, target,
 						list_assign_stmt);
+				*/
+				
+				System.out.println("^^"+name.getID());
+				list_assign_stmt.getMultiAssignLHS()
+				.addIDInfo(
+						Helper.generateIDInfo(target.analysis, target.index,
+								node, name.getID()));
+
+//		list_assign_stmt
+//				.getMultiAssignLHS()
+//				.getIDInfo(list_assign_stmt.getMultiAssignLHS().getNumIDInfo() - 1)
+//				.setName(
+//						((TIRAbstractAssignToListStmt) node).getTargetName()
+//								.toString());
+				
+				
+				
 			}
+			System.out.println("^*^"+list_assign_stmt.getMultiAssignLHS().getIDInfoList().getNumChild());
 			list_assign_stmt.setLHS(null);
 			setRHSValue(false, list_assign_stmt, node);
 			block.addStmt(list_assign_stmt);
@@ -144,10 +182,10 @@ public class AssignsAndDecls {
 		 * for such case OR just pretty print as declaration in X10 code
 		 */
 
-		/*
-		 * if (true == target.symbolMap.containsKey(LHS)) // variable already //
-		 * defined and analyzed {
-		 */
+		
+		 if (true == target.symbolMap.containsKey(LHS)) // variable already // defined and analyzed
+		 {
+		
 		MultiAssignLHS LHSinfo = new MultiAssignLHS();
 		assign_stmt.setMultiAssignLHS(LHSinfo);
 
@@ -163,8 +201,11 @@ public class AssignsAndDecls {
 						((TIRAbstractAssignToListStmt) node).getTargetName()
 								.toString());
 
-		
+		 }
+		 
 
 	}
+
+	
 
 }

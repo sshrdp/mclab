@@ -21,6 +21,8 @@ import natlab.tame.classes.reference.ClassReference;
 import natlab.tame.tir.TIRAbstractAssignStmt;
 import natlab.tame.tir.TIRAbstractAssignToListStmt;
 import natlab.tame.tir.TIRAbstractAssignToVarStmt;
+import natlab.tame.tir.TIRArrayGetStmt;
+import natlab.tame.tir.TIRArraySetStmt;
 import natlab.tame.tir.TIRFunction;
 import natlab.tame.tir.TIRNode;
 import natlab.tame.tir.analysis.TIRAbstractNodeCaseHandler;
@@ -112,12 +114,15 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 		}
 
 		else if (node instanceof TIRAbstractAssignFromVarStmt) {
+			
 
 		}
+		
+		
+		
 		// TODO implement other cases here - refer to ValueAnalysisPrinter
-		/*
-		 * else if (node instanceof TIRArraySetStmt){
-		 * vars.add(((TIRArraySetStmt)node).getArrayName().getID()); } else if
+				/*
+				 * else if
 		 * (node instanceof TIRCellArraySetStmt){
 		 * vars.add(((TIRCellArraySetStmt)node).getCellArrayName().getID()); }
 		 * else if (node instanceof TIRDotSetStmt){
@@ -140,4 +145,25 @@ public class IRx10ASTGenerator extends TIRAbstractNodeCaseHandler {
 		IfElseStmt.handleTIRIfStmt(node, this,
 				this.currentBlock.get(this.currentBlock.size() - 1));
 	}
+	
+	public void caseTIRCommentStmt(TIRCommentStmt node){
+		Comments.handleTIRComment(node, this,
+				this.currentBlock.get(this.currentBlock.size() - 1));
+	}
+	
+	@Override
+	public void caseTIRArrayGetStmt(TIRArrayGetStmt node){
+		System.out.println("inside ArrayGet");
+		ArrayGetSet.handleTIRAbstractArrayGetStmt((TIRArrayGetStmt) node, this,
+				this.currentBlock.get(this.currentBlock.size() - 1));
+	}
+	
+	public void caseTIRArraySetStmt(TIRArraySetStmt node){
+		System.out.println("inside ArraySet");
+		ArrayGetSet.handleTIRAbstractArraySetStmt((TIRArraySetStmt) node, this,
+				this.currentBlock.get(this.currentBlock.size() - 1));
+		
+	   } 
+	
+	
 }
