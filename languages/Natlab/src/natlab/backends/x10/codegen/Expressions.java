@@ -76,7 +76,7 @@ public class Expressions {
 	static Exp makeIRx10Exp(ast.Expr NatlabExp) {
 		// Handle Binary Expressions
 
-		// System.out.println("^^"+NatlabExp.getPrettyPrinted()+"^^");
+		
 
 		if (null == NatlabExp) {
 			return new EmptyExp();
@@ -165,8 +165,10 @@ public class Expressions {
 			{
 				if (RHS.equals("+"))
 					return new PlusExp(Operand1);
-				if (RHS.equals("-"))
+				if (RHS.equals("-")){
+					 System.out.println("^^"+NatlabExp.getPrettyPrinted()+"^^");////////////
 					return new MinusExp(Operand1);
+			}
 				if (RHS.equals("!"))
 					return new NegExp(Operand1);
 			}

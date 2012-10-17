@@ -1,0 +1,4 @@
+1. growing arrays - keep a track of the largest size of the array used
+2. array bounds check
+3. assignments to different types
+4. complex values support 

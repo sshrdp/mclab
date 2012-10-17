@@ -19,7 +19,9 @@ public class Main {
 		// String file =
 		// "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/testing/unitTests/ut8"
 		// ;
-		String file = "/home/2011/vkumar5/hello1";
+		String file = "/home/2011/vkumar5/mclab/Project/languages/Natlab/src/natlab/backends/x10/benchmarks/mc_for_benchmarks/adpt/main";
+
+		//String file = "/home/2011/vkumar5/hello1";
 		String fileIn = file + ".m";
 		String fileOut = file + ".x10";
 		GenericFile gFile = GenericFile.create(fileIn);
@@ -36,22 +38,21 @@ public class Main {
 		System.out.println("\n------------------------------------\n");
 
 		System.out.println("\n------------------------------------\n");
-		System.out
-				.println("\n~~~~~~~~~~~~~~~~X10 code~~~~~~~~~~~~~~~~~~~~~~~\n");
+		
 
+		
+		
+		System.out
+		.println("\n~~~~~~~~~~~~~~~~X10 code~~~~~~~~~~~~~~~~~~~~~~~\n");
+//		System.out.println("UNCOMMENT IN MAIN");
 		Program irx10Program = new Program();
 		irx10Program.setClassBlock(IRx10ASTGenerator.x10ClassMaker(analysis,
 				size, "home/2011/vkumar5/", "testclass"));
-		System.out.println(((DeclStmt) irx10Program.getClassBlock()
-				.getMethod(1).getMethodBlock().getStmt(0)).getLHS().getName());
-		System.out.println(((DeclStmt) irx10Program.getClassBlock()
-				.getMethod(0).getMethodBlock().getStmt(0)).getLHS().getName());
-
-		// for(int i=size-1;i>=0;i--){
-		// System.out.println(x10CodeGenerator.x10CodePrinter(analysis,size,i,"home/2011/vkumar5/",
-		// "testclass"));
-		// }
-		// //x10Code = x10CodeGenerator.x10CodePrinter(analysis, "testclass");
+		
+		String x10Program = irx10Program.pp("","testclass");
+		System.out.println(x10Program);
+		System.out
+		.println("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fileOut));

@@ -43,10 +43,14 @@ public class Function {
 		 * extend it to support multiple returns
 		 * Add a return type stmt with a list of return values
 		 */
+		System.out.println(node.getNodeString()+"$$$");
+		if (null != node.getOutputParams() && node.getOutputParams().getNumChild()>0){
 		Type returnType = Helper.getReturnType(target.analysis, target.index, node, node.getOutputParam(0).getID());
+		target.method.getMethodHeader().setReturnType(returnType);
+		}
 		
 		//DEBUG
-		System.out.println(returnType.getName());
+		//System.out.println(returnType.getName());
 		buildStmtsSubAST(node.getStmts(), target);
 		System.out.println(target.method.getMethodHeader().getName());
 		System.out.println(target.method.getMethodBlock().getNumStmt());
