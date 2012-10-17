@@ -2,18 +2,19 @@ import natlab.backends.x10.IRx10.ast.Args;
 import natlab.backends.x10.IRx10.ast.List;
 import natlab.backends.x10.IRx10.ast.PPHelper;
 import natlab.backends.x10.IRx10.ast.Stmt;
+import java.util.*;
 
 aspect PrettyPrinter{
-void ASTNode.pp(indent){}
+String ASTNode.pp(String indent){return indent;}
 
-void Program.pp(indent){
-	getClassBlock.pp(indent);
+String Program.pp(String indent){
+	return getClassBlock().pp(indent);
 }
 
-String ClassBlock.pp(indent,className){
+String ClassBlock.pp(String indent,String className){
 	StringBuffer x = new StringBuffer();
 	x.append("class "+className+"{\n");
-	for(DeclStmt decl_stmt : getDeclStmtList()){
+	for(Stmt decl_stmt : getDeclStmtList()){
 		x.append(decl_stmt.pp(indent+"	"));
 	}
 	for (Method method : getMethodList()){
@@ -30,8 +31,8 @@ String DeclStmt.pp(String indent){
 	{ /**
 	    *It is not a list assignment
 	    */
-		if ( 1==getLHS().getShape().get(0) &&
-			1==getLHS().getShape().get(1))
+		if ( "1"==getLHS().getShape().get(0) &&
+			"1"==getLHS().getShape().get(1))
 		{
 			/*Scalar variable*/
 		x.append("var "+getLHS().getName()+": "+getLHS().getType().getName());
@@ -158,28 +159,28 @@ String IDUse.pp(String indent){
 
 String PreIncExp.pp(String indent)
 {
-	return (indent+"(++"+getOperand.pp("")+")");
+	return (indent+"(++"+getOperand().pp("")+")");
 }
 
 String PreDecExp.pp(String indent)
 {
-	return (indent+"(--"+getOperand.pp("")+")");
+	return (indent+"(--"+getOperand().pp("")+")");
 	
 }
 
 String MinusExp.pp(String indent)
 {
-	return (indent+"(-"+getOperand.pp("")+")");
+	return (indent+"(-"+getOperand().pp("")+")");
 }
 
 String PlusExp.pp(String indent)
 {
-	return (indent+"(+"+getOperand.pp("")+")");
+	return (indent+"(+"+getOperand().pp("")+")");
 }
 	
 String NegExp.pp(String indent)
 {
-	return (indent+"(!"+getOperand.pp("")+")");
+	return (indent+"(!"+getOperand().pp("")+")");
 }
 
 String Literal.pp(String indent)
@@ -189,77 +190,72 @@ String Literal.pp(String indent)
 
 String MulExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" * "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" * "+getRightOp().pp("")+")");
 }
 
 String DivExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" / "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" / "+getRightOp().pp("")+")");
 }
 
 String ModExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" % "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" % "+getRightOp().pp("")+")");
 }
 
 String AddExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" + "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" + "+getRightOp().pp("")+")");
 }
 
 String SubExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" - "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" - "+getRightOp().pp("")+")");
 }
 
 String IncExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" + "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" + "+getRightOp().pp("")+")");
 }
 
 String DecExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" - "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" - "+getRightOp().pp("")+")");
 }
 
 String LTExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" < "+getRightOp.pp("")+")");
-}
-
-String LTExp.pp(String indent)
-{
-	return(indent+"("+getLeftOp.pp("")+" > "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" > "+getRightOp().pp("")+")");
 }
 
 String LEExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" <= "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" <= "+getRightOp().pp("")+")");
 }
 
 String GEExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" >= "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" >= "+getRightOp().pp("")+")");
 }
 
 String EQExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" == "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" == "+getRightOp().pp("")+")");
 }
 
 String NEExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" != "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" != "+getRightOp().pp("")+")");
 }
 
 String AndExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" && "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" && "+getRightOp().pp("")+")");
 }
 
 String OrExp.pp(String indent)
 {
-	return(indent+"("+getLeftOp.pp("")+" || "+getRightOp.pp("")+")");
+	return(indent+"("+getLeftOp().pp("")+" || "+getRightOp().pp("")+")");
 }
 
 String ForStmt.pp (String indent){
@@ -290,6 +286,7 @@ String IfElseStmt.pp(String indent)
 	if(null != getElseBody()){
 		x.append("else \n"+getElseBody().pp(indent+"    "));
 	}
+	return x.toString();
 }
 
 String BuiltinMethodCall.pp(String indent)
@@ -303,7 +300,7 @@ String BuiltinMethodCall.pp(String indent)
 		  x.append(", "+getArgumentList().getChild(i).pp(""));
 	  }
 	  x.append(")");
-	  return x;
+	  return x.toString();
 }
 
 String UserDefMethodCall.pp(String indent)
@@ -317,7 +314,7 @@ String UserDefMethodCall.pp(String indent)
 		  x.append(", "+getArgumentList().getChild(i).pp(""));
 	  }
 	  x.append(")");
-	  return x;
+	  return x.toString();
 }
 
 }

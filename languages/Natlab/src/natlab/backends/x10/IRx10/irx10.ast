@@ -81,7 +81,7 @@ abstract Exp;
 abstract AccessVal:Exp;
 abstract MethodCall:Exp;
 BuiltinMethodCall:MethodCall ::= BuiltinMethodName:MethodId Argument:Exp*;
-abstract MethodId:AccessVal ::= <Name:String>;
+MethodId:AccessVal ::= <Name:String>;
 UserDefMethodCall:MethodCall ::= UserDefMethodName:MethodId Argument:Exp*;
 
 

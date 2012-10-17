@@ -26,41 +26,53 @@ String ClassBlock.pp(String indent,String className){
 }
 
 String DeclStmt.pp(String indent){
-	StringBuffer x = new StringBuffer();
-	
-	if (null != getLHS())
-	{ /**
-	    *It is not a list assignment
-	    */
-		
-		if ( (null == getLHS().getShape()) || (("1").equals(getLHS().getShape().get(0).toString()) &&
-			("1").equals(getLHS().getShape().get(1).toString())))
-		{
-			/*Scalar variable*/
-		x.append("var "+getLHS().getName()+": "+getLHS().getType().getName());
-		x.append(" = ");
-		x.append(getRHS().pp("")+";\n");
-	        
-		}
-		else //array
-		{
-			
-			
-			x.append("val "+getLHS().getName()+" = "+
-			"new Array["+getLHS().getType().getName()+"]"+
-			"("+PPHelper.makeRange(getLHS().getShape())+
-			", "+getRHS().pp("")+");\n");
-		}
+		StringBuffer x = new StringBuffer();
 
+		if (null != getLHS()) {
+			/**
+			 * It is not a list assignment
+			 */
+
+			if (null == getLHS().getShape()) {
+				/* Scalar variable */
+				x.append("var " + getLHS().getName() + ": "
+						+ getLHS().getType().getName());
+				x.append(" = ");
+				x.append(getRHS().pp("") + ";\n");
+
+			}
+
+			else if (null != getLHS().getShape()) {
+				boolean tf = true;
+				for (int i = 0; i < getLHS().getShape().size(); i++) {
+					if(null != getLHS().getShape().get(i))
+					tf &= ("1").equals(getLHS().getShape().get(i).toString());
+				}
+				if (tf) {
+
+					/* Scalar variable */
+					x.append("var " + getLHS().getName() + ": "
+							+ getLHS().getType().getName());
+					x.append(" = ");
+					x.append(getRHS().pp("") + ";\n");
+				}
+
+			} else // array
+			{
+
+				x.append("val " + getLHS().getName() + " = " + "new Array["
+						+ getLHS().getType().getName() + "]" + "("
+						+ PPHelper.makeRange(getLHS().getShape()) + ", "
+						+ getRHS().pp("") + ");\n");
+			}
+
+		} else {
+			/**
+			 * TODO Case when assigned to a list
+			 */
+		}
+		return x.toString();
 	}
-	else
-	{
-	  /**TODO
-	   * Case when assigned to a list
-	   */
-	}
-	return x.toString();
-}
 
 String ArraySetStmt.pp(String indent){
 		StringBuffer x = new StringBuffer();
@@ -144,32 +156,48 @@ String StmtBlock.pp(String indent)
 
 String AssignStmt.pp(String indent){
 	StringBuffer x = new StringBuffer();
-	if (null != getLHS())
-	{ /**
-	    *It is not a list assignment
-	    */
-//		if(null != getLHS().getShape())
-//		{
-//			System.out.println("!!!!"+getLHS().getShape().get(0).toString());
-//		}
-		
-		if ( (null == getLHS().getShape()) || (("1").equals(getLHS().getShape().get(0).toString()) &&
-				("1").equals(getLHS().getShape().get(1).toString())))
-		{
-			/*Scalar variable*/
-		x.append("var "+getLHS().getName()+": "+getLHS().getType().getName());
-		x.append(" = ");
-		x.append(getRHS().pp("")+";\n");
-	        
+	if (null != getLHS()) {
+		/**
+		 * It is not a list assignment
+		 */
+
+		if (null == getLHS().getShape()) {
+			/* Scalar variable */
+			x.append(getLHS().getName());
+			x.append(" = ");
+			x.append(getRHS().pp("") + ";\n");
+
+		}
+
+		else if (null != getLHS().getShape()) {
+			boolean tf = true;
+			for (int i = 0; i < getLHS().getShape().size(); i++) {
+				if(null != getLHS().getShape().get(i))
+				tf &= ("1").equals(getLHS().getShape().get(i).toString());
+			}
+			if (tf) {
+
+				/* Scalar variable */
+				x.append(getLHS().getName());
+				x.append(" = ");
+				x.append(getRHS().pp("") + ";\n");
+
+			}
+
 		}
 		else //array
 		{
-			
-			
-			x.append("val "+getLHS().getName()+" = "+
-			"new Array["+getLHS().getType().getName()+"]"+
-			"("+PPHelper.makeRange(getLHS().getShape())+
-			", "+getRHS().pp("")+");\n");
+			/**TODO
+			 * Make sure if arrays can be aSSIGNED DIRECTLY LIKE VARIABLES. wHAT ARE THE RESTRICTIONS ?
+			 */
+			x.append(getLHS().getName());
+			x.append(" = ");
+			x.append(getRHS().pp("") + ";\n");
+//			
+//			x.append("val "+getLHS().getName()+" = "+
+//			"new Array["+getLHS().getType().getName()+"]"+
+//			"("+PPHelper.makeRange(getLHS().getShape())+
+//			", "+getRHS().pp("")+");\n");
 		}
 
 	}
