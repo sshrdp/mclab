@@ -69,7 +69,7 @@ public class Main
 
 			if(isMatlabConvert) {
 				System.err.println("Translating "+file+" to Natlab");
-				fileReader = natlab.Main.translateFile( file, errors );
+				fileReader = natlab.Parse.translateFile( file, errors );
 
 				if( errors.size() > 0 ){
 					System.err.print( errors.toString() );
