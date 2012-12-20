@@ -20,10 +20,13 @@ import java.util.*;
 public class AspectsEngine {
 
 	/*
-	 * Maps used for name resolution
+	 * Analysis used for name resolution
 	 */
-	static Map<ASTNode, VFFlowset<String, FunctionVFDatum>> vfaMap;
-	static Map<ASTNode, VFFlowset<String, VFDatum>> sfaMap;
+	static Map<ASTNode, VFFlowset> sfaMap;
+	static VFFlowInsensitiveAnalysis vfa;
+	
+	
+	
 
 	/*
 	 * Structures used to keep aspect info
@@ -134,16 +137,19 @@ public class AspectsEngine {
 	 * Flow Analysis
 	 */
 	public static void flowAnalysis(ASTNode cu){
-		VFStructuralForwardAnalysis sfa = new VFStructuralForwardAnalysis(cu);
-		sfa.analyze();
-		sfaMap = sfa.getInFlowSets();
+		vfa = new VFFlowInsensitiveAnalysis(cu);
+		vfa.analyze();
+		
+		//sfaMap = sfa.getInFlowSets();
 		//System.out.println(sfa.getInFlowSets().toString());
 	}
 
 	/*
+	/*
 	 * For every stmt node, check if var is function or variable
-	 */
+	 
 	public static VFDatum checkVarOrFunNew(Stmt node, String target){
+		/*
 		java.util.List<ValueDatumPair<String, VFDatum>> fset = sfaMap.get(node).toList();
 
 		for(ValueDatumPair<String, VFDatum> vdp : fset){
@@ -151,8 +157,13 @@ public class AspectsEngine {
 				return vdp.getDatum();
 		}
 
-		return new ScriptVFDatum();
+		return vfa.getResult(node.getName());
+		//new ScriptVFDatum();
 	}
+	*/
+		public static VFDatum checkVarOrFun(Name n){
+			return vfa.getResult(n);
+		}
 
 	///////////////////////////////////////////////////////////////////////
 
@@ -923,7 +934,8 @@ public class AspectsEngine {
 						StringTokenizer st = new StringTokenizer(varName, ",");
 						while (st.hasMoreTokens()) {
 							String target = st.nextToken();
-							count += exprMatchAndWeave(stmts, stmts.getIndexOfChild(stmt), target, es, checkVarOrFunNew(es, target), node != null ? true:false);
+							
+							count += exprMatchAndWeave(stmts, stmts.getIndexOfChild(stmt), target, es, VFDatum.BOT /*checkVarOrFun(es, target)*/, node != null ? true:false);
 						}
 					}
 				}
@@ -963,7 +975,7 @@ public class AspectsEngine {
 								
 								String target = st.nextToken();
 								
-								count += getOrCallMatchAndWeave(stmts, stmts.getIndexOfChild(as), target, as, checkVarOrFunNew(as, target), node != null ? true:false);
+								count += getOrCallMatchAndWeave(stmts, stmts.getIndexOfChild(as), target, as, VFDatum.BOT /*checkVarOrFunNew(as, target)*/, node != null ? true:false);
 							}
 						}
 					}
@@ -1002,7 +1014,7 @@ public class AspectsEngine {
 		int tokens = st.countTokens();
 		
 		if(rhs instanceof BinaryExpr){
-			bExprMatchAndWeave(stmts, s , varName,(BinaryExpr) rhs, checkVarOrFunNew(context,"target") , false);
+			bExprMatchAndWeave(stmts, s , varName,(BinaryExpr) rhs, VFDatum.BOT /*checkVarOrFunNew(context,"target")*/ , false);
 			
 		}
 		while (st.hasMoreTokens()) {
@@ -1185,10 +1197,10 @@ public class AspectsEngine {
 				 if(varOrFun.isVariable() && !(rhs instanceof BinaryExpr)) { //only match if target is variable\
 					isGet = pat.ShadowMatch(target, GET, args, context);
 					pattern = GET;
-				} else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript)) {
+				} else if(varOrFun.isFunction() || (varOrFun.isID() && !isScript)) {
 					isCall = pat.ShadowMatch(target, CALL, args, context);
 					pattern = CALL;
-				} else if(varOrFun.isBottom() && isScript) {
+				} else if(varOrFun.isID() && isScript) {
 					isGet = pat.ShadowMatch(target, GET, args, context);
 					isCall = pat.ShadowMatch(target, CALL, args, context);
 
@@ -1306,7 +1318,7 @@ public class AspectsEngine {
 					action.setOutputSuppressed(true);
 					Stmt call = action;
 
-					if(!(isCall && isGet) && varOrFun.isBottom() && isScript) { //script case
+					if(!(isCall && isGet) && varOrFun.isID() && isScript) { //script case
 						BinaryExpr cond;
 						ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
 						elst.add(new StringLiteralExpr("var"));
@@ -1403,10 +1415,10 @@ public class AspectsEngine {
 					if(isOp)
 					pattern = OPERATORS;
 				
-				} else if(varOrFun.isFunction() || (varOrFun.isBottom() && !isScript)) {
+				} else if(varOrFun.isFunction() || (varOrFun.isID() && !isScript)) {
 					isCall = pat.ShadowMatch(target, CALL, args, context);
 					pattern = CALL;
-				} else if(varOrFun.isBottom() && isScript) {
+				} else if(varOrFun.isID() && isScript) {
 					isGet = pat.ShadowMatch(target, GET, args, context);
 					isCall = pat.ShadowMatch(target, CALL, args, context);
 					if(isGet && (isCall || isOp) && !isExistCheck) {
@@ -1521,7 +1533,7 @@ public class AspectsEngine {
 
 					Stmt call = action;
 
-					if(!(isCall && isGet) && varOrFun.isBottom() && isScript) { //script case
+					if(!(isCall && isGet) && varOrFun.isID() && isScript) { //script case
 						BinaryExpr cond;
 						ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
 						elst.add(new StringLiteralExpr("var"));
@@ -2165,775 +2177,5 @@ public class AspectsEngine {
     		return true;
     	}else return false;
     }
-    /*
-    static String toOpFunction(String target){
-    	if(target.equals("+")){
-    		return "PlusExpr";
-    	}else if(target.equals("-")){
-    		return "MinusExpr";
-    	}else if(target.equals("*")){
-    		return "MTimesExpr";
-    	}else if(target.equals("/")){
-    		return "MDivExpr";
-    	}else if(target.equals("^")){
-    		return "MPowExpr";
-    	}else if (target.equals("'")){
-    		return "MTransposeExpr";
-    	}else if(target.equals(".*")){
-    		return "ETimesExpr";
-    	}else if(target.equals("./")){
-    		return "EDivExpr";
-    	}else if(target.equals(".^")){
-    		return "EPowExpr";
-    	}else 
-    		return "NOTIMPLEMENTED";
-    	
-    	
-    }
-    */
-//	Removed Code//
-
-	{
-		/*class action {
-	private String name;
-	private String type;
-	//private pattern patt;
-	private String patt;
-	private Function func;
-	private String className;
-
-	public action(String nam, String typ, String pat, Function fun, String cName) {
-		name = nam;
-		type = typ;
-		patt = pat;
-		func = fun;
-		className = cName;
-	}
-
-	public void setName(String nam) { name = nam; }
-	public void setType(String typ) { type = typ; }
-	public void setPattern(String pat) { patt = pat; }
-	public void setFunction(Function fun) { func = fun; }
-	public void setClassName(String name) { className = name; }
-
-	public String getName() { return name; }
-	public String getType() { return type; }
-	public String getPattern() { return patt; }
-	public Function getFunction() { return func; }
-	public String getClassName() { return className; }
-}*/
-
-		/*
-class pattern {
-	private String name;
-	private String type;
-	private String target;
-	private int dims;
-	private boolean dimsAndMore;
-
-	public pattern(String nam, String typ, String tar, int dim, boolean mor) {
-		name = nam;
-		type = typ;
-		target = tar;
-		dims = dim;
-		dimsAndMore = mor;
-	}
-
-	public void setName(String nam) { name = nam; }
-	public void setType(String typ) { type = typ; }
-	public void setTarget(String tar) { target = tar; }
-	public void setDims(int dim) { dims = dim; }
-	public void setDimsAndMore(boolean mor) { dimsAndMore = mor; }
-
-	public String getName() { return name; }
-	public String getType() { return type; }
-	public String getTarget() { return target; }
-	public int getDims() { return dims; }
-	public boolean getDimsAndMore() { return dimsAndMore; }
-}
-		 */
-
-		/*
-	 private static void addSwitchCaseToAroundCorrespondingFunction(Expr lhs, Expr pe, Function corFun, IntLiteralExpr ile, String type, boolean aroundExist, String prevAroundName, IntLiteralExpr prevAroundile){
-		ast.List<Stmt> scsl = new ast.List<Stmt>();
-		ast.List<Expr> input = new ast.List<Expr>();
-		Expr exp = null;
-
-		if(!aroundExist){
-			exp = (Expr) pe.copy();
-			Expr tmp = (Expr) pe.copy();
-
-			if(exp instanceof ParameterizedExpr || exp instanceof CellIndexExpr) {
-				int size = 0;
-
-				if(exp instanceof ParameterizedExpr) {
-					size = ((ParameterizedExpr)exp).getArgs().getNumChild();
-					tmp = ((ParameterizedExpr)exp).getTarget();
-				} else if(exp instanceof CellIndexExpr) {
-					size = ((CellIndexExpr)exp).getArgs().getNumChild();
-					tmp = ((CellIndexExpr)exp).getTarget();
-				}
-
-				for(int i=1; i<=size; i++)
-					input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
-
-				if(exp instanceof ParameterizedExpr)
-					exp = new ParameterizedExpr(((ParameterizedExpr)exp).getTarget(), input);
-				else if(exp instanceof CellIndexExpr)
-					exp = new CellIndexExpr(((CellIndexExpr)exp).getTarget(), input);
-			}
-
-			AssignStmt tmpStmt = new AssignStmt();
-			if(type.compareTo(SET) == 0 || type.compareTo(LOOPHEAD) == 0) {
-				exp = new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
-			} else if(type.compareTo(EXECUTION) == 0 || type.compareTo(CALL) == 0) {
-				exp = new ParameterizedExpr(new NameExpr(CF_INPUT_OBJ), input);
-			} else {
-				tmpStmt = new AssignStmt(tmp, new NameExpr(CF_INPUT_OBJ));
-				tmpStmt.setOutputSuppressed(true);
-				tmpStmt.setWeavability(false, true);
-				scsl.add(tmpStmt);
-			}
-		} else {
-			input.add(new NameExpr(new Name(THIS)));
-			input.add(prevAroundile);
-			input.add(new NameExpr(CF_INPUT_OBJ));
-			input.add(new NameExpr(CF_INPUT_AGRS));
-
-			input.add(new NameExpr(new Name(ARGS)));
-			input.add(new NameExpr(new Name(COUNTER)));
-			input.add(new NameExpr(new Name(FILE)));
-			input.add(new NameExpr(new Name(LINE)));
-			input.add(new NameExpr(new Name(LOC)));
-			input.add(new NameExpr(new Name(NAME)));
-			input.add(new NameExpr(new Name(NEWVAL)));
-			input.add(new NameExpr(new Name(OBJ)));
-
-			exp = new ParameterizedExpr(new NameExpr(new Name(prevAroundName)), input); 
-		}
-
-		Expr out = null;
-		if(lhs instanceof MatrixExpr){
-			MatrixExpr me = (MatrixExpr)lhs;
-			int size = me.getRow(0).getNumElement();
-			List<Expr> lst = new List<Expr>();
-
-			for(int i=1; i<=size; i++)
-				lst.add(new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
-			out = new MatrixExpr(new List<Row>().add(new Row(lst)));
-		} else {
-			out = new CellIndexExpr(new NameExpr(CF_OUTPUT), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1)))));
-		}
-
-		Stmt stmt = new AssignStmt(out, exp);
-		if(lhs == null) //ExprStmt case
-			stmt = new ExprStmt(exp);
-
-		stmt.setOutputSuppressed(true);
-		scsl.add(stmt);
-
-		SwitchCaseBlock scb = new SwitchCaseBlock(ile, scsl);
-		SwitchStmt ss = (SwitchStmt) corFun.getStmt(0);
-		ss.addSwitchCaseBlock(scb);
-	}*/
-
-		/*
-
-	public static void analysis(ASTNode cu){
-		VFPreorderAnalysis vfa = new VFPreorderAnalysis(cu);
-		vfa.analyze();
-		vfaMap = vfa.getFlowSets();
-		//System.out.println(vfa.getCurrentSet().toString());
-	}
-
-	public static FunctionVFDatum checkVarOrFun(ASTNode node, String target){
-		java.util.List<ValueDatumPair<String, FunctionVFDatum>> fset = vfaMap.get(node).toList();
-
-		for(ValueDatumPair<String, FunctionVFDatum> vdp : fset){
-			if(vdp.getValue().compareTo(target) == 0)
-				return vdp.getDatum();
-		}
-
-		return new FunctionVFDatum();
-	}
-		 */
-
-		/*
-private static CellArrayExpr getNewVal(Expr exp){
-	CellArrayExpr nv = new CellArrayExpr();
-
-	if(exp instanceof IntLiteralExpr || exp instanceof FPLiteralExpr || exp instanceof StringLiteralExpr) {
-		nv.addRow(new Row(new ast.List<Expr>().add(exp)));
-	}
-
-	return nv;
-}
-		 */
-
-		/*
-public static void generateCorrespondingFunction(Expr pe) {
-	if(pe.getWeavability()) {
-		String target = pe.FetchTargetExpr();
-		for(pattern pat : patternsList) {
-			if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0) && 
-					(pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)) {
-				ASTNode node = pe;
-				while(node != null && !(node instanceof Function || node instanceof PropertyAccess || node instanceof Script))
-					node = node.getParent();
-
-				if(node != null) {
-					Function corFun = null;
-					IntLiteralExpr ile = null;
-
-					if(node instanceof Function) {
-						Function prog = (Function)node;
-						corFun = prog.getCorrespondingFunction();
-
-						if(corFun == null) {
-							String funName = "AM_CF_" + prog.getName();
-							corFun = createCorrespondingFunction(funName, false);	
-							prog.addNestedFunction(corFun);
-							prog.setCorrespondingFunction(corFun);
-						}
-
-						ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(prog.getCorrespondingCount())));
-						prog.incCorrespondingCount();
-
-						addSwitchCaseToCorrespondingFunction(pe, corFun, ile, false);
-						insertCallToCorrespondingFunction(pe, corFun, ile, false);
-
-					} else if(node instanceof PropertyAccess) {
-						PropertyAccess prog = (PropertyAccess)node;
-						corFun = prog.getCorrespondingFunction();
-
-						if(corFun == null) {
-							String funName = "AM_CF_" + prog.getAccess() + "_" + prog.getName();
-							corFun = createCorrespondingFunction(funName, false);	
-							prog.addNestedFunction(corFun);
-							prog.setCorrespondingFunction(corFun);
-						}
-
-						ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(prog.getCorrespondingCount())));
-						prog.incCorrespondingCount();
-
-						addSwitchCaseToCorrespondingFunction(pe, corFun, ile, false);
-						insertCallToCorrespondingFunction(pe, corFun, ile, false);
-
-					} else if(node instanceof Script) {
-						Script prog = (Script)node;
-						corFun = prog.getCorrespondingFunction();
-
-						if(corFun == null) {
-							String funName = generateCorrespondingFunctionName();
-							corFun = createCorrespondingFunction(funName, true);	
-							prog.getParent().addChild(new FunctionList(new ast.List<Function>().add(corFun)));
-							prog.setCorrespondingFunction(corFun);
-						}
-
-						ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(prog.getCorrespondingCount())));
-						prog.incCorrespondingCount();
-
-						addSwitchCaseToCorrespondingFunction(pe, corFun, ile, true);
-						insertCallToCorrespondingFunction(pe, corFun, ile, true);
-					}
-				}
-
-				return;
-			}
-		}
-	}
-}
-
-private static void addSwitchCaseToCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, boolean isScript){
-	Expr exp = (Expr) pe.copy();
-	Expr tmp = (Expr) pe.copy();
-	ast.List<Expr> input = new ast.List<Expr>();
-
-	if(exp instanceof ParameterizedExpr || exp instanceof CellIndexExpr) {
-		int size = 0;
-
-		if(exp instanceof ParameterizedExpr) {
-			size = ((ParameterizedExpr)exp).getArgs().getNumChild();
-			tmp = ((ParameterizedExpr)exp).getTarget();
-		} else if(exp instanceof CellIndexExpr) {
-			size = ((CellIndexExpr)exp).getArgs().getNumChild();
-			tmp = ((CellIndexExpr)exp).getTarget();
-		}
-
-		for(int i=1; i<=size; i++)
-			input.add(new CellIndexExpr(new NameExpr(CF_INPUT_AGRS), new ast.List<Expr>().add(new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(i))))));
-
-		if(exp instanceof ParameterizedExpr)
-			exp = new ParameterizedExpr(((ParameterizedExpr)exp).getTarget(), input);
-		else if(exp instanceof CellIndexExpr)
-			exp = new CellIndexExpr(((CellIndexExpr)exp).getTarget(), input);
-	}
-
-	ast.List<Stmt> scsl = new ast.List<Stmt>();
-
-	AssignStmt tmpStmt = new AssignStmt();
-	if(isScript) {
-		Expr exp1 = new NameExpr(new Name("AM_tmp_" + tmp.FetchTargetExpr()));
-		tmpStmt = new AssignStmt(exp1, new NameExpr(CF_INPUT_OBJ));
-		tmpStmt.setOutputSuppressed(true);
-		tmpStmt.setWeavability(false, true);
-		scsl.add(tmpStmt);
-
-		if(exp instanceof ParameterizedExpr)
-			exp = new ParameterizedExpr(exp1, input);
-		else if(exp instanceof CellIndexExpr)
-			exp = new CellIndexExpr(exp1, input);
-		else
-			exp = exp1;
-	}
-
-	Expr lhs = new NameExpr(CF_OUTPUT);
-	lhs.setWeavability(false);
-	exp.setWeavability(true);
-
-	AssignStmt stmt = new AssignStmt(lhs, exp);
-	stmt.setOutputSuppressed(true);
-	scsl.add(stmt);
-
-	SwitchCaseBlock scb = new SwitchCaseBlock(ile, scsl);
-	SwitchStmt ss = (SwitchStmt) corFun.getStmt(0);
-	ss.addSwitchCaseBlock(scb);
-}
-
-private static void insertCallToCorrespondingFunction(Expr pe, Function corFun, IntLiteralExpr ile, boolean isScript){
-	ast.List<Expr> input = new ast.List<Expr>().add(ile);
-	ast.List<Expr> args = new ast.List<Expr>();
-
-	Expr tmp = (Expr) pe.copy();
-
-	if(pe instanceof ParameterizedExpr) {
-		args = ((ParameterizedExpr)pe).getArgs();
-		tmp = ((ParameterizedExpr)pe).getTarget();
-	} else if(pe instanceof CellIndexExpr) {
-		args = ((CellIndexExpr)pe).getArgs();
-		tmp = ((CellIndexExpr)pe).getTarget();
-	}
-
-	IfStmt ifstmt = new IfStmt();
-
-	if(isScript) {
-		ast.List<Expr> lst = new ast.List<Expr>().add(new StringLiteralExpr(tmp.FetchTargetExpr()));
-		lst.add(new StringLiteralExpr("var"));
-		ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), lst);
-		BinaryExpr cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-
-		AssignStmt eas = new AssignStmt(tmp, new StringLiteralExpr("AM_tmp_" + tmp.FetchTargetExpr()));
-		eas.setOutputSuppressed(true);
-		eas.setWeavability(false, true);
-		IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(eas));
-		ifstmt = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-
-		ASTNode node = pe;
-		while(node != null && !(node instanceof Stmt))
-			node = node.getParent();
-
-		if(node != null) {
-			int ind = node.getParent().getIndexOfChild(node);
-			node.getParent().insertChild(ifstmt, ind);
-		}
-
-		input.add(tmp);
-	}
-
-	CellArrayExpr values = new CellArrayExpr();
-	values.addRow(new Row(args));
-	input.add(values);
-
-	ParameterizedExpr call = new ParameterizedExpr(new NameExpr(new Name(corFun.getName())), input);
-	call.setWeavability(false);
-
-	int ind = pe.getParent().getIndexOfChild(pe);
-	pe.getParent().setChild(call, ind);
-}
-		 */
-
-		/*
-private static int matchAndWeave(ast.List<Stmt> stmts, int s, String type, String target, AssignStmt context) {
-	Expr rhs = context.getRHS();
-	Expr lhs = context.getLHS();
-	int count = 0;
-
-	for(int j=0; j<actionsList.size(); j++)
-	{
-		action act = actionsList.get(j);
-		pattern pat = act.getPattern();
-
-		if(pat.getType().compareTo(type) == 0 && pat.getTarget().compareTo(target) == 0){
-			Function fun = act.getFunction();
-			NameExpr funcName = new NameExpr(new Name(act.getName()));
-			ast.List<Expr> lstExpr = new ast.List<Expr>();
-
-			for(Name param : fun.getInputParams()) {
-				if(param.getID().compareTo(NEWVAL) == 0) {
-					lstExpr.add(getNewVal(rhs));
-				} else if(param.getID().compareTo(ARGS) == 0) {
-					if(pat.getType().compareTo(CALL) == 0)
-						lstExpr.add(getDims(rhs));
-					else
-						lstExpr.add(new CellArrayExpr());
-				} else if(param.getID().compareTo(DIMS) == 0) {
-					if(pat.getType().compareTo(SET) == 0)
-						lstExpr.add(getDims(lhs));
-					else if(pat.getType().compareTo(GET) == 0)
-						lstExpr.add(getDims(rhs));
-					else
-						lstExpr.add(new CellArrayExpr());
-				} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
-					IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-					lstExpr.add(ile);
-				} else if(param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
-					lstExpr.add(new NameExpr(new Name(target)));
-				} else if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
-					if(pat.getType().compareTo(SET) == 0)
-						lstExpr.add(rhs);
-					else //get, call
-						lstExpr.add(getDims(rhs));
-				} else
-					lstExpr.add(new CellArrayExpr());
-			}
-
-			ParameterizedExpr pe = new ParameterizedExpr(funcName, lstExpr);
-			Stmt action;
-			if(act.getType().compareTo(AROUND) == 0)
-				action = new AssignStmt(lhs, pe);
-			else
-				action = new ExprStmt(pe);
-
-			Stmt call = action;
-			action.setOutputSuppressed(true);
-
-			if(!(pat.getDims().compareTo("0") == 0)) {
-				BinaryExpr cond = null; 
-				if(!pat.getDimsAndMore())
-					cond = new EQExpr(new NameExpr(new Name("numel("+target+")")), new NameExpr(new Name(pat.getDims())));
-				else
-					cond = new GEExpr(new NameExpr(new Name("numel("+target+")")), new NameExpr(new Name(pat.getDims())));
-
-				IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(action));
-				call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-
-				if(act.getType().compareTo(AROUND) == 0) {					
-					AssignStmt eas = new AssignStmt(lhs, rhs);
-					eas.setOutputSuppressed(true);
-					ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
-					call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
-				}
-			}
-
-			if(act.getType().compareTo(BEFORE) == 0) {
-				stmts.insertChild(call, s);
-				count += 1;
-			} else if(act.getType().compareTo(AFTER) == 0) {
-				stmts.insertChild(call, s+1);
-				count += 1;
-			} else if(act.getType().compareTo(AROUND) == 0) {
-				IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-				addSwitchCaseToAroundCorrespondingFunction(rhs, fun.getNestedFunction(0), ile, type);
-				fun.incCorrespondingCount();
-				//context.setRHS(pe);
-				stmts.setChild(call, s);
-			}
-		}
-	}
-
-	return count;
-}
-		 */
-
-		/*	private static int getOrCallMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
-Expr rhs = context.getRHS();
-Expr lhs = context.getLHS();
-int acount = 0, bcount = 0;
-
-for(int j=0; j<actionsList.size(); j++)
-{
-	action act = actionsList.get(j);
-	pattern pat = act.getPattern();
-
-	if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0) 
-			&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)){
-		Function fun = act.getFunction();
-		ast.List<Expr> lstExpr = new ast.List<Expr>();
-
-		for(Name param : fun.getInputParams()) {
-			if(param.getID().compareTo(ARGS) == 0) {
-				//if(pat.getType().compareTo(CALL) == 0)
-				lstExpr.add(getDims(rhs));
-				//else
-				//lstExpr.add(new CellArrayExpr());
-			} else if(param.getID().compareTo(DIMS) == 0) {
-				//if(pat.getType().compareTo(GET) == 0)
-				//	lstExpr.add(getDims(rhs));
-				//else
-				lstExpr.add(new CellArrayExpr());
-			} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
-				IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-				lstExpr.add(ile);
-			} else if(param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
-				if(pat.getType().compareTo(CALL) == 0)
-					lstExpr.add(new FunctionHandleExpr(new Name(target)));
-				else
-					lstExpr.add(new NameExpr(new Name(target)));
-			} else if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
-				lstExpr.add(getDims(rhs));
-			} else if(param.getID().compareTo(THIS) == 0) {
-				//do nothing
-			} else if(param.getID().compareTo(NAME) == 0) {
-				lstExpr.add(new StringLiteralExpr(target));
-			} else if(param.getID().compareTo(OBJ) == 0) {
-				if(pat.getType().compareTo(GET) == 0)
-					lstExpr.add(new NameExpr(new Name(target)));
-				else
-					lstExpr.add(new CellArrayExpr());
-			} else if(param.getID().compareTo(LINE) == 0) {
-				lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
-			} else if(param.getID().compareTo(LOC) == 0) {
-				lstExpr.add(new StringLiteralExpr(getLocation(context)));
-			} else
-				lstExpr.add(new CellArrayExpr());
-		}
-
-		Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(act.getClassName()));
-		Expr de2 = new DotExpr(de1, new Name(act.getName()));
-		ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
-
-		Stmt action;
-		if(act.getType().compareTo(AROUND) == 0)
-			action = new AssignStmt(lhs, pe);
-		else
-			action = new ExprStmt(pe);
-
-		Stmt call = action;
-		action.setOutputSuppressed(true);
-		BinaryExpr cond;
-
-//		ASTNode node = stmts;
-//		while(node != null && !(node instanceof Function))
-//			node = node.getParent();
-//		boolean isScriptCF = false;
-//		ParameterizedExpr strcmp = new ParameterizedExpr();
-//
-//		if(node != null && ((Function)node).getName().startsWith(AM_CF_SCRIPT)) {
-//			isScriptCF = true;
-//			ast.List<Expr> lst = new ast.List<Expr>().add(new NameExpr(CF_INPUT_OBJ));
-//			lst.add(new StringLiteralExpr("AM_tmp_" + target));
-//			strcmp = new ParameterizedExpr(new NameExpr(new Name("strcmp")), lst);
-//		}
-
-		//ast.List<Expr> nlst = new ast.List<Expr>().add(new NameExpr(new Name(target)));
-		//ParameterizedExpr numel = new ParameterizedExpr(new NameExpr(new Name("numel")), nlst);
-		ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
-		elst.add(new StringLiteralExpr("var"));
-		ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
-
-		if(pat.getType().compareTo(GET) == 0) {
-//			if(!(pat.getDims().compareTo("0") == 0)) {
-//				BinaryExpr cond2;
-//
-//				if(!pat.getDimsAndMore())
-//					cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
-//				else
-//					cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
-//
-//				IfBlock ib = new IfBlock(cond2, new ast.List<Stmt>().add(action));
-//				call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-//
-//				if(act.getType().compareTo(AROUND) == 0) {					
-//					AssignStmt eas = new AssignStmt(lhs, rhs);
-//					eas.setOutputSuppressed(true);
-//					ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
-//					call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
-//				}
-//			}
-
-			//if(isScriptCF)
-			//	cond = new NEExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-			//else
-				cond = new EQExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-		} else {
-			//if(isScriptCF)
-			//	cond = new EQExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-			//else
-				cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-		}
-
-		IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(call));
-		Stmt outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-
-		if(act.getType().compareTo(AROUND) == 0) {					
-			AssignStmt eas = new AssignStmt(lhs, rhs);
-			eas.setOutputSuppressed(true);
-			ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
-			outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
-		}
-
-		if(act.getType().compareTo(BEFORE) == 0) {
-			stmts.insertChild(outerIf, s);
-			bcount += 1;
-		} else if(act.getType().compareTo(AFTER) == 0) {
-			stmts.insertChild(outerIf, s+bcount+acount+1);
-			acount += 1;
-		} else if(act.getType().compareTo(AROUND) == 0) {
-			IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-			addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, pat.getType());
-			fun.incCorrespondingCount();
-			stmts.setChild(outerIf, s+bcount);
-		}
-	}
-}
-
-return acount + bcount;
-}*/
-
-		/*	private static int getOrCallMatchAndWeave(ast.List<Stmt> stmts, int s, String target, AssignStmt context) {
-Expr rhs = context.getRHS();
-Expr lhs = context.getLHS();
-int acount = 0, bcount = 0;
-
-for(int j=0; j<actionsList.size(); j++)
-{
-	action act = actionsList.get(j);
-	pattern pat = act.getPattern();
-
-	if((pat.getType().compareTo(GET) == 0 || pat.getType().compareTo(CALL) == 0) 
-			&& (pat.getTarget().compareTo(target) == 0 || pat.getTarget().compareTo("*") == 0)){
-		Function fun = act.getFunction();
-		ast.List<Expr> lstExpr = new ast.List<Expr>();
-
-		for(Name param : fun.getInputParams()) {
-			if(param.getID().compareTo(ARGS) == 0) {
-				//if(pat.getType().compareTo(CALL) == 0)
-				lstExpr.add(getDims(rhs));
-				//else
-				//lstExpr.add(new CellArrayExpr());
-			} else if(param.getID().compareTo(DIMS) == 0) {
-				//if(pat.getType().compareTo(GET) == 0)
-				//	lstExpr.add(getDims(rhs));
-				//else
-				lstExpr.add(new CellArrayExpr());
-			} else if(param.getID().compareTo(CF_INPUT_CASE.getID()) == 0) {
-				IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-				lstExpr.add(ile);
-			} else if(param.getID().compareTo(CF_INPUT_OBJ.getID()) == 0) {
-				if(pat.getType().compareTo(CALL) == 0)
-					lstExpr.add(new FunctionHandleExpr(new Name(target)));
-				else
-					lstExpr.add(new NameExpr(new Name(target)));
-			} else if(param.getID().compareTo(CF_INPUT_AGRS.getID()) == 0) {
-				lstExpr.add(getDims(rhs));
-			} else if(param.getID().compareTo(THIS) == 0) {
-				//do nothing
-			} else if(param.getID().compareTo(NAME) == 0) {
-				lstExpr.add(new StringLiteralExpr(target));
-			} else if(param.getID().compareTo(OBJ) == 0) {
-				if(pat.getType().compareTo(GET) == 0)
-					lstExpr.add(new NameExpr(new Name(target)));
-				else
-					lstExpr.add(new CellArrayExpr());
-			} else if(param.getID().compareTo(LINE) == 0) {
-				lstExpr.add(new IntLiteralExpr(new DecIntNumericLiteralValue(String.valueOf(context.getLine(context.getStart())))));
-			} else if(param.getID().compareTo(LOC) == 0) {
-				lstExpr.add(new StringLiteralExpr(getLocation(context)));
-			} else
-				lstExpr.add(new CellArrayExpr());
-		}
-
-		Expr de1 = new DotExpr(new NameExpr(new Name(GLOBAL_STRUCTURE)), new Name(act.getClassName()));
-		Expr de2 = new DotExpr(de1, new Name(act.getName()));
-		ParameterizedExpr pe = new ParameterizedExpr(de2, lstExpr);
-
-		Stmt action;
-		if(act.getType().compareTo(AROUND) == 0)
-			action = new AssignStmt(lhs, pe);
-		else
-			action = new ExprStmt(pe);
-
-		Stmt call = action;
-		action.setOutputSuppressed(true);
-		BinaryExpr cond;
-
-//		ASTNode node = stmts;
-//		while(node != null && !(node instanceof Function))
-//			node = node.getParent();
-//		boolean isScriptCF = false;
-//		ParameterizedExpr strcmp = new ParameterizedExpr();
-//
-//		if(node != null && ((Function)node).getName().startsWith(AM_CF_SCRIPT)) {
-//			isScriptCF = true;
-//			ast.List<Expr> lst = new ast.List<Expr>().add(new NameExpr(CF_INPUT_OBJ));
-//			lst.add(new StringLiteralExpr("AM_tmp_" + target));
-//			strcmp = new ParameterizedExpr(new NameExpr(new Name("strcmp")), lst);
-//		}
-
-		//ast.List<Expr> nlst = new ast.List<Expr>().add(new NameExpr(new Name(target)));
-		//ParameterizedExpr numel = new ParameterizedExpr(new NameExpr(new Name("numel")), nlst);
-		ast.List<Expr> elst = new ast.List<Expr>().add(new StringLiteralExpr(target));
-		elst.add(new StringLiteralExpr("var"));
-		ParameterizedExpr exist = new ParameterizedExpr(new NameExpr(new Name("exist")), elst);
-
-		if(pat.getType().compareTo(GET) == 0) {
-//			if(!(pat.getDims().compareTo("0") == 0)) {
-//				BinaryExpr cond2;
-//
-//				if(!pat.getDimsAndMore())
-//					cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
-//				else
-//					cond2 = new EQExpr(numel, new NameExpr(new Name(pat.getDims())));
-//
-//				IfBlock ib = new IfBlock(cond2, new ast.List<Stmt>().add(action));
-//				call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-//
-//				if(act.getType().compareTo(AROUND) == 0) {					
-//					AssignStmt eas = new AssignStmt(lhs, rhs);
-//					eas.setOutputSuppressed(true);
-//					ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
-//					call = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
-//				}
-//			}
-
-			//if(isScriptCF)
-			//	cond = new NEExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-			//else
-				cond = new EQExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-		} else {
-			//if(isScriptCF)
-			//	cond = new EQExpr(strcmp, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-			//else
-				cond = new NEExpr(exist, new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(1))));
-		}
-
-		IfBlock ib = new IfBlock(cond, new ast.List<Stmt>().add(call));
-		Stmt outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>());
-
-		if(act.getType().compareTo(AROUND) == 0) {					
-			AssignStmt eas = new AssignStmt(lhs, rhs);
-			eas.setOutputSuppressed(true);
-			ElseBlock eb = new ElseBlock(new ast.List<Stmt>().add(eas));
-			outerIf = new IfStmt(new ast.List<IfBlock>().add(ib), new Opt<ElseBlock>(eb));
-		}
-
-		if(act.getType().compareTo(BEFORE) == 0) {
-			stmts.insertChild(outerIf, s);
-			bcount += 1;
-		} else if(act.getType().compareTo(AFTER) == 0) {
-			stmts.insertChild(outerIf, s+bcount+acount+1);
-			acount += 1;
-		} else if(act.getType().compareTo(AROUND) == 0) {
-			IntLiteralExpr ile = new IntLiteralExpr(new DecIntNumericLiteralValue(Integer.toString(fun.getCorrespondingCount())));
-			addSwitchCaseToAroundCorrespondingFunction(lhs, rhs, fun.getNestedFunction(0), ile, pat.getType());
-			fun.incCorrespondingCount();
-			stmts.setChild(outerIf, s+bcount);
-		}
-	}
-}
-
-return acount + bcount;
-}*/
-	}
 
 }
