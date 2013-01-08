@@ -59,17 +59,6 @@
 	<!-- NB: overrides target from gen.xml -->
 	<target name="gen" depends="compile.test.generators, Gen.gen-parser, gen.tests" />
 
-	<!-- Overriding to define classpaths (may depend on bin.dir) -->
-	<target name="set.annotations.bin.dir.eclipse" if="inside.eclipse">
-		<property name="annotations.bin.dir" value="${annotations.eclipse.bin.dir}" />
-	</target>
-	
-	<target name="set.annotations.bin.dir.no.eclipse" unless="inside.eclipse">
-		<property name="annotations.bin.dir" value="${annotations.ant.bin.dir}" />
-	</target>
-	
-	<target name="set.annotations.bin.dir" depends="set.annotations.bin.dir.no.eclipse, set.annotations.bin.dir.eclipse" />
-	
 	<target name="set.natlab.bin.dir.eclipse" if="inside.eclipse">
 		<property name="natlab.bin.dir" value="${natlab.eclipse.bin.dir}" />
 	</target>
@@ -90,14 +79,13 @@
 
 	<target name="set.matlab.bin.dir" depends="set.matlab.bin.dir.no.eclipse, set.matlab.bin.dir.eclipse" />
 	
-	<target name="set.bin.dir" depends="set.annotations.bin.dir, set.natlab.bin.dir, set.matlab.bin.dir, BinDir.set.bin.dir">
+	<target name="set.bin.dir" depends="set.natlab.bin.dir, set.matlab.bin.dir, BinDir.set.bin.dir">
 		<path id="compile.classpath">
 			<path refid="junit.jar.path" />
 			<path refid="beaver.rt.jar.path" />
 			<path location="${basedir}/${bin.dir}" />
 			<path location="${basedir}/${natlab.bin.dir}" />
 			<path location="${basedir}/${matlab.bin.dir}" />
-			<path location="${basedir}/${annotations.bin.dir}" />
 		</path>
 		<path id="test.classpath">
 			<path refid="junit.jar.path" />
@@ -105,7 +93,6 @@
 			<path location="${basedir}/${bin.dir}" />
 			<path location="${basedir}/${natlab.bin.dir}" />
 			<path location="${basedir}/${matlab.bin.dir}" />
-			<path location="${basedir}/${annotations.bin.dir}" />
 		</path>
 	</target>
 
@@ -186,7 +173,7 @@
 		<echo message="BLAH: ${natlab.dir}" />
 		<ant dir="${natlab.dir}" target="build" inheritall="false" />
 	</target>
-	<target name="natlab.eclipse.build" depends="set.annotations.bin.dir" description="call eclipse.build for Natlab">
+	<target name="natlab.eclipse.build" description="call eclipse.build for Natlab">
 		<ant dir="${natlab.dir}" target="eclipse.build" inheritall="false" />
 	</target>
 

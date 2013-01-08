@@ -80,9 +80,6 @@ aspect AspectWeave {
     eq PersistentStmt.aspectsWeave() = true;
     eq ShellCommandStmt.aspectsWeave() = true;
     eq ReturnStmt.aspectsWeave() = true;
-    eq Annotation.aspectsWeave() = true;
-	eq ExpandedAnnotation.aspectsWeave() = true;
-	eq VariableDecl.aspectsWeave() = true;
 	eq BreakStmt.aspectsWeave()  = true;
     eq ContinueStmt.aspectsWeave()  = true;
     
