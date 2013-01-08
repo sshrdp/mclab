@@ -115,19 +115,13 @@
 	
 	<target name="set.exextension1.bin.dir" depends="set.exextension1.bin.dir.no.eclipse, set.exextension1.bin.dir.eclipse" />
 
-        <target name="set.bin.dir" depends="set.exextension1.bin.dir,set.natlab.bin.dir, set.annotations.bin.dir, BinDir.set.bin.dir">
+        <target name="set.bin.dir" depends="set.exextension1.bin.dir,set.natlab.bin.dir, BinDir.set.bin.dir">
           <path id="exextension2.compile.classpath">
             <path location="${basedir}/${exextension1.bin.dir}" />
             <path refid="beaver.rt.jar.path" />
-	    <path id="annotation.bin.path" location="${basedir}/${annotations.bin.dir}" />
 	    <path id="natlab.bin.path" location="${basedir}/${natlab.bin.dir}" />
           </path>
           <path id="compile.classpath" refid="exextension2.compile.classpath" />
-          <!--path id="compile.classpath" >
-	    <path refid="beaver.rt.jar.path" />
-	    <path id="annotation.bin.path" location="${basedir}/${annotations.bin.dir}" />
-	    <path id="natlab.bin.path" location="${basedir}/${natlab.bin.dir}" />
-          </path-->
           <path id="test.classpath" >
             <path id="local.bin.path" location="${basedir}/${bin.dir}" />
             <path refid="compile.classpath" />

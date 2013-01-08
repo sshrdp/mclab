@@ -87,10 +87,9 @@
 
 
 
-        <target name="set.bin.dir" depends="set.natlab.bin.dir, set.annotations.bin.dir, BinDir.set.bin.dir">
+        <target name="set.bin.dir" depends="set.natlab.bin.dir, BinDir.set.bin.dir">
           <path id="exextension1.compile.classpath" >
 	    <path refid="beaver.rt.jar.path" />
-	    <path id="annotation.bin.path" location="${basedir}/${annotations.bin.dir}" />
 	    <path id="natlab.bin.path" location="${basedir}/${natlab.bin.dir}" />
           </path>        
           <path id="compile.classpath" refid="exextension1.compile.classpath" />
