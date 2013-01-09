@@ -1,0 +1,161 @@
+// =========================================================================== //
+//                                                                             //
+// Copyright 2008-2011 Andrew Casey, Jun Li, Jesse Doherty,                    //
+//   Maxime Chevalier-Boisvert, Toheed Aslam, Anton Dubrau, Nurudeen Lameed,   //
+//   Amina Aslam, Rahul Garg, Soroush Radpour, Olivier Savary Belanger,        //
+//   Laurie Hendren, Clark Verbrugge and McGill University.                    //
+//                                                                             //
+//   Licensed under the Apache License, Version 2.0 (the "License");           //
+//   you may not use this file except in compliance with the License.          //
+//   You may obtain a copy of the License at                                   //
+//                                                                             //
+//       http://www.apache.org/licenses/LICENSE-2.0                            //
+//                                                                             //
+//   Unless required by applicable law or agreed to in writing, software       //
+//   distributed under the License is distributed on an "AS IS" BASIS,         //
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  //
+//   See the License for the specific language governing permissions and       //
+//   limitations under the License.                                            //
+//                                                                             //
+// =========================================================================== //
+
+import java.util.*;
+
+aspect NameResolution{
+
+    //function lookup implementation
+    syn Function FunctionList.getMainFunction() = getFunction(0);
+
+    syn lazy Map<String,Function> FunctionList.getSiblings() = new HashMap<String,Function>();
+    syn lazy Map<String,Function> Methods.getSiblings() = new HashMap<String,Function>();
+    syn lazy Map<String,Function> AspectAction.getSiblings() = new HashMap<String,Function>();
+    syn lazy Map<String,Function> FunctionList.getNested()
+    {
+        HashMap<String,Function> table = new HashMap<String,Function>();
+        for( int i=0; i<getNumFunction(); i++ ){
+            table.put( getFunction(i).getName(), getFunction(i) );
+        }
+        //TODO-JD: add alias for main function with file name
+        return table;
+    }
+    syn LocalFunctionLookupInterface FunctionList.getParentFunction() = null;
+    syn LocalFunctionLookupInterface AspectAction.getParentFunction() = null;
+    syn LocalFunctionLookupInterface Methods.getParentFunction() = null;
+
+    syn lazy Map<String,Function> Function.getNested()
+    {
+        HashMap<String, Function> table = new HashMap<String,Function>();
+        for( int i=0; i<getNumNestedFunction(); i++ ){
+            table.put( getNestedFunction(i).getName(), getNestedFunction(i) );
+        }
+        return table;
+    }
+
+    syn lazy Map<String, Function> Methods.getNested() {
+      HashMap<String, Function> table = new HashMap<String, Function>();
+      for (int i = 0; i < getNumFunction(); i++) {
+        table.put(getFunction(i).getName(), getFunction(i));
+      }
+      return table;
+    }
+
+    syn lazy Map<String, Function> AspectAction.getNested() {
+      HashMap<String, Function> table = new HashMap<String, Function>();
+      for (int i = 0; i < getNumNestedFunction(); i++) {
+        table.put(getNestedFunction(i).getName(), getNestedFunction(i));
+      }
+      return table;
+    }    
+
+    inh Map<String, Function> Function.getSiblings();    
+    eq FunctionList.getFunction(int i).getSiblings() = getNested();
+    eq Methods.getFunction(int i).getSiblings() = getNested();
+    eq AspectAction.getNestedFunction(int i).getSiblings() = getNested();
+    eq Function.getNestedFunction(int i).getSiblings() = getNested();
+    eq ClassDef.getMethod(int i).getSiblings() = new HashMap<String,Function>();
+
+
+    inh LocalFunctionLookupInterface Function.getParentFunction(); //TODO - fix this, it errors on functions without parents
+    eq FunctionList.getFunction(int i).getParentFunction() = this;
+    eq Methods.getFunction(int i).getParentFunction() = this;
+    eq AspectAction.getNestedFunction(int i).getParentFunction() = this;
+    eq Function.getNestedFunction(int i).getParentFunction() = this;
+    eq ClassDef.getMethod(int i).getParentFunction() = null; //TODO-JD: fix this
+
+    syn Function Function.lookupFunction( String name )
+    {
+        Function f = getNested().get(name);
+        if( f != null )
+            return f;
+        if (getParent() == null || getParentFunction() == null) return null;
+        return getParentFunction().lookupFunction( name );
+    }
+    syn Function FunctionList.lookupFunction( String name )
+    {
+        return getNested().get(name);
+    }
+ 
+    syn Function Methods.lookupFunction( String name )
+    {
+        return getNested().get(name);
+    }                                  
+ 
+    syn Function AspectAction.lookupFunction( String name )
+    {
+        return getNested().get(name);
+    }                                  
+
+    //helper function to get all visible functions from a given Function
+    //this probably won't be called often
+    syn Map<String,Function> FunctionList.getVisible()
+    {
+        /*HashMap<String,Function> table = new HashMap<String,Function>();
+        table.put(getMainFunction().getName(), getMainFunction());
+        return table;*/
+        return getNested();
+    }
+    syn Map<String,Function> Function.getVisible()
+    {
+        Map<String,Function> table = getParentFunction().getVisible();
+        table.putAll(getNested());
+        return table;
+    }
+
+    syn Map<String, Function> Methods.getVisible() {
+      return getNested();
+    }
+
+    syn Map<String, Function> AspectAction.getVisible() {
+      return getNested();
+    }
+
+    //get a set containing all input and output parameters for a function
+    syn lazy Set<String> Function.getOutParamSet()
+    {
+        LinkedHashSet<String> names = new LinkedHashSet<String>();
+        for( int i=0; i<getNumOutputParam(); i++ ){
+            if( !names.add( getOutputParam(i).getID() ) )
+                //TODO-JD:add error msg
+                System.err.println("duplicate output parameters");
+        }
+        return names;
+    }
+    syn lazy Set<String> Function.getInParamSet()
+    {
+        LinkedHashSet<String> names = new LinkedHashSet<String>();
+        for( int i=0; i<getNumInputParam(); i++ ){
+            if( !names.add( getInputParam(i).getID() ) )
+                //TODO-JD:add error msg
+                System.err.println("duplicate input parameters");
+        }
+        return names;
+    }
+        
+    syn lazy Set<String> Function.getParamSet()
+    {
+        LinkedHashSet<String> names = new LinkedHashSet<String>();
+        names.addAll(getInParamSet());
+        names.addAll(getOutParamSet());
+        return names;
+    }
+}

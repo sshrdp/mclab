@@ -8,6 +8,7 @@
 	<path id="beaver.rt.jar.path" path="${lib.dir}/${beaver.rt.jar.path.prop}" />
 	<path id="jastadd.jar.path" path="${lib.dir}/${jastadd.jar.path.prop}" />
 	<path id="junit.jar.path" path="${lib.dir}/${junit.jar.path.prop}" />
+  <path id="guava.jar.path" path="${lib.dir}/${guava.jar.path.prop}" />
 
 	<!--=====================================================================-->
 	<!-- Private Targets                                                     -->
@@ -22,7 +23,7 @@
 
 	<target name="compile.test.generators" unless="inside.eclipse">
 		<mkdir dir="${ant.bin.dir}" />
-		<javac destdir="${basedir}/${ant.bin.dir}">
+		<javac includeantruntime="false" destdir="${basedir}/${ant.bin.dir}">
 			<src path="${test.dir}" />
 			<include name="**/*TestGenerator.java" />
 		</javac>
@@ -113,24 +114,24 @@
 	
 	<!-- NB: overrides target from gen.xml -->
 	<target name="parser" depends="def.beaver.task">
-            <mkdir dir="${gen.dir}/${parser.dir}"/>
-            <!-- generate the parser phase 1, create a full .lalr specification from fragments-->
-            <concat destfile="${gen.dir}/${parser.dir}/${parser.input}" binary="true" force="false">
-            		<fileset dir="${parent.src.dir}/${parser.dir}">
-                            <include name="**/*.parser"/>
-            				<exclude name="header.parser"/>
-                    </fileset>
-                    <fileset dir="${src.dir}">
-                            <include name="**/*.parser"/>
-                    </fileset>
-            </concat>
-            <!-- generate the parser phase 2, translating .lalr to .beaver -->
-	<java classpath="${lib.dir}/${jastaddparser.jar.path.prop}:${lib.dir}/${beaver.rt.jar.path.prop}" classname="Main" fork="true">
-                    <arg line="${gen.dir}/${parser.dir}/${parser.input} ${gen.dir}/${parser.dir}/${parser.grammar}"/>
-            </java>
-            <!-- generate the parser phase 3, translating .beaver to .java -->
-            <beaver file="${gen.dir}/${parser.dir}/${parser.grammar}" destdir="${gen.dir}/${parser.output}" terminalNames="yes" compress="no" useSwitch="yes"/>
-    </target>
+    <mkdir dir="${gen.dir}/${parser.dir}"/>
+    <!-- generate the parser phase 1, create a full .lalr specification from fragments-->
+    <concat destfile="${gen.dir}/${parser.dir}/${parser.input}" binary="true" force="false">
+      <fileset dir="${parent.src.dir}/${parser.dir}">
+        <include name="**/*.parser"/>
+        <exclude name="header.parser"/>
+      </fileset>
+      <fileset dir="${src.dir}">
+        <include name="**/*.parser"/>
+      </fileset>
+    </concat>
+    <!-- generate the parser phase 2, translating .lalr to .beaver -->
+	  <java classpath="${lib.dir}/${jastaddparser.jar.path.prop}:${lib.dir}/${beaver.rt.jar.path.prop}" classname="Main" fork="true">
+      <arg line="${gen.dir}/${parser.dir}/${parser.input} ${gen.dir}/${parser.dir}/${parser.grammar}"/>
+    </java>
+    <!-- generate the parser phase 3, translating .beaver to .java -->
+    <beaver file="${gen.dir}/${parser.dir}/${parser.grammar}" destdir="${gen.dir}/${parser.output}" terminalNames="yes" compress="no" useSwitch="yes"/>
+  </target>
 	
 	<!-- generates Java files from JastAdd specs -->
 	<!-- NB: overrides target from gen.xml -->
@@ -138,15 +139,13 @@
 		<mkdir dir="${gen.dir}/${ast.pkg}" />
 		<jastadd package="${ast.pkg}" beaver="true" rewrite="true" outdir="${basedir}/${gen.dir}">
 			<fileset dir="${parent.src.dir}">
-				<include name="**/*.ast" />
+				<include name="*.ast" />
 				<include name="Comments.jadd" />
 				<include name="OutputSuppression.jadd" />
 				<include name="PrettyPrint.jrag" />
 				<include name="ASTAnalyze.jadd" />
-				<include name="SSA.jrag" />
+				<include name="VarName.jadd" />
 				<include name="LValue.jrag" />
-				<!-- <include name="**/*.jadd" /> -->
-				<!-- <include name="**/*.jrag" /> -->
 			</fileset>
 			<fileset dir="${parent.test.dir}">
 				<include name="**/*.ast" />
@@ -170,14 +169,11 @@
 	<!--=====================================================================-->
 
 	<target name="natlab.build" description="call build for Natlab">
-		<echo message="BLAH: ${natlab.dir}" />
 		<ant dir="${natlab.dir}" target="build" inheritall="false" />
 	</target>
 	<target name="natlab.eclipse.build" description="call eclipse.build for Natlab">
 		<ant dir="${natlab.dir}" target="eclipse.build" inheritall="false" />
 	</target>
-
-	
 
 	<!--=====================================================================-->
 	<!-- Public Targets                                                      -->
@@ -187,58 +183,48 @@
 	<import file="../shared/eclipse.xml" />
 
 	<!-- public versions of cli.xml targets -->
-	<target name="build" depends="natlab.build, CommandLineInterface.build" description="generate and build all files" />
+	<target name="build" depends="CommandLineInterface.build" description="generate and build all files" />
 	<target name="clean" depends="CommandLineInterface.clean" description="deletes all files produced by build" />
-	<target name="test" depends="CommandLineInterface.test" description="runs all JUnit tests" />
+	<target name="test" depends="natlab.build, CommandLineInterface.test" description="runs all JUnit tests" />
 
-	<target name="jar" depends="gen, compile" description="creates an executable release jar without cleaning first">
+	<target name="jar" depends="natlab.build, gen, compile.with.tests" description="creates an executable release jar without cleaning first">
 		<jar destfile="${entrypoint.jarname}">
 			<manifest>
 				<attribute name="Main-Class" value="${entrypoint.class}" />
 			</manifest>
 			<fileset dir="${basedir}/${bin.dir}" includes="**/*.class" />
 			<zipfileset src="${lib.dir}/${beaver.rt.jar.path.prop}">
-              <patternset>
-                <exclude name="META-INF/**" />
-              </patternset>
-            </zipfileset>
-            <zipfileset dir="${natlab.bin.dir}">
-            	<include name="natlab/toolkits/analysis/*.class" />
-            	<include name="natlab/toolkits/analysis/varorfun/*.class" />
-		<!-- added for Resolution Rewrites -->
-		<include name="natlab/toolkits/rewrite/*.class"/>
-		<include name="natlab/toolkits/rewrite/clearresolution/*.class"/>
-		<include name="natlab/toolkits/rewrite/endresolution/*.class"/>
-            	<include name="natlab/CommentBuffer.class" />
-            	<include name="natlab/Main.class" />
-            	<include name="natlab/CompilationProblem.class" />
-            	<include name="natlab/NatlabScanner.class" />
-            	<include name="natlab/server/HeartBeatTask.class" />
-            	<include name="natlab/DecIntNumericLiteralValue.class" />
-            	<include name="natlab/IntNumericLiteralValue.class" />
-            	<include name="natlab/NumericLiteralValue.class" />
-				<include name="natlab/FPNumericLiteralValue.class"  />
-            </zipfileset>
+        <patternset> <exclude name="META-INF/**" /> </patternset>
+      </zipfileset>
+ 			<zipfileset src="${lib.dir}/${guava.jar.path.prop}">
+        <patternset> <exclude name="META-INF/**" /> </patternset>
+      </zipfileset>                  
+      <zipfileset dir="${natlab.bin.dir}">
+        <include name="analysis/**/*.class" />
+        <include name="nodecases/**/*.class" />
+        <include name="natlab/toolkits/analysis/*.class" />
+        <include name="natlab/toolkits/analysis/varorfun/*.class" />
+        <include name="natlab/toolkits/filehandling/*.class" />
+        <include name="natlab/toolkits/rewrite/*.class"/>
+        <include name="natlab/toolkits/rewrite/clearresolution/*.class"/>
+        <include name="natlab/toolkits/rewrite/endresolution/*.class"/>
+        <include name="natlab/*.class" />
+      </zipfileset>
 			<zipfileset src="${lib.dir}/${antlr3.rt.jar.path.prop}" >
-				<patternset>
-	                <exclude name="META-INF/**" />
-	            </patternset>
+				<patternset> <exclude name="META-INF/**" /> </patternset>
 			</zipfileset>
 			<zipfileset dir="${matlab.bin.dir}/" includes="**/*.class" />
 			<zipfileset src="${lib.dir}/${string.template.jar.path.prop}">
-                  <patternset>
-                    <exclude name="META-INF/**" />
-                  </patternset>
-            </zipfileset>
-            <zipfileset src="${lib.dir}/${antlr2.jar.path.prop}">
-                  <patternset>
-                    <exclude name="META-INF/**" />
-                  </patternset>
-        	</zipfileset>
+        <patternset> <exclude name="META-INF/**" /> </patternset>
+      </zipfileset>
+      <zipfileset src="${lib.dir}/${antlr2.jar.path.prop}">
+        <patternset> <exclude name="META-INF/**" /> </patternset>
+      </zipfileset>
+      <fileset dir="${natlab.dir}/resources" />
 		</jar>
-        <echo file="${entrypoint.script.name}">${entrypoint.script.header}
-			java -jar ${basedir}/${entrypoint.jarname} $$*</echo>
-        <chmod file="${entrypoint.script.name}" perm="755" />
+    <echo file="${entrypoint.script.name}">${entrypoint.script.header}
+			java -jar "${basedir}/${entrypoint.jarname}" $$*</echo>
+    <chmod file="${entrypoint.script.name}" perm="755" />
 	</target>
 
 	<!-- public versions of eclipse.xml targets -->
