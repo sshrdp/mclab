@@ -1,0 +1,198 @@
+MODULE Mod_drv_clos
+CONTAINS
+
+SUBROUTINE closure(N, t2, B)
+INTEGER :: N
+DOUBLE PRECISION, DIMENSION(1, 6) :: t2
+DOUBLE PRECISION, DIMENSION(N, N) :: B
+INTEGER, DIMENSION(N, N) :: A
+INTEGER :: jj
+DOUBLE PRECISION :: ONE
+INTEGER :: ii1
+DOUBLE PRECISION :: ZERO
+DOUBLE PRECISION :: ii
+DOUBLE PRECISION, DIMENSION(N, N) :: B1
+INTEGER, DIMENSION(N, N) :: tmpvar11
+
+ZERO = 0.0
+ZERO = ZERO
+ONE = 1.0
+ONE = ONE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+! %-----------------------------------------------------------------------
+! %
+! %	This function M-file computes the transitive closure of a
+! %	directed graph. An adjacency matrix representation of the
+! %	directed graph is used, which is initialized arbitrarily.
+! %
+! %	Invocation:
+! %		>> [t2, B] = closure(N)
+! %
+! %		where
+! %
+! %		i. N is the number of nodes in the directed graph,
+! %
+! %		o. t2 is the elapsed time in seconds after
+! %		   initialization,
+! %
+! %		o. B is the transitive closure.
+! %
+! %	Requirements:
+! %		N is a positive integer.
+! %
+! %	Examples:
+! %		>> [t2, B] = closure(128)
+! %
+! %	Source:
+! %		Quinn's "Otter" project.
+! %
+! %	Author:
+! %		Yan Zhao (zhao@cs.orst.edu).
+! %
+! %	Date:
+! %		July 1997.
+! %
+! %-----------------------------------------------------------------------
+! % Initialization.
+A = 0;
+DO ii1 = 1 , N
+	
+	DO jj = 1 , N
+	IF (((ii1 * jj) < ((N + 0.0) / 2))) THEN 
+	A((N - ii1), (ii1 + jj)) = 1;
+	A(ii1, ((N - ii1) - jj)) = 1;
+END IF
+	IF ((ii1 == jj)) THEN 
+	A(ii1, jj) = 1;
+END IF
+END DO
+END DO
+
+ii = ii1
+B = A;
+
+! % Initialization time.
+CALL CPU_TIME(timing_clock); t2 = 0.0;t2(1,6) = timing_clock;
+
+! % Perform actual work.
+ii = ((N + 0.0) / 2);
+DO  
+	
+	
+	IF ((ii >= 1)) THEN 
+	B1 = B
+	CALL dgemm('N', 'N', N, N, N, ONE, B1, N, B1, N, ZERO, B, N) ;
+	ii = (ii / 2);
+ELSE 
+	EXIT
+END IF
+END DO
+
+
+tmpvar11 = (B > 0)
+B = tmpvar11;
+END SUBROUTINE closure
+
+END MODULE Mod_drv_clos
+
+PROGRAM drv_clos
+USE Mod_drv_clos
+IMPLICIT NONE
+
+
+
+INTEGER :: scale
+DOUBLE PRECISION :: time
+DOUBLE PRECISION, DIMENSION(1) :: output
+CHARACTER(3) :: valid
+DOUBLE PRECISION, DIMENSION(1, 6) :: t3
+DOUBLE PRECISION, DIMENSION(1, 6) :: t2
+DOUBLE PRECISION, DIMENSION(1, 6) :: t1
+CHARACTER(10) :: arg_buffer
+DOUBLE PRECISION, DIMENSION(:, :), ALLOCATABLE :: B
+DOUBLE PRECISION :: timing_clock
+INTEGER :: N
+DOUBLE PRECISION :: tmpvar3
+INTEGER, DIMENSION(1, 6) :: tmpvar1
+INTEGER :: time1
+DOUBLE PRECISION :: ONE
+DOUBLE PRECISION :: ZERO
+INTEGER :: int_tmpvar
+DOUBLE PRECISION, DIMENSION(1, 1) :: tmpvar12
+
+timing_clock = 0.0
+ZERO = 0.0
+ONE = 1.0
+int_tmpvar = 0
+arg_buffer = '0000000000'
+DO int_tmpvar = 1 , IARGC()
+	CALL GETARG(int_tmpvar, arg_buffer) 
+	IF ((int_tmpvar == 1)) THEN 
+	READ(arg_buffer, *) scale
+END IF
+END DO
+
+timing_clock = timing_clock
+CALL CPU_TIME(timing_clock); t1 = 0.0;t1(1,6) = timing_clock;
+N = 450;
+DO time1 = 1 , scale
+	IF ((.NOT. ALLOCATED(B))) THEN 
+	ALLOCATE(B(N, N))
+END IF
+	CALL closure(N, t2, B)
+END DO
+time = time1
+CALL CPU_TIME(timing_clock); t3 = 0.0;t3(1,6) = timing_clock;
+
+tmpvar1(1, :) = [0, 0, 86400, 3600, 60, 1];
+tmpvar12 = MATMUL((t3 - t1), TRANSPOSE(tmpvar1))
+! % Compute the running time in seconds
+time = tmpvar12(1, 1);
+
+tmpvar3 =  (SUM(B)/(0.0+SIZE(B)));
+! % Store the benchmark output
+output = [tmpvar3];
+
+! % No validation performed
+valid = 'N/A';
+PRINT *,time;
+PRINT *,output;
+PRINT *,valid;
+DEALLOCATE(B)
+END PROGRAM drv_clos
+
