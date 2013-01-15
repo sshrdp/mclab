@@ -49,9 +49,17 @@ public class ArrayGetSet {
 			
 			array_set.getLHS()
 					.setValue(
-							new ArrayAccess(new IDUse(LHS), Expressions.getArgs(node.getLHS()))
+							new ArrayAccess(new IDUse(LHS), Expressions.getArgs(node.getLHS(), target))
 							);
-			array_set.setRHS(Expressions.makeIRx10Exp(node.getRHS()));
+			
+			boolean tf = true;
+			if (null != array_set.getLHS().getShape())
+			for (int i = 0; i < array_set.getLHS().getShape().size(); i++) {
+				if (null != array_set.getLHS().getShape().get(i))
+					tf &= ("1").equals(array_set.getLHS().getShape().get(i)
+					.toString());
+			}
+			array_set.setRHS(Expressions.makeIRx10Exp(node.getRHS(), tf, target));
 			
 			//System.out.println(((IDUse) ((ArrayAccess)array_set.getLHS().getValue()).getIndices(0)).getID()+"%%");
 			

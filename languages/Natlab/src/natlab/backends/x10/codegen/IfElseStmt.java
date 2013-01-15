@@ -25,7 +25,7 @@ public class IfElseStmt {
 			
 			System.out.println(if_block.getCondition().getPrettyPrinted());
 			
-			temp.setCondition(Expressions.makeIRx10Exp(if_block.getCondition()));
+			temp.setCondition(Expressions.makeIRx10Exp(if_block.getCondition(), true, target));//CHECK IT
 			temp.setIfBody(new IfBody());
 			
 			IfBody loop_body_block = temp.getIfBody();

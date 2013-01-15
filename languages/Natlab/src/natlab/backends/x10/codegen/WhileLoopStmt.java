@@ -7,7 +7,7 @@ public class WhileLoopStmt {
 	
 	public static void handleTIRWhileStmt(TIRWhileStmt node, IRx10ASTGenerator target, StmtBlock block) {
 		WhileStmt while_stmt =  new WhileStmt();
-		while_stmt.setCondition(Expressions.makeIRx10Exp(node.getExpr()));
+		while_stmt.setCondition(Expressions.makeIRx10Exp(node.getExpr(), true, target));//check it
 		
 		System.out.println(while_stmt.getCondition().toString());
 		while_stmt.setLoopBody(new LoopBody(new List<Stmt>()));

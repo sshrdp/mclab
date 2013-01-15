@@ -39,7 +39,18 @@ public class AssignsAndDecls {
 			assign_stmt.getLHS().setName(
 					((TIRAbstractAssignToVarStmt) node).getTargetName().getID()
 							.toString());
-			setRHSValue(isDecl, assign_stmt, node);
+			
+			
+			boolean tf = true;
+			if (null != assign_stmt.getLHS().getShape())
+			for (int i = 0; i < assign_stmt.getLHS().getShape().size(); i++) {
+				if (null != assign_stmt.getLHS().getShape().get(i))
+					tf &= ("1").equals(assign_stmt.getLHS().getShape().get(i)
+					.toString());
+			}
+			
+			//tf=true => scalar
+			setRHSValue(isDecl, assign_stmt, node, tf, target);
 			block.addStmt(assign_stmt);
 			// TODO : Handle expressions of various types
 			// Set parent's value in various expressions
@@ -51,7 +62,16 @@ public class AssignsAndDecls {
 					target.index, node, LHS));
 
 			decl_stmt.getLHS().setName(((TIRAbstractAssignToVarStmt)node).getLHS().getVarName());
-			setRHSValue(isDecl, decl_stmt, node);
+			
+			boolean tf = true;
+			if (null != decl_stmt.getLHS().getShape()){
+			for (int i = 0; i < decl_stmt.getLHS().getShape().size(); i++) {
+				if (null != decl_stmt.getLHS().getShape().get(i))
+					tf &= ("1").equals(decl_stmt.getLHS().getShape().get(i)
+					.toString());
+			}
+			}
+			setRHSValue(isDecl, decl_stmt, node, tf, target);
 
 //			target.symbolMap
 //					.put(((TIRAbstractAssignToVarStmt)node).getLHS().getVarName(), Helper
@@ -68,13 +88,13 @@ public class AssignsAndDecls {
 	}
 
 	public static void setRHSValue(boolean isDecl, Stmt decl_or_assgn,
-			TIRAbstractAssignStmt node) {
+			TIRAbstractAssignStmt node, boolean isScalar, IRx10ASTGenerator target) {
 		if (isDecl) {
 			((DeclStmt) decl_or_assgn).setRHS(Expressions.makeIRx10Exp(node
-					.getRHS()));
+					.getRHS(), isScalar, target));
 		} else {
 			((AssignStmt) decl_or_assgn).setRHS(Expressions.makeIRx10Exp(node
-					.getRHS()));
+					.getRHS(), isScalar, target));
 		}
 
 	}
@@ -88,6 +108,11 @@ public class AssignsAndDecls {
 			StmtBlock block) {
 
 		// Handle separately if only one variable in LHS
+		
+		//TODO Dec 11 2012
+		//By default it assumes values are not scalar
+		//Fix this to determine correct shape
+		
 		if (1 == ((TIRAbstractAssignToListStmt) node).getTargets().asNameList()
 				.size()) {
 			String LHS;
@@ -104,6 +129,8 @@ public class AssignsAndDecls {
 			
 			
 			if (true == target.symbolMap.containsKey(target.symbolMapKey)) {
+				
+				
 				isDecl = false;
 				// IDInfo LHSinfo = new IDInfo();
 				// assign_stmt.setLHS(LHSinfo);
@@ -112,7 +139,7 @@ public class AssignsAndDecls {
 						target.index, node, LHS));
 				list_single_assign_stmt.getLHS().setName(
 						((TIRAbstractAssignToListStmt) node).getTargets().getChild(0).getVarName());
-				setRHSValue(false, list_single_assign_stmt, node);
+				setRHSValue(false, list_single_assign_stmt, node, false, target);
 				block.addStmt(list_single_assign_stmt);
 
 			} else {
@@ -123,7 +150,7 @@ public class AssignsAndDecls {
 						target.index, node, LHS));
 
 				decl_stmt.getLHS().setName(((TIRAbstractAssignToListStmt)node).getTargets().getChild(0).getVarName());
-				setRHSValue(isDecl, decl_stmt, node);
+				setRHSValue(isDecl, decl_stmt, node, false, target);
 
 				target.symbolMap.put(target.symbolMapKey, Helper
 						.getAnalysisValue(target.analysis, target.index, node,
@@ -163,7 +190,7 @@ public class AssignsAndDecls {
 			}
 			System.out.println("^*^"+list_assign_stmt.getMultiAssignLHS().getIDInfoList().getNumChild());
 			list_assign_stmt.setLHS(null);
-			setRHSValue(false, list_assign_stmt, node);
+			setRHSValue(false, list_assign_stmt, node, false, target);
 			block.addStmt(list_assign_stmt);
 		}
 

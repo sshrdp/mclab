@@ -1,0 +1,37 @@
+<mix10>
+
+	<plus>
+		<arrays>
+			<type1>
+				This is type 1..arrays
+			</type1>
+			<type2>
+				This is type 2
+			</type2>
+			<type3>
+				This is type 3
+			</type3>
+			<type4>
+				This is type 4
+			</type4>
+		</arrays>
+		<gml>
+			<type1>
+				This is type 1...GML
+			</type1>
+			<type2>
+				This is type 2
+			</type2>
+			<type3>
+				This is type 3
+			</type3>
+			<type4>
+				This is type 4
+			</type4>
+		</gml>
+	</plus>
+
+
+
+
+</mix10>
